@@ -1,0 +1,58 @@
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { coinGeckoBaseURL, supportedCoins } from '../../utils/constants'
+import got from 'got'
+import { getErrorDetails } from '../../utils/errors'
+
+export interface GeckoPrices {
+  id: string
+  symbol: string
+  name: string
+  image: string
+  current_price: number
+  market_cap: number
+  market_cap_rank: number
+  fully_diluted_valuation: number
+  total_volume: number
+  high_24h: number
+  low_24h: number
+  price_change_24h: number
+  price_change_percentage_24h: number
+  market_cap_change_24h: number
+  market_cap_change_percentage_24h: number
+  circulating_supply: number
+  total_supply: number
+  max_supply: number
+  ath: number
+  ath_change_percentage: number
+  ath_date: string
+  atl: number
+  atl_change_percentage: number
+  atl_date: string
+  roi?: null
+  last_updated: string
+  sparkline_in_7d: {
+    price?: number[] | null
+  }
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<GeckoPrices[] | { error: string }>
+) {
+  const geckoMarketsPath = `${coinGeckoBaseURL}/coins/markets`
+  const geckoOpts = {
+    vs_currency: 'usd',
+    ids: supportedCoins.join(','),
+    sparkline: true,
+  }
+  try {
+    const data = await got
+      .get(geckoMarketsPath, { searchParams: geckoOpts })
+      .json<GeckoPrices[]>()
+    // TODO(jh): only return the exact data needed for out frontend to improve loading time
+    res.status(200).json(data)
+  } catch (err: any) {
+    const { status, message } = getErrorDetails(err)
+    return res.status(status).json({ error: message })
+  }
+}
