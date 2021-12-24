@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import React from 'react'
 import { GeckoPrices } from './api/prices'
 import ky from 'ky'
-import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { Line, LineChart, YAxis } from 'recharts'
 
 const Home: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true)
@@ -103,8 +103,8 @@ const Home: NextPage = () => {
                           </td>
                           <td>
                             <LineChart
-                              width={200}
-                              height={75}
+                              width={125}
+                              height={40}
                               data={(coin.sparkline_in_7d.price ?? [0])
                                 .slice(
                                   (coin.sparkline_in_7d.price ?? [0]).length -

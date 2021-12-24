@@ -30,9 +30,15 @@ export interface GeckoPrices {
   atl_date: string
   roi?: null
   last_updated: string
+  // Keep in mind that this sparkline is just an array of prices, it doesn't contain timestamp or date values.
   sparkline_in_7d: {
     price?: number[] | null
   }
+  price_change_percentage_1h_in_currency: number
+  price_change_percentage_1y_in_currency: number
+  price_change_percentage_24h_in_currency: number
+  price_change_percentage_30d_in_currency: number
+  price_change_percentage_7d_in_currency: number
 }
 
 export default async function handler(
@@ -44,6 +50,7 @@ export default async function handler(
     vs_currency: 'usd',
     ids: supportedCoins.join(','),
     sparkline: true,
+    price_change_percentage: '1h,24h,7d,30d,1y',
   }
   try {
     const data = await got

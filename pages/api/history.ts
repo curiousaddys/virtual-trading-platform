@@ -15,6 +15,8 @@ const QuerySchema = z.object({
   days: z.enum(['1', '7', '30', '365', 'max']).default('1'),
 })
 
+// This endpoint returns an array with timestamps and prices.
+// For 1 day, the data has minutely granularity. For 7 or 30 days, hourly. For 365+ days, daily.
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GeckoPriceHistory | { error: string }>
