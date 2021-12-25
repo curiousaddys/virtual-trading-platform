@@ -1,16 +1,18 @@
 import type { NextPage } from 'next'
 import Image from 'next/image'
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import React from 'react'
 import { GeckoPrices } from './api/prices'
 import ky from 'ky'
 import { Line, LineChart, YAxis } from 'recharts'
+import { UserContext } from '../hooks/useUser'
 
 const Home: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   // TODO(jh): maybe make a hook like you did for ALC API?
   const [prices, setPrices] = useState<GeckoPrices[] | null>(null)
+  const { user } = useContext(UserContext)
 
   useEffect(() => {
     // TODO(jh): handle errors
@@ -31,6 +33,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <div>Logged in user address: {user?.address || 'None'}</div>
       <div className="container flex justify-center mx-auto">
         {isLoading ? (
           <p>Loading...</p>

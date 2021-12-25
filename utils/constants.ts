@@ -53,3 +53,8 @@ export const supportedCoins = [
 ] as const
 
 export const coinGeckoBaseURL = 'https://api.coingecko.com/api/v3'
+
+export const signatureText =
+  "Sign in to Curious Addys' Virtual Trading Platform as "
+
+export const accountCookieName = 'catc_itp_account'
