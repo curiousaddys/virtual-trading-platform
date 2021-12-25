@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { coinGeckoBaseURL, supportedCoins } from '../../utils/constants'
+import { COINGECKO_BASE_URL, SUPPORTED_COINS } from '../../utils/constants'
 import got from 'got'
-import { z, ZodError } from 'zod'
+import { z } from 'zod'
 import { getErrorDetails } from '../../utils/errors'
 
 export interface GeckoDetails {
@@ -93,17 +93,16 @@ interface GeckoPrice {
 }
 
 const QuerySchema = z.object({
-  coin: z.enum(supportedCoins),
+  coin: z.enum(SUPPORTED_COINS),
 })
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GeckoDetails | { error: string }>
 ) {
-  // TODO(jh): consider using zod to parse queries
   try {
     const { coin } = QuerySchema.parse(req.query)
-    const geckoCoinDetailsPath = `${coinGeckoBaseURL}/coins/${coin}`
+    const geckoCoinDetailsPath = `${COINGECKO_BASE_URL}/coins/${coin}`
     const geckoOpts = {
       localization: false,
       tickers: false,

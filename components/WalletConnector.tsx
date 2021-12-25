@@ -1,7 +1,7 @@
 import { useWeb3React } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import React, { useContext, useEffect, useState } from 'react'
-import { signatureText } from '../utils/constants'
+import { SIGNATURE_TEXT } from '../utils/constants'
 import { UserContext } from '../hooks/useUser'
 import { isBrowserCompatible, isEthereumObjectOnWindow } from '../utils/browser'
 
@@ -22,7 +22,7 @@ export const WalletConnector = () => {
     if (account) {
       ;(async () => {
         const signer = await library.getSigner(account)
-        const signature = await signer.signMessage(signatureText + account)
+        const signature = await signer.signMessage(SIGNATURE_TEXT + account)
         setUser({ address: account, signature })
       })()
     }

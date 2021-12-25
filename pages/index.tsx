@@ -7,12 +7,28 @@ import { GeckoPrices } from './api/prices'
 import ky from 'ky'
 import { Line, LineChart, YAxis } from 'recharts'
 import { UserContext } from '../hooks/useUser'
+import { Account } from '../db/accounts'
+import { formatPercent, formatUSD } from '../utils/format'
 
 const Home: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true)
-  // TODO(jh): maybe make a hook like you did for ALC API?
+  // TODO(jh): consider making hooks for api calls like you did for ALC API?
   const [prices, setPrices] = useState<GeckoPrices[] | null>(null)
+  const [account, setAccount] = useState<Account | null>(null)
   const { user } = useContext(UserContext)
+
+  useEffect(() => {
+    if (!user) {
+      return setAccount(null)
+    }
+    // TODO(jh): handle errors (clear user if 401)
+    ;(async () => {
+      const data = await ky.get('/api/account').json<Account>()
+      // TODO(jh): remove logging
+      console.log(data)
+      setAccount(data)
+    })()
+  }, [user])
 
   useEffect(() => {
     // TODO(jh): handle errors
@@ -33,15 +49,25 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div>Logged in user address: {user?.address || 'None'}</div>
       <div className="container flex justify-center mx-auto">
         {isLoading ? (
           <p>Loading...</p>
         ) : (
           <div className="flex flex-col">
+            {account && (
+              <div>
+                <div className="mb-1">{account.address}</div>
+                <div className="text-lg font-bold">Portfolio:</div>
+                {account.portfolios[0].holdings.map((h) => (
+                  <div key={h.currency}>
+                    <span className="font-bold">{h.currency}:</span>{' '}
+                    {formatUSD(h.amount)}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="w-full">
               <div className="shadow rounded-lg border my-20">
-                {/*TODO: style table nicer*/}
                 <table className="table-auto w-full">
                   <thead className="bg-gray-50">
                     <tr>
@@ -81,11 +107,7 @@ const Home: NextPage = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                            $
-                            {coin.current_price.toLocaleString('en-US', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            {formatUSD(coin.current_price)}
                           </td>
                           <td
                             className={`px-6 py-4 text-sm text-gray-500 text-right ${
@@ -94,29 +116,24 @@ const Home: NextPage = () => {
                                 : 'text-red-500'
                             }`}
                           >
-                            {coin.price_change_percentage_24h.toLocaleString(
-                              'en-US',
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                                signDisplay: 'always',
-                              }
-                            )}
-                            %
+                            {formatPercent(coin.price_change_percentage_24h)}%
                           </td>
                           <td>
                             <LineChart
                               width={125}
                               height={40}
-                              data={(coin.sparkline_in_7d.price ?? [0])
-                                .slice(
-                                  (coin.sparkline_in_7d.price ?? [0]).length -
-                                    25,
-                                  coin.sparkline_in_7d.price?.length
-                                )
-                                .map((x) => ({
-                                  x,
-                                }))}
+                              data={
+                                // TODO(jh): handle this data on backend
+                                (coin.sparkline_in_7d.price ?? [0])
+                                  .slice(
+                                    (coin.sparkline_in_7d.price ?? [0]).length -
+                                      25,
+                                    coin.sparkline_in_7d.price?.length
+                                  )
+                                  .map((n) => ({
+                                    n,
+                                  }))
+                              }
                               margin={{
                                 top: 10,
                                 right: 10,
@@ -131,7 +148,7 @@ const Home: NextPage = () => {
                               />
                               <Line
                                 type="linear"
-                                dataKey="x"
+                                dataKey="n"
                                 stroke={
                                   coin.price_change_percentage_24h >= 0
                                     ? '#22c55e'

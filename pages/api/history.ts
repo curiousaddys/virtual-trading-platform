@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { coinGeckoBaseURL, supportedCoins } from '../../utils/constants'
+import { COINGECKO_BASE_URL, SUPPORTED_COINS } from '../../utils/constants'
 import got from 'got'
 import { z } from 'zod'
 import { getErrorDetails } from '../../utils/errors'
@@ -11,7 +11,7 @@ export interface GeckoPriceHistory {
 }
 
 const QuerySchema = z.object({
-  coin: z.enum(supportedCoins),
+  coin: z.enum(SUPPORTED_COINS),
   days: z.enum(['1', '7', '30', '365', 'max']).default('1'),
 })
 
@@ -23,7 +23,7 @@ export default async function handler(
 ) {
   try {
     const { coin, days } = QuerySchema.parse(req.query)
-    const geckoCoinDetailsPath = `${coinGeckoBaseURL}/coins/${coin}/market_chart`
+    const geckoCoinDetailsPath = `${COINGECKO_BASE_URL}/coins/${coin}/market_chart`
     const geckoOpts = {
       vs_currency: 'usd',
       days: days,

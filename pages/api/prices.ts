@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { coinGeckoBaseURL, supportedCoins } from '../../utils/constants'
+import { COINGECKO_BASE_URL, SUPPORTED_COINS } from '../../utils/constants'
 import got from 'got'
 import { getErrorDetails } from '../../utils/errors'
 
@@ -45,10 +45,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GeckoPrices[] | { error: string }>
 ) {
-  const geckoMarketsPath = `${coinGeckoBaseURL}/coins/markets`
+  const geckoMarketsPath = `${COINGECKO_BASE_URL}/coins/markets`
   const geckoOpts = {
     vs_currency: 'usd',
-    ids: supportedCoins.join(','),
+    ids: SUPPORTED_COINS.join(','),
     sparkline: true,
     price_change_percentage: '1h,24h,7d,30d,1y',
   }

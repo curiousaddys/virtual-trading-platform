@@ -1,5 +1,5 @@
 // Top 50 coins based on market cap as of Dec 22, 2021.
-export const supportedCoins = [
+export const SUPPORTED_COINS = [
   'bitcoin',
   'ethereum',
   'binancecoin',
@@ -52,9 +52,11 @@ export const supportedCoins = [
   'compound-usd-coin',
 ] as const
 
-export const coinGeckoBaseURL = 'https://api.coingecko.com/api/v3'
+export const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3'
 
-export const signatureText =
+export const SIGNATURE_TEXT =
   "Sign in to Curious Addys' Virtual Trading Platform as "
 
-export const accountCookieName = 'catc_itp_account'
+export const ACCOUNT_COOKIE = 'catc_itp_account'
+
+export const INITIAL_PORTFOLIO_FUND_AMOUNT = 100000.0
