@@ -60,3 +60,5 @@ export const SIGNATURE_TEXT =
 export const ACCOUNT_COOKIE = 'catc_itp_account'
 
 export const INITIAL_PORTFOLIO_FUND_AMOUNT = 100000.0
+
+export const ONE_MINUTE_MS = 60000

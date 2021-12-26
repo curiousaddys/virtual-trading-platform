@@ -63,42 +63,46 @@ export const WalletConnector = () => {
 
   return (
     <>
-      <div className="w-full">
-        <div className="absolute top-1 right-0">
-          {user && (
-            <button
-              onClick={logout}
-              className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-            >
-              Logout
-            </button>
-          )}
-          {!user && metaMaskBrowserStatus === 'ready' && (
-            <button
-              onClick={login}
-              className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-            >
-              Login with MetaMask
-            </button>
-          )}
-          {!user && metaMaskBrowserStatus === 'supported' && (
-            <button
-              onClick={() =>
-                window.open('https://metamask.io/download.html', '_blank')
-              }
-              className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-            >
-              Install MetaMask to Login
-            </button>
-          )}
-          {metaMaskBrowserStatus === 'unsupported' && (
-            // TODO: add modal w/ info about using a supported browser
-            <button className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800">
-              Browser unsupported
-            </button>
-          )}
-        </div>
-      </div>
+      {user && (
+        <button
+          onClick={logout}
+          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+        >
+          Logout
+        </button>
+      )}
+      {!user && metaMaskBrowserStatus === 'ready' && (
+        <button
+          onClick={login}
+          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+        >
+          Login with MetaMask
+        </button>
+      )}
+      {!user && metaMaskBrowserStatus === 'supported' && (
+        <button
+          onClick={() =>
+            window.open('https://metamask.io/download.html', '_blank')
+          }
+          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+        >
+          Install MetaMask to Login
+        </button>
+      )}
+      {metaMaskBrowserStatus === 'unsupported' && (
+        // TODO: add modal w/ info about using a supported browser
+        <button
+          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+          onClick={() => {
+            if (window)
+              window.alert(
+                'TODO: Add instructions re: using a supported browser.'
+              )
+          }}
+        >
+          Browser unsupported
+        </button>
+      )}
     </>
   )
 }

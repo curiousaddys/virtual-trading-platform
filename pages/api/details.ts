@@ -113,6 +113,7 @@ export default async function handler(
       .get(geckoCoinDetailsPath, { searchParams: geckoOpts })
       .json<GeckoDetails>()
     // TODO(jh): only return the exact data needed for out frontend to improve loading time
+    res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(data)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)
