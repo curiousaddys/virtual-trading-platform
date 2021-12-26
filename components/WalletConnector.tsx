@@ -5,9 +5,7 @@ import { SIGNATURE_TEXT } from '../utils/constants'
 import { UserContext } from '../hooks/useUser'
 import { isBrowserCompatible, isEthereumObjectOnWindow } from '../utils/browser'
 
-const injected = new InjectedConnector({
-  supportedChainIds: [1, 3, 4, 5, 42],
-})
+const injected = new InjectedConnector({})
 
 type MetaMaskBrowserStatusState = null | 'supported' | 'unsupported' | 'ready'
 
@@ -29,11 +27,8 @@ export const WalletConnector = () => {
   }, [account, library, setUser])
 
   // Activate wallet.
-  async function login() {
+  const login = async () => {
     try {
-      console.log('login')
-      console.log(account)
-      console.log(library)
       await activate(injected, undefined, true)
     } catch (err) {
       console.error(err)
@@ -41,7 +36,7 @@ export const WalletConnector = () => {
   }
 
   // Deactivate wallet & clear the logged-in user.
-  async function logout() {
+  const logout = async () => {
     try {
       deactivate()
       setUser(null)
