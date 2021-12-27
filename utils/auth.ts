@@ -2,6 +2,7 @@ import { NextApiRequest } from 'next'
 import { UnauthorizedError } from './errors'
 import { ethers } from 'ethers'
 import { SIGNATURE_TEXT } from './constants'
+import { config } from './config'
 
 interface AuthCookie {
   address: string
@@ -25,4 +26,11 @@ export const auth = (req: NextApiRequest): AuthCookie => {
   }
 
   return account
+}
+
+export const cloudflareWorkerAuth = (req: NextApiRequest): void => {
+  const secret = req.headers['x-auth-token']
+  if (secret !== config.CLOUDFLARE_SECRET) {
+    throw new UnauthorizedError('invalid secret')
+  }
 }

@@ -12,4 +12,5 @@ const mustGetEnv = (key: string) => {
 export const config = {
   MONGO_URI: mustGetEnv('MONGO_URI'),
   MONGO_OPTIONS: {},
+  CLOUDFLARE_SECRET: mustGetEnv('CLOUDFLARE_SECRET'),
 } as const

@@ -5,6 +5,8 @@ import {
   insertMinutelyPortfolioHistory,
   PortfolioBalance,
 } from '../../../db/portfolioHistory_minutely'
+import { cloudflareWorkerAuth } from '../../../utils/auth'
+import { getErrorDetails } from '../../../utils/errors'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -17,6 +19,8 @@ export default async function handler(
   res: NextApiResponse<WorkerAPIResponse>
 ) {
   try {
+    cloudflareWorkerAuth(req)
+
     // get current prices
     const geckoPrices = await getMarketData()
 
@@ -48,6 +52,7 @@ export default async function handler(
 
     return res.status(200).json({ status: 'ok' })
   } catch (err: any) {
-    return res.status(500).json({ status: 'error', error: err })
+    const { status, message } = getErrorDetails(err)
+    return res.status(status).json({ status: 'error', error: message })
   }
 }
