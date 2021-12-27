@@ -2,13 +2,13 @@ import type { NextPage } from 'next'
 import Image from 'next/image'
 import { useContext, useEffect, useState } from 'react'
 import React from 'react'
-import { GeckoPrices } from './api/prices'
 import ky from 'ky'
 import { Line, LineChart, YAxis } from 'recharts'
 import { UserContext } from '../hooks/useUser'
 import { Account } from '../db/accounts'
 import { formatPercent, formatUSD } from '../utils/format'
 import { ONE_MINUTE_MS } from '../utils/constants'
+import { GeckoPrices } from '../api/CoinGecko/markets'
 
 const Home: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true)
@@ -85,7 +85,7 @@ const Home: NextPage = () => {
                           {h.currency}{' '}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                          {formatUSD(h.amount)}
+                          {h.amount}
                         </td>
                       </tr>
                     ))}

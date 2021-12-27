@@ -15,3 +15,7 @@ export const formatPercent = (num: number): string => {
     signDisplay: 'always',
   })
 }
+
+export const dateStringToTimestamp = (d: string): number => {
+  return Math.floor(Date.parse(d) / 1000)
+}

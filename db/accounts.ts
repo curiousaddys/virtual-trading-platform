@@ -58,3 +58,15 @@ export const findOrInsertAccount = async (address: string) => {
   )
   return result.value!
 }
+
+export const getAllPortfolios = async (): Promise<Portfolio[]> => {
+  const collection = await getAccountsCollection()
+  const accounts = await collection.find({}).toArray()
+  const portfolios: Portfolio[] = []
+  accounts.forEach((account) => {
+    account.portfolios.forEach((portfolio) => {
+      portfolios.push(portfolio)
+    })
+  })
+  return portfolios
+}
