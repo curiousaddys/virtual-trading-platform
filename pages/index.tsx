@@ -5,7 +5,6 @@ import React from 'react'
 import ky from 'ky'
 import {
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -15,11 +14,10 @@ import {
 } from 'recharts'
 import { UserContext } from '../hooks/useUser'
 import { Account } from '../db/accounts'
-import { formatPercent, formatUSD } from '../utils/format'
+import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { ONE_MINUTE_MS } from '../utils/constants'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 import { PortfolioBalance } from '../db/portfolioHistory_minutely'
-import { Container } from 'postcss'
 import dayjs from 'dayjs'
 
 const Home: NextPage = () => {
@@ -77,7 +75,7 @@ const Home: NextPage = () => {
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          {account && balance && (
+          {account && balance && prices && (
             <>
               <section>
                 <h2 className="text-lg text-black font-semibold">
@@ -130,32 +128,80 @@ const Home: NextPage = () => {
                   Your Portfolio ({account?.address})
                 </h2>
                 <div className="shadow border mt-2">
-                  <table className="w-full">
+                  <table className="w-full table-auto">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-2 text-xs text-gray-500 text-left">
                           Name
                         </th>
+                        <th className="px-4 py-2" />
                         <th className="px-6 py-2 text-xs text-gray-500 text-right">
-                          Amount
+                          Balance
+                        </th>
+                        <th className="px-6 py-2 text-xs text-gray-500 text-right">
+                          Price
                         </th>
                       </tr>
                     </thead>
-
                     <tbody className="bg-white">
-                      {account.portfolios[0]?.holdings?.map((h) => (
-                        <tr
-                          key={h.currency}
-                          className="whitespace-nowrap even:bg-gray-50"
-                        >
-                          <td className="px-4 py-4 text-sm text-gray-900 font-bold">
-                            {h.currency}{' '}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                            {h.amount}
-                          </td>
-                        </tr>
-                      ))}
+                      {account.portfolios[0]?.holdings?.map((h) => {
+                        const coin = prices.find(
+                          (price) => price.id === h.currency
+                        ) ?? {
+                          symbol: 'USD',
+                          name: 'US Dollars',
+                          current_price: 1,
+                          price_change_percentage_24h: 0,
+                          image:
+                            // TODO: maybe host this image ourselves
+                            'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                        }
+                        return (
+                          <tr
+                            key={h.currency}
+                            className="whitespace-nowrap even:bg-gray-50"
+                          >
+                            <td className="px-4 py-4 whitespace-nowrap w-px">
+                              <Image
+                                src={coin.image}
+                                height={40}
+                                width={40}
+                                alt={coin.symbol}
+                              />
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-900">
+                              <span className="font-bold">{coin.name}</span>
+                              <br />
+                              <span className="font-light">
+                                {coin.symbol.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 text-right">
+                              <span className="font-bold text-gray-700 text-base">
+                                {formatUSD(coin.current_price * h.amount)}
+                              </span>
+                              <br />
+                              {formatFloat(h.amount)}{' '}
+                              {coin.symbol.toUpperCase()}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 text-right">
+                              {formatUSD(coin.current_price)}
+                              <br />
+                              <span
+                                className={`${
+                                  coin.price_change_percentage_24h >= 0
+                                    ? 'text-green-500'
+                                    : 'text-red-500'
+                                }`}
+                              >
+                                {formatPercent(
+                                  coin.price_change_percentage_24h
+                                )}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -191,7 +237,7 @@ const Home: NextPage = () => {
                         key={coin.id}
                         className="whitespace-nowrap even:bg-gray-50"
                       >
-                        <td className="px-4 py-4">
+                        <td className="px-4 py-4 whitespace-nowrap w-px">
                           <Image
                             src={coin.image}
                             height={40}
@@ -215,7 +261,7 @@ const Home: NextPage = () => {
                               : 'text-red-500'
                           }`}
                         >
-                          {formatPercent(coin.price_change_percentage_24h)}%
+                          {formatPercent(coin.price_change_percentage_24h)}
                         </td>
                         <td className="hidden md:block">
                           <LineChart
