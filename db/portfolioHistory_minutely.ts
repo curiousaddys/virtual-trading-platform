@@ -14,7 +14,7 @@ export interface PortfolioBalanceAvg {
 }
 
 export const getPortfolioHistoryMinutelyCollection = async () => {
-  const db = await getMongoDB()
+  const { db, session } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>(
     'portfolioHistory_minutely'
   )
@@ -22,23 +22,25 @@ export const getPortfolioHistoryMinutelyCollection = async () => {
     { timestamp: -1 },
     {
       expireAfterSeconds: ONE_DAY_SEC,
+      session,
     }
   )
   await collection.createIndex(
     { portfolioID: 1, timestamp: -1 },
-    { unique: true }
+    { unique: true, session }
   )
-  return collection
+  return { collection, session }
 }
 
 // Returns the number of records inserted.
 export const insertMinutelyPortfolioHistory = async (
   history: PortfolioBalance[]
 ): Promise<number> => {
-  const collection = await getPortfolioHistoryMinutelyCollection()
+  const { collection, session } = await getPortfolioHistoryMinutelyCollection()
   try {
     const result = await collection.insertMany(history, {
       ordered: false,
+      session,
     })
     return result.insertedCount
   } catch (err: any) {
@@ -56,19 +58,22 @@ export const getPortfolioBalancesAvgForHour = async (
 ): Promise<PortfolioBalanceAvg[]> => {
   const startOfHour = Math.floor(date / 1000 / 60 / 60) * 60 * 60
   const startOfNextHour = startOfHour + 60 * 60
-  const collection = await getPortfolioHistoryMinutelyCollection()
-  const results = await collection.aggregate<PortfolioBalanceAvg>([
-    {
-      $match: {
-        timestamp: { $gte: startOfHour, $lt: startOfNextHour },
+  const { collection, session } = await getPortfolioHistoryMinutelyCollection()
+  const results = await collection.aggregate<PortfolioBalanceAvg>(
+    [
+      {
+        $match: {
+          timestamp: { $gte: startOfHour, $lt: startOfNextHour },
+        },
       },
-    },
-    {
-      $group: {
-        _id: '$portfolioID',
-        avg: { $avg: '$balanceUSD' },
+      {
+        $group: {
+          _id: '$portfolioID',
+          avg: { $avg: '$balanceUSD' },
+        },
       },
-    },
-  ])
+    ],
+    { session }
+  )
   return results.toArray()
 }

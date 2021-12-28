@@ -2,25 +2,26 @@ import { getMongoDB } from './mongodb-client'
 import { PortfolioBalance } from './portfolioHistory_minutely'
 
 export const getPortfolioHistoryDailyCollection = async () => {
-  const db = await getMongoDB()
+  const { db, session } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>(
     'portfolioHistory_daily'
   )
-  await collection.createIndex({ timestamp: -1 })
+  await collection.createIndex({ timestamp: -1 }, { session })
   await collection.createIndex(
     { portfolioID: 1, timestamp: -1 },
-    { unique: true }
+    { unique: true, session }
   )
-  return collection
+  return { collection, session }
 }
 
 export const insertDailyPortfolioHistory = async (
   history: PortfolioBalance[]
 ): Promise<number> => {
-  const collection = await getPortfolioHistoryDailyCollection()
+  const { collection, session } = await getPortfolioHistoryDailyCollection()
   try {
     const result = await collection.insertMany(history, {
       ordered: false,
+      session,
     })
     return result.insertedCount
   } catch (err: any) {

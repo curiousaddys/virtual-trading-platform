@@ -6,8 +6,8 @@ export default async function handler(
   res: NextApiResponse<{ status: string }>
 ) {
   try {
-    const db = await getMongoDB()
-    await db.command({ ping: 1 })
+    const { db, session } = await getMongoDB()
+    await db.command({ ping: 1 }, { session })
     res.status(200).json({ status: 'ok' })
   } catch (err) {
     res.status(500).json({ status: 'db offline' })

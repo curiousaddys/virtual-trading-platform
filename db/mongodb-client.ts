@@ -10,5 +10,7 @@ export const getMongoDB = async () => {
       config.MONGO_OPTIONS
     ).connect()
   }
-  return client.db()
+  const session = client.startSession()
+  const db = client.db()
+  return { db, session }
 }

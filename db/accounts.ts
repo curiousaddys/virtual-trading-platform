@@ -23,12 +23,13 @@ export interface Holding {
 }
 
 const getAccountsCollection = async () => {
-  const db = await getMongoDB()
-  return db.collection<Account>('accounts')
+  const { db, session } = await getMongoDB()
+  const collection = db.collection<Account>('accounts')
+  return { collection, session }
 }
 
 export const findOrInsertAccount = async (address: string) => {
-  const collection = await getAccountsCollection()
+  const { collection, session } = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {
@@ -54,14 +55,14 @@ export const findOrInsertAccount = async (address: string) => {
         lastLogin: Date.now(),
       },
     },
-    { upsert: true, returnDocument: 'after' }
+    { upsert: true, returnDocument: 'after', session }
   )
   return result.value!
 }
 
 export const getAllPortfolios = async (): Promise<Portfolio[]> => {
-  const collection = await getAccountsCollection()
-  const accounts = await collection.find({}).toArray()
+  const { collection, session } = await getAccountsCollection()
+  const accounts = await collection.find({}, { session }).toArray()
   const portfolios: Portfolio[] = []
   accounts.forEach((account) => {
     account.portfolios.forEach((portfolio) => {

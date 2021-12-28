@@ -6,7 +6,7 @@ import { getMongoDB } from './mongodb-client'
 import { THIRTY_DAYS_SEC } from '../utils/constants'
 
 export const getPortfolioHistoryHourlyCollection = async () => {
-  const db = await getMongoDB()
+  const { db, session } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>(
     'portfolioHistory_hourly'
   )
@@ -14,22 +14,24 @@ export const getPortfolioHistoryHourlyCollection = async () => {
     { timestamp: -1 },
     {
       expireAfterSeconds: THIRTY_DAYS_SEC,
+      session,
     }
   )
   await collection.createIndex(
     { portfolioID: 1, timestamp: -1 },
-    { unique: true }
+    { unique: true, session }
   )
-  return collection
+  return { collection, session }
 }
 
 export const insertHourlyPortfolioHistory = async (
   history: PortfolioBalance[]
 ): Promise<number> => {
-  const collection = await getPortfolioHistoryHourlyCollection()
+  const { collection, session } = await getPortfolioHistoryHourlyCollection()
   try {
     const result = await collection.insertMany(history, {
       ordered: false,
+      session,
     })
     return result.insertedCount
   } catch (err: any) {
@@ -47,15 +49,18 @@ export const getPortfolioBalancesAvgForDay = async (
 ): Promise<PortfolioBalanceAvg[]> => {
   const startOfDay = Math.floor(date / 1000 / 60 / 60 / 24) * 60 * 60 * 24
   const startOfNextDay = startOfDay + 60 * 60 * 24
-  const collection = await getPortfolioHistoryHourlyCollection()
-  const results = await collection.aggregate<PortfolioBalanceAvg>([
-    { $match: { timestamp: { $gte: startOfDay, $lt: startOfNextDay } } },
-    {
-      $group: {
-        _id: '$portfolioID',
-        avg: { $avg: '$balanceUSD' },
+  const { collection, session } = await getPortfolioHistoryHourlyCollection()
+  const results = await collection.aggregate<PortfolioBalanceAvg>(
+    [
+      { $match: { timestamp: { $gte: startOfDay, $lt: startOfNextDay } } },
+      {
+        $group: {
+          _id: '$portfolioID',
+          avg: { $avg: '$balanceUSD' },
+        },
       },
-    },
-  ])
+    ],
+    { session }
+  )
   return results.toArray()
 }
