@@ -1,7 +1,8 @@
-import { MongoClient } from 'mongodb'
+import { ClientSession, MongoClient } from 'mongodb'
 import { config } from '../utils/config'
 
 let client: MongoClient | null = null
+let session: ClientSession | null = null
 
 export const getMongoDB = async () => {
   if (!client) {
@@ -10,7 +11,9 @@ export const getMongoDB = async () => {
       config.MONGO_OPTIONS
     ).connect()
   }
-  const session = client.startSession()
+  if (!session) {
+    session = client.startSession()
+  }
   const db = client.db()
   return { db, session }
 }
