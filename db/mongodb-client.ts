@@ -11,6 +11,8 @@ export const getMongoDB = async () => {
       config.MONGO_OPTIONS
     ).connect()
   }
+  // Using a session prevents cursor ID errors.
+  // See: https://jira.mongodb.org/browse/NODE-3521
   if (!session) {
     session = client.startSession()
   }

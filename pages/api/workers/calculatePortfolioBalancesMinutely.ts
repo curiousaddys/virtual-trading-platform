@@ -19,21 +19,30 @@ export default async function handler(
   res: NextApiResponse<WorkerAPIResponse>
 ) {
   try {
+    let start = Date.now()
     cloudflareWorkerAuth(req)
+    console.info(`Auth completed at ${Date.now() - start}.`)
 
     // get current prices
+    start = Date.now()
     const geckoPrices = await getMarketData()
+    console.info(`Get Gecko market data done in ${Date.now() - start}.`)
 
     // store prices in key-value pairs to perform quick lookups
+    start = Date.now()
     const currentPrices: CurrentPrices = {}
     geckoPrices.forEach((price) => {
       currentPrices[price.id] = price.current_price
     })
+    console.info(`Gecko data processing done in ${Date.now() - start}.`)
 
     // get all portfolios
+    start = Date.now()
     const portfolios = await getAllPortfolios()
+    console.info(`Got all portfolios from DB in ${Date.now() - start}.`)
 
     // calculate balance for each portfolio for current minute
+    start = Date.now()
     const timestamp = Math.floor(Date.now() / 1000 / 60) * 60
     const balances: PortfolioBalance[] = portfolios.map((portfolio) => ({
       timestamp: timestamp,
@@ -43,9 +52,12 @@ export default async function handler(
         currency: '',
       })).amount,
     }))
+    console.info(`Calculated all portfolio balances in ${Date.now() - start}.`)
 
     // insert into database
+    start = Date.now()
     const recordsInserted = await insertMinutelyPortfolioHistory(balances)
+    console.info(`Balances inserted into DB in ${Date.now() - start}.`)
     console.info(
       `[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`
     )
