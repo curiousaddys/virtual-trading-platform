@@ -23,7 +23,6 @@ export const BuySellModal = (props: BuySellModalProps) => {
   })
   const [coin, setCoin] = useState<GeckoPrices | null>(null)
   const { prices } = usePrices()
-  const amountInput = useRef<any>()
   const { accountInfo, setAccountInfo } = useContext(UserContext)
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
   const [transactionStatus, setTransactionStatus] = useState<
@@ -48,12 +47,11 @@ export const BuySellModal = (props: BuySellModalProps) => {
     setCoin(coin)
   }, [currency, prices])
 
-  // Whenever modal becomes visible, set focus on the amount input & set it to 0 & reset transaction status.
+  // Whenever modal becomes visible, reset transaction status and amount.
   useEffect(() => {
     if (!props.visible) return
     setTransactionStatus(null)
     setAmount(0)
-    if (amountInput.current) amountInput.current.focus()
   }, [props.visible])
 
   // Whenever account info updates, set the available amount to spend.
@@ -95,11 +93,11 @@ export const BuySellModal = (props: BuySellModalProps) => {
       })
   }
 
+  if (!props.visible) return <></>
+
   return (
     <div
-      className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full ${
-        !props.visible && 'hidden'
-      }`}
+      className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full`}
     >
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
@@ -152,7 +150,7 @@ export const BuySellModal = (props: BuySellModalProps) => {
                         )
                       }
                       maxLength={7}
-                      ref={amountInput}
+                      autoFocus
                     />
                   </div>
                   <div className="w-full items-center py-2 text-left">
