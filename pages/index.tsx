@@ -68,8 +68,6 @@ const Home: NextPage = () => {
                 <div className="container">
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart
-                      width={600}
-                      height={500}
                       data={chartData}
                       margin={{
                         top: 10,
@@ -210,7 +208,7 @@ const Home: NextPage = () => {
                       Change (1 day)
                     </th>
                     <th className="px-6 py-2 hidden md:table-cell" />
-                    <th className="px-6 py-2" />
+                    {accountInfo && <th className="px-6 py-2" />}
                   </tr>
                 </thead>
 
@@ -258,56 +256,60 @@ const Home: NextPage = () => {
                         >
                           {formatPercent(coin.price_change_percentage_24h)}
                         </td>
-                        <td className="px-4 py-4 hidden md:table-cell">
-                          <LineChart
-                            width={125}
-                            height={40}
-                            data={
-                              // TODO(jh): handle this data on backend
-                              (coin.sparkline_in_7d.price ?? [0])
-                                .slice(
-                                  (coin.sparkline_in_7d.price ?? [0]).length -
-                                    25,
-                                  coin.sparkline_in_7d.price?.length
-                                )
-                                .map((n) => ({
-                                  n,
-                                }))
-                            }
-                            margin={{
-                              top: 10,
-                              right: 10,
-                              bottom: 10,
-                              left: 10,
-                            }}
-                          >
-                            <YAxis
-                              type="number"
-                              domain={['dataMin', 'dataMax']}
-                              hide
-                            />
-                            <Line
-                              type="linear"
-                              dataKey="n"
-                              stroke={
-                                coin.price_change_percentage_24h >= 0
-                                  ? '#22c55e'
-                                  : '#ef4444'
+                        <td
+                          className="px-4 py-4 hidden md:table-cell"
+                          style={{ maxWidth: 150 }}
+                        >
+                          <ResponsiveContainer width="100%" height={40}>
+                            <LineChart
+                              data={
+                                // TODO(jh): handle this data on backend
+                                (coin.sparkline_in_7d.price ?? [0])
+                                  .slice(
+                                    (coin.sparkline_in_7d.price ?? [0]).length -
+                                      25,
+                                    coin.sparkline_in_7d.price?.length
+                                  )
+                                  .map((n) => ({
+                                    n,
+                                  }))
                               }
-                              dot={false}
-                              isAnimationActive={false}
-                            />
-                          </LineChart>
+                              margin={{
+                                top: 10,
+                                right: 10,
+                                bottom: 10,
+                                left: 10,
+                              }}
+                            >
+                              <YAxis
+                                type="number"
+                                domain={['dataMin', 'dataMax']}
+                                hide
+                              />
+                              <Line
+                                type="linear"
+                                dataKey="n"
+                                stroke={
+                                  coin.price_change_percentage_24h >= 0
+                                    ? '#22c55e'
+                                    : '#ef4444'
+                                }
+                                dot={false}
+                                isAnimationActive={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
                         </td>
-                        {/*TODO: only show if logged in*/}
-                        <td className="px-4 py-4">
-                          <button
-                            className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                            onClick={() => openBuyModal(coin.id, coin.name)}
-                          >
-                            Buy
-                          </button>
-                        </td>
+                        {accountInfo && (
+                          <td className="px-4 py-4">
+                            <button
+                              className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                              onClick={() => openBuyModal(coin.id, coin.name)}
+                            >
+                              Buy
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                 </tbody>
