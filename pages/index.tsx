@@ -13,69 +13,52 @@ import {
   YAxis,
 } from 'recharts'
 import { UserContext } from '../hooks/useUser'
-import { Account } from '../db/accounts'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
-import { ONE_MINUTE_MS } from '../utils/constants'
-import { GeckoPrices } from '../api/CoinGecko/markets'
 import { PortfolioBalance } from '../db/portfolioHistory_minutely'
 import dayjs from 'dayjs'
+import { BuySellModal } from '../components/BuySellModal'
+import { usePrices } from '../hooks/usePrices'
 
 const Home: NextPage = () => {
-  const [isLoading, setIsLoading] = useState(true)
-  // TODO(jh): consider making hooks for api calls like you did for ALC API?
-  const [prices, setPrices] = useState<GeckoPrices[] | null>(null)
-  const [account, setAccount] = useState<Account | null>(null)
-  const [balance, setBalance] = useState<PortfolioBalance[] | null>(null)
-  const { user } = useContext(UserContext)
+  const { accountInfo } = useContext(UserContext)
+  const [chartData, setChartData] = useState<PortfolioBalance[] | null>(null)
+  // TODO: display error if prices fail to load
+  const { prices, pricesLoading, pricesError } = usePrices()
+  const [modalOpen, setModalOpen] = useState(false)
+  const [buyButtonClicked, setBuyButtonClicked] =
+    useState<{ value: string; label: string }>()
 
+  const openBuyModal = (value: string, label: string) => {
+    setBuyButtonClicked({ value, label })
+    setModalOpen(true)
+  }
+
+  // Get data for portfolio price history graph whenever account info changes.
   useEffect(() => {
-    if (!user) {
-      return setAccount(null)
+    if (!accountInfo) {
+      return
     }
-    // TODO(jh): handle errors (clear user if 401)
-    ;(async () => {
-      const data = await ky.get('/api/account').json<Account>()
-      // TODO(jh): remove logging
-      console.log(data)
-      setAccount(data)
-    })()
-    // TODO(jh): handle errors (clear user if 401)
     ;(async () => {
       const data = await ky.get('/api/balance').json<PortfolioBalance[]>()
       // TODO(jh): remove logging
       console.log(data)
-      setBalance(data)
+      // TODO(jh): append current portfolio amount to end so that it updates immediately after a buy/sell happens?
+      setChartData(data)
     })()
-  }, [user])
-
-  const getPrices = async () => {
-    // TODO(jh): handle errors
-    const data = await ky.get('/api/prices').json<GeckoPrices[]>()
-    // TODO(jh): remove logging
-    console.log(data)
-    setPrices(data)
-  }
-
-  useEffect(() => {
-    // Get prices from API on first render.
-    ;(async () => {
-      await getPrices()
-      setIsLoading(false)
-    })()
-    // Get new price data from API every minute.
-    const interval = setInterval(() => {
-      getPrices()
-    }, ONE_MINUTE_MS)
-    return () => clearInterval(interval)
-  }, [])
+  }, [accountInfo])
 
   return (
-    <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-md">
-      {isLoading ? (
+    <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
+      {pricesLoading ? (
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          {account && balance && prices && (
+          <BuySellModal
+            visible={modalOpen}
+            defaultCoin={buyButtonClicked}
+            onClose={() => setModalOpen(false)}
+          />
+          {accountInfo && chartData && prices && (
             <>
               <section>
                 <h2 className="text-lg text-black font-semibold">
@@ -87,7 +70,7 @@ const Home: NextPage = () => {
                     <LineChart
                       width={600}
                       height={500}
-                      data={balance}
+                      data={chartData}
                       margin={{
                         top: 10,
                         right: 10,
@@ -125,7 +108,7 @@ const Home: NextPage = () => {
               </section>
               <section>
                 <h2 className="text-lg text-black font-semibold mt-10">
-                  Your Portfolio ({account?.address})
+                  Your Portfolio ({accountInfo?.address})
                 </h2>
                 <div className="shadow border mt-2">
                   <table className="w-full table-auto">
@@ -144,7 +127,7 @@ const Home: NextPage = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white">
-                      {account.portfolios[0]?.holdings?.map((h) => {
+                      {accountInfo.portfolios[0]?.holdings?.map((h) => {
                         const coin = prices.find(
                           (price) => price.id === h.currency
                         ) ?? {
@@ -223,10 +206,11 @@ const Home: NextPage = () => {
                     <th className="px-6 py-2 text-xs text-gray-500 text-right">
                       Price
                     </th>
-                    <th className="px-6 py-2 text-xs text-gray-500 text-right">
+                    <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                       Change (1 day)
                     </th>
-                    <th className="px-6 py-2 hidden md:block" />
+                    <th className="px-6 py-2 hidden md:table-cell" />
+                    <th className="px-6 py-2" />
                   </tr>
                 </thead>
 
@@ -253,9 +237,20 @@ const Home: NextPage = () => {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
                           {formatUSD(coin.current_price)}
+                          <div className="md:hidden w-100">
+                            <div
+                              className={`text-sm text-gray-500 ${
+                                coin.price_change_percentage_24h >= 0
+                                  ? 'text-green-500'
+                                  : 'text-red-500'
+                              }`}
+                            >
+                              {formatPercent(coin.price_change_percentage_24h)}
+                            </div>
+                          </div>
                         </td>
                         <td
-                          className={`px-6 py-4 text-sm text-gray-500 text-right ${
+                          className={`px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell ${
                             coin.price_change_percentage_24h >= 0
                               ? 'text-green-500'
                               : 'text-red-500'
@@ -263,7 +258,7 @@ const Home: NextPage = () => {
                         >
                           {formatPercent(coin.price_change_percentage_24h)}
                         </td>
-                        <td className="hidden md:block">
+                        <td className="px-4 py-4 hidden md:table-cell">
                           <LineChart
                             width={125}
                             height={40}
@@ -303,6 +298,15 @@ const Home: NextPage = () => {
                               isAnimationActive={false}
                             />
                           </LineChart>
+                        </td>
+                        {/*TODO: only show if logged in*/}
+                        <td className="px-4 py-4">
+                          <button
+                            className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                            onClick={() => openBuyModal(coin.id, coin.name)}
+                          >
+                            Buy
+                          </button>
                         </td>
                       </tr>
                     ))}

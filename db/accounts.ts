@@ -71,3 +71,78 @@ export const getAllPortfolios = async (): Promise<Portfolio[]> => {
   })
   return portfolios
 }
+
+export const updatePortfolio = async (
+  accountID: ObjectID,
+  portfolioID: ObjectID,
+  currency: string,
+  amount: number,
+  costUSD: number
+) => {
+  const { collection, session } = await getAccountsCollection()
+  const account = await collection.findOne({ _id: accountID }, { session })
+  const portfolio = account!.portfolios.find(
+    (portfolio) => portfolio._id.toString() === portfolioID.toString()
+  )
+  const balance = portfolio!.holdings.find(
+    (holding) => holding.currency === currency
+  )?.amount
+  if (!balance && balance !== 0) {
+    // insert new object
+    // TODO: figure out if there is a way to get $push and $inc working in a single db call w/o conflicts
+    await collection.findOneAndUpdate(
+      { _id: accountID },
+      {
+        $inc: {
+          'portfolios.$[portfolio].holdings.$[cost].amount': -costUSD,
+        },
+      },
+      {
+        arrayFilters: [
+          { 'portfolio._id': portfolioID },
+          { 'cost.currency': 'USD' },
+        ],
+        session,
+        returnDocument: 'after',
+      }
+    )
+    const results = await collection.findOneAndUpdate(
+      { _id: accountID },
+      {
+        $push: {
+          'portfolios.$[portfolio].holdings': {
+            currency: currency,
+            amount: amount,
+          },
+        },
+      },
+      {
+        arrayFilters: [{ 'portfolio._id': portfolioID }],
+        session,
+        returnDocument: 'after',
+      }
+    )
+    return results.value
+  } else {
+    // update existing object
+    const results = await collection.findOneAndUpdate(
+      { _id: accountID },
+      {
+        $inc: {
+          'portfolios.$[portfolio].holdings.$[coin].amount': amount,
+          'portfolios.$[portfolio].holdings.$[cost].amount': -costUSD,
+        },
+      },
+      {
+        arrayFilters: [
+          { 'portfolio._id': portfolioID },
+          { 'coin.currency': currency },
+          { 'cost.currency': 'USD' },
+        ],
+        session,
+        returnDocument: 'after',
+      }
+    )
+    return results.value
+  }
+}
