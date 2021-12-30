@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import { WalletConnector } from './WalletConnector'
+import React from 'react'
 
 export default function Navbar() {
   return (
@@ -9,7 +11,7 @@ export default function Navbar() {
             <div>
               <div className="flex items-center py-4 px-2">
                 <span className="font-semibold text-gray-500 text-lg">
-                  Virtual Trading Platform
+                  <Link href="/">Virtual Trading Platform</Link>
                 </span>
               </div>
             </div>

@@ -40,6 +40,7 @@ export const useUser = () => {
       return
     }
     ;(async () => {
+      // TODO: handle errors
       const data = await ky.get('/api/account').json<Account>()
       // TODO(jh): remove logging
       console.log(data)

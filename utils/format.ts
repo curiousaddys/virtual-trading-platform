@@ -27,3 +27,7 @@ export const formatPercent = (num: number): string => {
 export const dateStringToTimestamp = (d: string): number => {
   return Math.floor(Date.parse(d) / 1000)
 }
+
+export const stripHtmlTags = (s: string): string => {
+  return s.replace(/<[^>]+>/g, '')
+}

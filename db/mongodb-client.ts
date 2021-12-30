@@ -11,8 +11,11 @@ export const getMongoDB = async () => {
       config.MONGO_URI,
       config.MONGO_OPTIONS
     ).connect()
-    db = client.db()
     console.log('🔥 New DB Connection')
+  }
+
+  if (!db) {
+    db = client.db()
   }
 
   // Using a session prevents cursor ID errors.

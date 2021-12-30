@@ -13,11 +13,13 @@ import {
   YAxis,
 } from 'recharts'
 import { UserContext } from '../hooks/useUser'
-import { formatFloat, formatPercent, formatUSD } from '../utils/format'
+import { formatFloat, formatUSD } from '../utils/format'
 import { PortfolioBalance } from '../db/portfolioHistory_minutely'
 import dayjs from 'dayjs'
 import { BuySellModal } from '../components/BuySellModal'
 import { usePrices } from '../hooks/usePrices'
+import Link from 'next/link'
+import { PrettyPercent } from '../components/common/PrettyPercent'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
@@ -39,6 +41,7 @@ const Home: NextPage = () => {
       return
     }
     ;(async () => {
+      // TODO: handle errors
       const data = await ky.get('/api/balance').json<PortfolioBalance[]>()
       // TODO(jh): remove logging
       console.log(data)
@@ -58,7 +61,7 @@ const Home: NextPage = () => {
             defaultCoin={buyButtonClicked}
             onClose={() => setModalOpen(false)}
           />
-          {accountInfo && chartData && prices && (
+          {prices && accountInfo && chartData && chartData?.length > 0 && (
             <>
               <section>
                 <h2 className="text-lg text-black font-semibold">
@@ -104,6 +107,10 @@ const Home: NextPage = () => {
                   </ResponsiveContainer>
                 </div>
               </section>
+            </>
+          )}
+          {prices && accountInfo && (
+            <>
               <section>
                 <h2 className="text-lg text-black font-semibold mt-10">
                   Your Portfolio ({accountInfo?.address})
@@ -125,10 +132,12 @@ const Home: NextPage = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white">
+                      {/*TODO: sort this by the coins w/ the most value held*/}
                       {accountInfo.portfolios[0]?.holdings?.map((h) => {
                         const coin = prices.find(
                           (price) => price.id === h.currency
                         ) ?? {
+                          id: 'usd',
                           symbol: 'USD',
                           name: 'US Dollars',
                           current_price: 1,
@@ -142,21 +151,57 @@ const Home: NextPage = () => {
                             key={h.currency}
                             className="whitespace-nowrap even:bg-gray-50"
                           >
-                            <td className="px-4 py-4 whitespace-nowrap w-px">
-                              <Image
-                                src={coin.image}
-                                height={40}
-                                width={40}
-                                alt={coin.symbol}
-                              />
-                            </td>
-                            <td className="px-4 py-4 text-sm text-gray-900">
-                              <span className="font-bold">{coin.name}</span>
-                              <br />
-                              <span className="font-light">
-                                {coin.symbol.toUpperCase()}
-                              </span>
-                            </td>
+                            {/*TODO: figure out best way to simplify this (we just need the USD row to not be a link)*/}
+                            {coin.id !== 'usd' ? (
+                              <>
+                                <Link
+                                  href={`/details?coin=${coin.id}`}
+                                  passHref
+                                >
+                                  <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
+                                    <Image
+                                      src={coin.image}
+                                      height={40}
+                                      width={40}
+                                      alt={coin.symbol}
+                                    />
+                                  </td>
+                                </Link>
+                                <Link
+                                  href={`/details?coin=${coin.id}`}
+                                  passHref
+                                >
+                                  <td className="px-4 py-4 text-sm text-gray-900 cursor-pointer">
+                                    <span className="font-bold">
+                                      {coin.name}
+                                    </span>
+                                    <br />
+                                    <span className="font-light">
+                                      {coin.symbol.toUpperCase()}
+                                    </span>
+                                  </td>
+                                </Link>
+                              </>
+                            ) : (
+                              <>
+                                <td className="px-4 py-4 whitespace-nowrap w-px">
+                                  <Image
+                                    src={coin.image}
+                                    height={40}
+                                    width={40}
+                                    alt={coin.symbol}
+                                  />
+                                </td>
+                                <td className="px-4 py-4 text-sm text-gray-900">
+                                  <span className="font-bold">{coin.name}</span>
+                                  <br />
+                                  <span className="font-light">
+                                    {coin.symbol.toUpperCase()}
+                                  </span>
+                                </td>
+                              </>
+                            )}
+
                             <td className="px-6 py-4 text-sm text-gray-500 text-right">
                               <span className="font-bold text-gray-700 text-base">
                                 {formatUSD(coin.current_price * h.amount)}
@@ -168,17 +213,9 @@ const Home: NextPage = () => {
                             <td className="px-6 py-4 text-sm text-gray-500 text-right">
                               {formatUSD(coin.current_price)}
                               <br />
-                              <span
-                                className={`${
-                                  coin.price_change_percentage_24h >= 0
-                                    ? 'text-green-500'
-                                    : 'text-red-500'
-                                }`}
-                              >
-                                {formatPercent(
-                                  coin.price_change_percentage_24h
-                                )}
-                              </span>
+                              <PrettyPercent
+                                value={coin.price_change_percentage_24h}
+                              />
                             </td>
                           </tr>
                         )
@@ -216,45 +253,41 @@ const Home: NextPage = () => {
                   {prices &&
                     prices.map((coin) => (
                       <tr
-                        key={coin.id}
                         className="whitespace-nowrap even:bg-gray-50"
+                        key={coin.id}
                       >
-                        <td className="px-4 py-4 whitespace-nowrap w-px">
-                          <Image
-                            src={coin.image}
-                            height={40}
-                            width={40}
-                            alt={coin.symbol}
-                          />
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 font-bold">
-                          {coin.name} <br />
-                          <span className="font-light">
-                            {coin.symbol.toUpperCase()}
-                          </span>
-                        </td>
+                        <Link href={`/details?coin=${coin.id}`} passHref>
+                          <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
+                            <Image
+                              src={coin.image}
+                              height={40}
+                              width={40}
+                              alt={coin.symbol}
+                            />
+                          </td>
+                        </Link>
+                        <Link href={`/details?coin=${coin.id}`} passHref>
+                          <td className="px-4 py-4 text-sm text-gray-900 font-bold cursor-pointer">
+                            {coin.name} <br />
+                            <span className="font-light">
+                              {coin.symbol.toUpperCase()}
+                            </span>
+                          </td>
+                        </Link>
                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
                           {formatUSD(coin.current_price)}
                           <div className="md:hidden w-100">
-                            <div
-                              className={`text-sm text-gray-500 ${
-                                coin.price_change_percentage_24h >= 0
-                                  ? 'text-green-500'
-                                  : 'text-red-500'
-                              }`}
-                            >
-                              {formatPercent(coin.price_change_percentage_24h)}
-                            </div>
+                            <PrettyPercent
+                              value={coin.price_change_percentage_24h}
+                            />
                           </div>
                         </td>
                         <td
-                          className={`px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell ${
-                            coin.price_change_percentage_24h >= 0
-                              ? 'text-green-500'
-                              : 'text-red-500'
-                          }`}
+                          className={`px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell`}
                         >
-                          {formatPercent(coin.price_change_percentage_24h)}
+                          <PrettyPercent
+                            value={coin.price_change_percentage_24h}
+                          />
                         </td>
                         <td
                           className="px-4 py-4 hidden md:table-cell"
