@@ -14,12 +14,15 @@ export const formatFloat = (num: number): string => {
   })
 }
 
-export const formatPercent = (num: number): string => {
+export const formatPercent = (
+  num: number,
+  displaySign: boolean = true
+): string => {
   return (
     num.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-      signDisplay: 'always',
+      signDisplay: displaySign ? 'always' : 'never',
     }) + '%'
   )
 }

@@ -13,7 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import { UserContext } from '../hooks/useUser'
-import { formatFloat, formatUSD } from '../utils/format'
+import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PortfolioBalance } from '../db/portfolioHistory_minutely'
 import dayjs from 'dayjs'
 import { BuySellModal } from '../components/BuySellModal'
@@ -23,6 +23,8 @@ import { PrettyPercent } from '../components/common/PrettyPercent'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
+  const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] =
+    useState<number>(0)
   const [chartData, setChartData] = useState<PortfolioBalance[] | null>(null)
   // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
@@ -49,6 +51,20 @@ const Home: NextPage = () => {
       setChartData(data)
     })()
   }, [accountInfo])
+
+  // Whenever price data or account info changes, calculate total portfolio balance.
+  useEffect(() => {
+    if (!prices || !accountInfo?.portfolios[0].holdings) return
+    const sum = accountInfo.portfolios[0].holdings.reduce(
+      (prev, cur) =>
+        prev +
+        (prices.find((price) => price.id === cur.currency)?.current_price ??
+          1) *
+          cur.amount,
+      0
+    )
+    setTotalPortfolioBalanceUSD(sum)
+  }, [prices, accountInfo])
 
   return (
     <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
@@ -127,13 +143,13 @@ const Home: NextPage = () => {
                           Balance
                         </th>
                         <th className="px-6 py-2 text-xs text-gray-500 text-right">
-                          Price
+                          Allocation
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white">
                       {/*TODO: sort this by the coins w/ the most value held*/}
-                      {accountInfo.portfolios[0]?.holdings?.map((h) => {
+                      {accountInfo.portfolios[0].holdings.map((h) => {
                         const coin = prices.find(
                           (price) => price.id === h.currency
                         ) ?? {
@@ -211,11 +227,12 @@ const Home: NextPage = () => {
                               {coin.symbol.toUpperCase()}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                              {formatUSD(coin.current_price)}
-                              <br />
-                              <PrettyPercent
-                                value={coin.price_change_percentage_24h}
-                              />
+                              {formatPercent(
+                                ((coin.current_price * h.amount) /
+                                  totalPortfolioBalanceUSD) *
+                                  100,
+                                false
+                              )}
                             </td>
                           </tr>
                         )
