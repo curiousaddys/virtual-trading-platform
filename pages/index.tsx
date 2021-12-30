@@ -80,10 +80,12 @@ const Home: NextPage = () => {
           {prices && accountInfo && chartData && chartData?.length > 0 && (
             <>
               <section>
-                <h2 className="text-lg text-black font-semibold">
-                  Portfolio Balance
+                <h2 className="text-3xl text-black font-semibold mt-10">
+                  Portfolio Balance: {formatUSD(totalPortfolioBalanceUSD)}
                 </h2>
-
+                <p className="text-gray-500">{accountInfo?.address}</p>
+              </section>
+              <section>
                 <div className="container">
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart
@@ -129,7 +131,7 @@ const Home: NextPage = () => {
             <>
               <section>
                 <h2 className="text-lg text-black font-semibold mt-10">
-                  Your Portfolio ({accountInfo?.address})
+                  Your Portfolio
                 </h2>
                 <div className="shadow border mt-2">
                   <table className="w-full table-auto">
