@@ -3,7 +3,7 @@ import { getMongoDB } from './mongodb-client'
 
 export interface Transaction {
   _id: ObjectID
-  timestamp: number
+  timestamp: Date
   accountID: ObjectID
   portfolioID: ObjectID
   currency: string

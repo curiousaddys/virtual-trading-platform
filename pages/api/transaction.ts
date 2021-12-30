@@ -45,7 +45,7 @@ const buy = async (
     currency: coin,
     exchangeRateUSD: exchangeRate,
     portfolioID: new ObjectID(portfolioID),
-    timestamp: Date.now(),
+    timestamp: new Date(),
     amountUSD: amountUSD,
   })
   const amountOfCoin = amountUSD / exchangeRate
