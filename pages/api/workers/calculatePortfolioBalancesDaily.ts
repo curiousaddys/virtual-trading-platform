@@ -13,7 +13,7 @@ export default async function handler(
 ) {
   try {
     cloudflareWorkerAuth(req)
-    const oneDayAgo = Date.now() - 1000 * 60 * 60 * 24
+    const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24)
     const balances = await getPortfolioBalancesAvgForDay(oneDayAgo)
 
     // TODO: This should never be true after this has been running for a day, so remove it later.
@@ -21,7 +21,8 @@ export default async function handler(
       return res.status(200).json({ status: 'ok' })
     }
 
-    const timestamp = Math.floor(oneDayAgo / 1000 / 60 / 60 / 24) * 60 * 60 * 24
+    const timestamp = new Date(oneDayAgo)
+    timestamp.setUTCHours(0, 0, 0, 0)
 
     const recordsInserted = await insertDailyPortfolioHistory(
       balances.map(

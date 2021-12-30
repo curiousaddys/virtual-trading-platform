@@ -43,7 +43,7 @@ export default async function handler(
 
     // calculate balance for each portfolio for current minute
     start = Date.now()
-    const timestamp = Math.floor(Date.now() / 1000 / 60) * 60
+    const timestamp = new Date(Math.floor(Date.now() / 1000 / 60) * 60 * 1000)
     const balances: PortfolioBalance[] = portfolios.map((portfolio) => ({
       timestamp: timestamp,
       portfolioID: portfolio._id,

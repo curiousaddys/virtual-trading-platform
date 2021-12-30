@@ -3,7 +3,7 @@ import { ONE_DAY_SEC } from '../utils/constants'
 import { ObjectID } from 'bson'
 
 export interface PortfolioBalance {
-  timestamp: number
+  timestamp: Date
   portfolioID: ObjectID
   balanceUSD: number // TODO(jh): ensure this handles enough precision
 }
@@ -54,10 +54,14 @@ export const insertMinutelyPortfolioHistory = async (
 }
 
 export const getPortfolioBalancesAvgForHour = async (
-  date: number
+  date: Date
 ): Promise<PortfolioBalanceAvg[]> => {
-  const startOfHour = Math.floor(date / 1000 / 60 / 60) * 60 * 60
-  const startOfNextHour = startOfHour + 60 * 60
+  const startOfHour = new Date(
+    Math.floor(date.getTime() / 1000 / 60 / 60) * 60 * 60 * 1000
+  )
+  const startOfNextHour = new Date(
+    Math.floor(date.getTime() / 1000 / 60 / 60) * 60 * 60 * 1000 + 60 * 60
+  )
   const { collection, session } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<PortfolioBalanceAvg>(
     [

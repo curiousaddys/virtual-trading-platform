@@ -45,10 +45,15 @@ export const insertHourlyPortfolioHistory = async (
 }
 
 export const getPortfolioBalancesAvgForDay = async (
-  date: number
+  date: Date
 ): Promise<PortfolioBalanceAvg[]> => {
-  const startOfDay = Math.floor(date / 1000 / 60 / 60 / 24) * 60 * 60 * 24
-  const startOfNextDay = startOfDay + 60 * 60 * 24
+  const startOfDay = new Date(
+    Math.floor(date.getTime() / 1000 / 60 / 60 / 24) * 60 * 60 * 24 * 1000
+  )
+  const startOfNextDay = new Date(
+    Math.floor(date.getTime() / 1000 / 60 / 60 / 24) * 60 * 60 * 24 * 1000 +
+      60 * 60 * 24
+  )
   const { collection, session } = await getPortfolioHistoryHourlyCollection()
   const results = await collection.aggregate<PortfolioBalanceAvg>(
     [

@@ -6,8 +6,8 @@ export interface Account {
   _id: ObjectID
   address: string
   nickname: string
-  joined: number
-  lastLogin: number
+  joined: Date
+  lastLogin: Date
   portfolios: Portfolio[]
 }
 
@@ -37,7 +37,7 @@ export const findOrInsertAccount = async (address: string) => {
       $setOnInsert: {
         address,
         nickname: 'Anonymous User', // TODO: allow user to change nickname
-        joined: Date.now(),
+        joined: new Date(),
         portfolios: [
           {
             _id: new ObjectID(),
@@ -52,7 +52,7 @@ export const findOrInsertAccount = async (address: string) => {
         ],
       },
       $set: {
-        lastLogin: Date.now(),
+        lastLogin: new Date(),
       },
     },
     { upsert: true, returnDocument: 'after', session }
