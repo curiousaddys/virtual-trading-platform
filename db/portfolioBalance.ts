@@ -7,7 +7,9 @@ export const getPortfolioBalanceHistory = async (portfolioID: ObjectID) => {
   const { collection, session } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.find({ portfolioID }, { session })
   const resultsArr = await results.toArray()
-  return resultsArr.sort((a, b) => a.timestamp - b.timestamp)
+  return resultsArr.sort(
+    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+  )
   // for today (minutely)
   // for the week (hourly)
   // for this year (daily)
