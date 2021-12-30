@@ -6,6 +6,7 @@ import { UserContext } from '../hooks/useUser'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 import ky from 'ky'
 import { Account } from '../db/accounts'
+import React from 'react'
 
 export interface BuySellModalProps {
   visible: boolean
@@ -14,7 +15,7 @@ export interface BuySellModalProps {
   defaultCoin?: { value: string; label: string }
 }
 
-export const BuySellModal = (props: BuySellModalProps) => {
+export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
   const [amount, setAmount] = useState<number>(0)
   const [currency, setCurrency] = useState({
     // TODO: reconsider if we want a default value like this

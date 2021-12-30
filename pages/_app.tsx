@@ -7,7 +7,7 @@ import { CookiesProvider } from 'react-cookie'
 import React from 'react'
 import { UserContext, useUser } from '../hooks/useUser'
 import Head from 'next/head'
-import Navbar from '../components/Navbar'
+import { Navbar } from '../components/Navbar'
 
 function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
   return new ethers.providers.Web3Provider(provider)

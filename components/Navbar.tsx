@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { WalletConnector } from './WalletConnector'
 import React from 'react'
 
-export default function Navbar() {
+export const Navbar: React.FC = () => {
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-6xl mx-auto px-4">
