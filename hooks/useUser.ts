@@ -19,8 +19,8 @@ export const useUser = () => {
 
   // On initial render, read from cookie if it's set.
   useEffect(() => {
-    if (cookies.catc_itp_account) {
-      setUser(cookies.catc_itp_account)
+    if (cookies.catc_vtp_account) {
+      setUser(cookies.catc_vtp_account)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

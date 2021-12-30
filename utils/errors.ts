@@ -1,4 +1,5 @@
 import { ZodError } from 'zod'
+import { BSONTypeError } from 'bson'
 
 export class UnauthorizedError extends Error {}
 
@@ -12,6 +13,9 @@ export const getErrorDetails = (
   if (err instanceof ZodError) {
     // TODO(jh): list all errors instead of just the 1st one
     return { status: 400, message: err.issues[0].message }
+  }
+  if (err instanceof BSONTypeError) {
+    return { status: 400, message: err.message }
   }
   return { status: 500, message: 'unknown server error' }
 }

@@ -33,3 +33,15 @@ export const deleteTransaction = async (id: ObjectID): Promise<number> => {
   const result = await collection.deleteOne({ _id: id }, { session })
   return result.deletedCount
 }
+
+export const getTransactions = async (
+  portfolioID: ObjectID,
+  currency: string
+): Promise<Transaction[]> => {
+  const { collection, session } = await getTransactionsCollection()
+  const result = await collection.find(
+    { portfolioID: new ObjectID(portfolioID), currency },
+    { session }
+  )
+  return result.toArray()
+}

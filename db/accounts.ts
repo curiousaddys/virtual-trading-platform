@@ -72,6 +72,14 @@ export const getAllPortfolios = async (): Promise<Portfolio[]> => {
   return portfolios
 }
 
+export const findPortfoliosByAddress = async (
+  address: string
+): Promise<Portfolio[]> => {
+  const { collection, session } = await getAccountsCollection()
+  const account = await collection.findOne({ address }, { session })
+  return account?.portfolios ?? <Portfolio[]>[]
+}
+
 export const updatePortfolio = async (
   accountID: ObjectID,
   portfolioID: ObjectID,

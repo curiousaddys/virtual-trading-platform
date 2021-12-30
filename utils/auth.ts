@@ -10,7 +10,7 @@ interface AuthCookie {
 }
 
 export const auth = (req: NextApiRequest): AuthCookie => {
-  const cookie = req.cookies.catc_itp_account
+  const cookie = req.cookies.catc_vtp_account
   if (!cookie) {
     throw new UnauthorizedError('cookie not found')
   }

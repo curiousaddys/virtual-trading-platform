@@ -19,12 +19,16 @@ import { BuySellModal } from '../components/BuySellModal'
 import { UserContext } from '../hooks/useUser'
 import Image from 'next/image'
 import { PrettyPercent } from '../components/common/PrettyPercent'
+import { Transaction } from '../db/transactions'
 
 const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')
   const [data, setData] = useState<GeckoDetails>()
   const [chartData, setChartData] = useState<GeckoPriceHistory>()
   const { accountInfo } = useContext(UserContext)
+  const [transactionHistory, setTransactionHistory] = useState<
+    Transaction[] | null
+  >(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [buyButtonClicked, setBuyButtonClicked] =
     useState<{ value: string; label: string }>()
@@ -79,6 +83,28 @@ const Details: NextPage = () => {
     fetchDetailsData()
     fetchChartData()
   }, [coin])
+
+  // Fetch transaction data if user is logged in & whenever account data changes.
+  useEffect(() => {
+    if (!accountInfo || !coin) return
+
+    const fetchTransactionHistory = async () => {
+      // TODO: handle errors
+      const results = await ky
+        .get('/api/transactions', {
+          searchParams: {
+            coin: coin,
+            portfolioID: '61ce1722db11e201724381ac', // TODO: get ID from AccountInfo
+          },
+        })
+        .json<Transaction[]>()
+      // TODO: remove logging
+      console.log(results)
+      setTransactionHistory(results)
+    }
+
+    fetchTransactionHistory()
+  }, [accountInfo, coin])
 
   return (
     <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
@@ -142,7 +168,7 @@ const Details: NextPage = () => {
                     <Tooltip
                       formatter={(value: number) => formatUSD(value)}
                       labelFormatter={(t) =>
-                        dayjs.unix(t / 1000).format('MMM D, YYYY – hh:mm A')
+                        dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')
                       }
                     />
                     <Line
@@ -151,7 +177,7 @@ const Details: NextPage = () => {
                       stroke={'#00008B'}
                       dot={false}
                       isAnimationActive={true}
-                      name={'Balance'}
+                      name={'Price'}
                       strokeWidth={2}
                     />
                   </LineChart>
@@ -211,19 +237,29 @@ const Details: NextPage = () => {
               />
             </div>
           </section>
-          <section className="my-5">
-            <div>
-              <h2 className="text-2xl text-black font-semibold mb-2">
-                Your Transactions
-              </h2>
-              {/*TODO: if logged in & has transaction history*/}
-              {/*TODO: ensure to update transaction history after a buy/sell happens while on this page*/}
-              <p className="text-gray-400">
-                TRANSACTION HISTORY w/ this currency will go here if user has
-                bought or sold it.
-              </p>
-            </div>
-          </section>
+          {transactionHistory && transactionHistory.length > 0 && (
+            <section className="my-5">
+              <div>
+                <h2 className="text-2xl text-black font-semibold mb-2">
+                  Your Transactions
+                </h2>
+                {transactionHistory.map((transaction) => (
+                  <div key={transaction._id.toString()} className="mb-2">
+                    <div className="font-medium underline">
+                      {dayjs(transaction.timestamp).format(
+                        'MMM D, YYYY [at] h:mm A'
+                      )}
+                    </div>
+                    <div>
+                      {transaction.action === 'buy' ? 'Purchased' : 'Sold'}{' '}
+                      {transaction.amountUSD / transaction.exchangeRateUSD}{' '}
+                      {data?.symbol.toUpperCase()} for ${transaction.amountUSD}.
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
           <section className="my-5">
             <h2 className="text-2xl text-black font-semibold mb-2">About</h2>
             <p
