@@ -37,7 +37,7 @@ const Home: NextPage = () => {
     setModalOpen(true)
   }
 
-  // Get data for portfolio price history graph whenever account info changes.
+  // Get fresh data for portfolio price history graph whenever account info changes.
   useEffect(() => {
     if (!accountInfo) {
       return
@@ -100,17 +100,16 @@ const Home: NextPage = () => {
                       <CartesianGrid />
                       <XAxis
                         dataKey="timestamp"
-                        tickFormatter={(t) => dayjs.unix(t).format('hh:mm A')}
-                        type="number"
+                        tickFormatter={(t) => dayjs(t).format('hh:mm A')}
+                        type="category"
                         domain={['dataMin', 'dataMax']}
-                        scale="time"
                         minTickGap={15}
                         tickMargin={10}
                       />
                       <YAxis domain={['dataMin-10000', 'dataMax+10000']} hide />
                       <Tooltip
                         formatter={(value: number) => formatUSD(value)}
-                        labelFormatter={(t) => dayjs.unix(t).format('hh:mm A')}
+                        labelFormatter={(t) => dayjs(t).format('hh:mm A')}
                       />
                       <Line
                         type="linear"
