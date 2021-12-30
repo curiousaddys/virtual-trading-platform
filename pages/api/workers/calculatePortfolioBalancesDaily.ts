@@ -4,6 +4,7 @@ import { PortfolioBalance } from '../../../db/portfolioHistory_minutely'
 import { insertDailyPortfolioHistory } from '../../../db/portfolioHistory_daily'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
+import dayjs from 'dayjs'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -13,26 +14,30 @@ export default async function handler(
 ) {
   try {
     cloudflareWorkerAuth(req)
-    const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24)
-    const balances = await getPortfolioBalancesAvgForDay(oneDayAgo)
+    const oneDayAgo = dayjs().subtract(1, 'day').toDate()
+    const avgBalances = await getPortfolioBalancesAvgForDay(oneDayAgo)
 
     // TODO: This should never be true after this has been running for a day, so remove it later.
-    if (balances.length === 0) {
+    if (avgBalances.length === 0) {
       return res.status(200).json({ status: 'ok' })
     }
 
-    const timestamp = new Date(oneDayAgo)
-    timestamp.setUTCHours(0, 0, 0, 0)
+    const timestamp = dayjs(oneDayAgo)
+      .set('millisecond', 0)
+      .set('second', 0)
+      .set('minute', 0)
+      .set('hour', 0)
+      .toDate()
 
-    const recordsInserted = await insertDailyPortfolioHistory(
-      balances.map(
-        (balance): PortfolioBalance => ({
-          portfolioID: balance._id,
-          balanceUSD: balance.avg,
-          timestamp: timestamp,
-        })
-      )
+    const balancesToInsert = avgBalances.map(
+      (balance): PortfolioBalance => ({
+        portfolioID: balance._id,
+        balanceUSD: balance.avg,
+        timestamp: timestamp,
+      })
     )
+
+    const recordsInserted = await insertDailyPortfolioHistory(balancesToInsert)
 
     console.info(
       `[Portfolio Price History – Daily] ${recordsInserted} records inserted.`

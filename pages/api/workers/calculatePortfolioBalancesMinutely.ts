@@ -7,6 +7,7 @@ import {
 } from '../../../db/portfolioHistory_minutely'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
+import dayjs from 'dayjs'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -43,7 +44,7 @@ export default async function handler(
 
     // calculate balance for each portfolio for current minute
     start = Date.now()
-    const timestamp = new Date(Math.floor(Date.now() / 1000 / 60) * 60 * 1000)
+    const timestamp = dayjs().set('second', 0).set('millisecond', 0).toDate()
     const balances: PortfolioBalance[] = portfolios.map((portfolio) => ({
       timestamp: timestamp,
       portfolioID: portfolio._id,

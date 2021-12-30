@@ -1,6 +1,7 @@
 import { getMongoDB } from './mongodb-client'
 import { ONE_DAY_SEC } from '../utils/constants'
 import { ObjectID } from 'bson'
+import dayjs from 'dayjs'
 
 export interface PortfolioBalance {
   timestamp: Date
@@ -56,12 +57,12 @@ export const insertMinutelyPortfolioHistory = async (
 export const getPortfolioBalancesAvgForHour = async (
   date: Date
 ): Promise<PortfolioBalanceAvg[]> => {
-  const startOfHour = new Date(
-    Math.floor(date.getTime() / 1000 / 60 / 60) * 60 * 60 * 1000
-  )
-  const startOfNextHour = new Date(
-    Math.floor(date.getTime() / 1000 / 60 / 60) * 60 * 60 * 1000 + 60 * 60
-  )
+  const startOfHour = dayjs(date)
+    .set('millisecond', 0)
+    .set('second', 0)
+    .set('minute', 0)
+    .toDate()
+  const startOfNextHour = dayjs(startOfHour).add(1, 'hour').toDate()
   const { collection, session } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<PortfolioBalanceAvg>(
     [
