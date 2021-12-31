@@ -10,16 +10,11 @@ export interface GeckoPriceHistory {
   total_volumes: number[][]
 }
 
-export const getMarketChart = async (
-  coin: string,
-  days: string
-): Promise<GeckoPriceHistory> => {
+export const getMarketChart = async (coin: string, days: string): Promise<GeckoPriceHistory> => {
   const geckoCoinDetailsPath = `${COINGECKO_BASE_URL}/coins/${coin}/market_chart`
   const geckoOpts = {
     vs_currency: 'usd',
     days: days,
   }
-  return got
-    .get(geckoCoinDetailsPath, { searchParams: geckoOpts })
-    .json<GeckoPriceHistory>()
+  return got.get(geckoCoinDetailsPath, { searchParams: geckoOpts }).json<GeckoPriceHistory>()
 }

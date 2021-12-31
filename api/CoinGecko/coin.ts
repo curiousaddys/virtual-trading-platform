@@ -98,7 +98,5 @@ export const getCoinDetails = async (coin: string): Promise<GeckoDetails> => {
     community_data: false,
     developer_data: false,
   }
-  return got
-    .get(geckoCoinDetailsPath, { searchParams: geckoOpts })
-    .json<GeckoDetails>()
+  return got.get(geckoCoinDetailsPath, { searchParams: geckoOpts }).json<GeckoDetails>()
 }

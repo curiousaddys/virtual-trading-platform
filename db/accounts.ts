@@ -72,9 +72,7 @@ export const getAllPortfolios = async (): Promise<Portfolio[]> => {
   return portfolios
 }
 
-export const findPortfoliosByAddress = async (
-  address: string
-): Promise<Portfolio[]> => {
+export const findPortfoliosByAddress = async (address: string): Promise<Portfolio[]> => {
   const { collection, session } = await getAccountsCollection()
   const account = await collection.findOne({ address }, { session })
   return account?.portfolios ?? <Portfolio[]>[]
@@ -82,19 +80,13 @@ export const findPortfoliosByAddress = async (
 
 export const updatePortfolio = async (
   accountID: ObjectID,
-  portfolioID: ObjectID,
+  portfolio: Portfolio,
   currency: string,
   amount: number,
   costUSD: number
 ) => {
   const { collection, session } = await getAccountsCollection()
-  const account = await collection.findOne({ _id: accountID }, { session })
-  const portfolio = account!.portfolios.find(
-    (portfolio) => portfolio._id.toString() === portfolioID.toString()
-  )
-  const balance = portfolio!.holdings.find(
-    (holding) => holding.currency === currency
-  )?.amount
+  const balance = portfolio!.holdings.find((holding) => holding.currency === currency)?.amount
   if (!balance && balance !== 0) {
     // insert new object
     // TODO: figure out if there is a way to get $push and $inc working in a single db call w/o conflicts
@@ -106,10 +98,7 @@ export const updatePortfolio = async (
         },
       },
       {
-        arrayFilters: [
-          { 'portfolio._id': portfolioID },
-          { 'cost.currency': 'USD' },
-        ],
+        arrayFilters: [{ 'portfolio._id': portfolio._id }, { 'cost.currency': 'USD' }],
         session,
         returnDocument: 'after',
       }
@@ -125,7 +114,7 @@ export const updatePortfolio = async (
         },
       },
       {
-        arrayFilters: [{ 'portfolio._id': portfolioID }],
+        arrayFilters: [{ 'portfolio._id': portfolio._id }],
         session,
         returnDocument: 'after',
       }
@@ -143,7 +132,7 @@ export const updatePortfolio = async (
       },
       {
         arrayFilters: [
-          { 'portfolio._id': portfolioID },
+          { 'portfolio._id': portfolio._id },
           { 'coin.currency': currency },
           { 'cost.currency': 'USD' },
         ],

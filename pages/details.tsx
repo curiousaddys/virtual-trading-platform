@@ -15,7 +15,7 @@ import {
 } from 'recharts'
 import dayjs from 'dayjs'
 import Link from 'next/link'
-import { BuySellModal } from '../components/BuySellModal'
+import { BuySellAction, BuySellModal } from '../components/BuySellModal'
 import { UserContext } from '../hooks/useUser'
 import Image from 'next/image'
 import { PrettyPercent } from '../components/common/PrettyPercent'
@@ -26,15 +26,13 @@ const Details: NextPage = () => {
   const [data, setData] = useState<GeckoDetails>()
   const [chartData, setChartData] = useState<GeckoPriceHistory>()
   const { accountInfo } = useContext(UserContext)
-  const [transactionHistory, setTransactionHistory] = useState<
-    Transaction[] | null
-  >(null)
+  const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [buyButtonClicked, setBuyButtonClicked] =
-    useState<{ value: string; label: string }>()
+  const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
-  const openBuyModal = (value: string, label: string) => {
-    setBuyButtonClicked({ value, label })
+  const openBuySellModal = (action: BuySellAction) => {
+    if (!data) return
+    setBuySellAction(action)
     setModalOpen(true)
   }
 
@@ -114,27 +112,32 @@ const Details: NextPage = () => {
         <>
           <BuySellModal
             visible={modalOpen}
-            defaultCoin={buyButtonClicked}
+            currency={{ value: data.id, label: data.name }}
             onClose={() => setModalOpen(false)}
+            action={buySellAction}
           />
           <section className="my-5 flex items-center justify-between">
             <div className="flex items-center justify-between">
-              <Image
-                src={data.image.large}
-                height={100}
-                width={100}
-                alt={data.symbol}
-              />
+              <Image src={data.image.large} height={100} width={100} alt={data.symbol} />
               <h1 className="text-4xl text-black font-semibold px-5">
                 {data.name} ({data.symbol.toUpperCase()})
               </h1>
             </div>
-            {accountInfo && data && (
+            {accountInfo && (
               <button
-                className="grow max-w-xs px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                onClick={() => openBuyModal(data.id, data.name)}
+                className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                onClick={() => openBuySellModal(BuySellAction.Buy)}
               >
                 Buy
+              </button>
+            )}
+            {accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === coin)
+              ?.amount && (
+              <button
+                className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                onClick={() => openBuySellModal(BuySellAction.Sell)}
+              >
+                Sell
               </button>
             )}
           </section>
@@ -155,9 +158,7 @@ const Details: NextPage = () => {
                     <CartesianGrid />
                     <XAxis
                       dataKey="0"
-                      tickFormatter={(t) =>
-                        dayjs.unix(t / 1000).format('MMM D, YYYY')
-                      }
+                      tickFormatter={(t) => dayjs.unix(t / 1000).format('MMM D, YYYY')}
                       type="number"
                       domain={['dataMin', 'dataMax']}
                       scale="time"
@@ -187,68 +188,42 @@ const Details: NextPage = () => {
           )}
           <section className="my-5">
             <h2 className="text-2xl text-black font-semibold mb-2">Stats</h2>
-            <div>
-              Current price: {formatUSD(data.market_data.current_price.usd)}
-            </div>
+            <div>Current price: {formatUSD(data.market_data.current_price.usd)}</div>
             <div>Market cap: {formatUSD(data.market_data.market_cap.usd)}</div>
             <div>Volume: {formatUSD(data.market_data.total_volume.usd)}</div>
-            <div>
-              Circulating supply:{' '}
-              {formatFloat(data.market_data.circulating_supply)}
-            </div>
+            <div>Circulating supply: {formatFloat(data.market_data.circulating_supply)}</div>
             <div>Popularity: #{data.market_cap_rank}</div>
             <div>All time high: {formatUSD(data.market_data.ath.usd)}</div>
           </section>
           <section className="my-5">
-            <h2 className="text-2xl text-black font-semibold mb-2">
-              Price History
-            </h2>
+            <h2 className="text-2xl text-black font-semibold mb-2">Price History</h2>
             <div>
               {/*TODO: color prices*/}
               Price change (last hour):{' '}
-              <PrettyPercent
-                value={
-                  data.market_data.price_change_percentage_1h_in_currency.usd
-                }
-              />
+              <PrettyPercent value={data.market_data.price_change_percentage_1h_in_currency.usd} />
             </div>
             <div>
               Price change (24 hours):{' '}
-              <PrettyPercent
-                value={
-                  data.market_data.price_change_percentage_24h_in_currency.usd
-                }
-              />
+              <PrettyPercent value={data.market_data.price_change_percentage_24h_in_currency.usd} />
             </div>
             <div>
               Price change (7 days):{' '}
-              <PrettyPercent
-                value={
-                  data.market_data.price_change_percentage_7d_in_currency.usd
-                }
-              />
+              <PrettyPercent value={data.market_data.price_change_percentage_7d_in_currency.usd} />
             </div>
             <div>
               Price change (30 days):{' '}
-              <PrettyPercent
-                value={
-                  data.market_data.price_change_percentage_30d_in_currency.usd
-                }
-              />
+              <PrettyPercent value={data.market_data.price_change_percentage_30d_in_currency.usd} />
             </div>
           </section>
+          {/*TODO: only show 5-10 recent transactions w/ a "view more" button*/}
           {transactionHistory && transactionHistory.length > 0 && (
             <section className="my-5">
               <div>
-                <h2 className="text-2xl text-black font-semibold mb-2">
-                  Your Transactions
-                </h2>
+                <h2 className="text-2xl text-black font-semibold mb-2">Your Transactions</h2>
                 {transactionHistory.map((transaction) => (
                   <div key={transaction._id.toString()} className="mb-2">
                     <div className="font-medium underline">
-                      {dayjs(transaction.timestamp).format(
-                        'MMM D, YYYY [at] h:mm A'
-                      )}
+                      {dayjs(transaction.timestamp).format('MMM D, YYYY [at] h:mm A')}
                     </div>
                     <div>
                       {transaction.action === 'buy' ? 'Purchased' : 'Sold'}{' '}

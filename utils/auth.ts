@@ -17,10 +17,7 @@ export const auth = (req: NextApiRequest): AuthCookie => {
   const account: AuthCookie = JSON.parse(cookie)
 
   try {
-    ethers.utils.verifyMessage(
-      SIGNATURE_TEXT + account.address,
-      account.signature
-    )
+    ethers.utils.verifyMessage(SIGNATURE_TEXT + account.address, account.signature)
   } catch (err) {
     throw new UnauthorizedError('invalid signature')
   }

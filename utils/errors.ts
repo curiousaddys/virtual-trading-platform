@@ -3,9 +3,7 @@ import { BSONTypeError } from 'bson'
 
 export class UnauthorizedError extends Error {}
 
-export const getErrorDetails = (
-  err: any
-): { status: number; message: string } => {
+export const getErrorDetails = (err: any): { status: number; message: string } => {
   console.error(err)
   if (err instanceof UnauthorizedError) {
     return { status: 401, message: 'unauthorized' }

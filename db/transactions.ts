@@ -19,9 +19,7 @@ const getTransactionsCollection = async () => {
   return { collection, session }
 }
 
-export const insertTransaction = async (
-  transaction: Transaction
-): Promise<ObjectID> => {
+export const insertTransaction = async (transaction: Transaction): Promise<ObjectID> => {
   const { collection, session } = await getTransactionsCollection()
   const result = await collection.insertOne(transaction, { session })
   return result.insertedId

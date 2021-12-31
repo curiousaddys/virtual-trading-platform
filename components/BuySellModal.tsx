@@ -1,7 +1,7 @@
-import { useContext, useEffect, useRef, useState } from 'react'
-import Select from 'react-select'
+import { FormEventHandler, useContext, useEffect, useState } from 'react'
+import Select, { SingleValue } from 'react-select'
 import { usePrices } from '../hooks/usePrices'
-import { formatUSD } from '../utils/format'
+import { capitalize, formatUSD } from '../utils/format'
 import { UserContext } from '../hooks/useUser'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 import ky from 'ky'
@@ -11,35 +11,53 @@ import React from 'react'
 export interface BuySellModalProps {
   visible: boolean
   onClose: () => void
-  // TODO: add types
-  defaultCoin?: { value: string; label: string }
+  currency?: { value: string; label: string }
+  action: BuySellAction
+}
+
+export interface SelectedOption {
+  value: string
+  label: string
+}
+
+const DEFAULT_CURRENCY_VALUE = {
+  value: 'bitcoin',
+  label: 'Bitcoin',
+} as SelectedOption
+
+enum TransactionState {
+  Pending = 'pending',
+  Success = 'success',
+  Failed = 'failed',
+}
+
+export enum BuySellAction {
+  Buy = 'buy',
+  Sell = 'sell',
 }
 
 export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
+  // TODO: probably need amountUSD & amountCoin (update both when either changes)
   const [amount, setAmount] = useState<number>(0)
-  const [currency, setCurrency] = useState({
-    // TODO: reconsider if we want a default value like this
-    value: 'bitcoin',
-    label: 'Bitcoin',
-  })
+  const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
   const [coin, setCoin] = useState<GeckoPrices | null>(null)
   const { prices } = usePrices()
   const { accountInfo, setAccountInfo } = useContext(UserContext)
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
-  const [transactionStatus, setTransactionStatus] = useState<
-    null | 'pending' | 'success' | 'failed'
-  >(null)
+  const [availableToSell, setAvailableToSell] = useState<number>(0)
+  const [transactionStatus, setTransactionStatus] = useState<null | TransactionState>(null)
 
-  // TODO: add types
-  const handleCurrencySelectionChange = (selectedOption: any) => {
+  const handleCurrencySelectionChange = (
+    selectedOption: SingleValue<{ value: string; label: string }>
+  ) => {
     setCurrency(selectedOption)
   }
 
   // Set selected currency whenever prop is passed in.
   useEffect(() => {
-    if (!props.defaultCoin) return
-    setCurrency(props.defaultCoin)
-  }, [props.defaultCoin])
+    if (!props.currency) return
+    setCurrency(props.currency)
+  }, [props.currency])
 
   // Get current coin data whenever selected currency changes or prices update.
   useEffect(() => {
@@ -55,24 +73,25 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
     setAmount(0)
   }, [props.visible])
 
-  // Whenever account info updates, set the available amount to spend.
+  // Whenever account info updates, set the available amount to spend or sell.
   useEffect(() => {
     setAvailableToSpend(
-      accountInfo?.portfolios[0].holdings.find(
-        (holding) => holding.currency === 'USD'
-      )?.amount ?? 0
+      accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === 'USD')?.amount ?? 0
     )
-  }, [accountInfo])
+    setAvailableToSell(
+      accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === coin?.id)
+        ?.amount ?? 0
+    )
+  }, [accountInfo, coin])
 
-  // TODO: add type
-  const handleSubmit = async (event: any) => {
-    if (!coin || !accountInfo) return
+  const handleSubmit: FormEventHandler = async (event) => {
+    if (!coin || !accountInfo || !currency) return
     event.preventDefault()
-    setTransactionStatus('pending')
+    setTransactionStatus(TransactionState.Pending)
     console.log(
-      `Attempting to purchase ${amount / coin.current_price} ${
-        currency.value
-      } for ${amount}.`
+      `Attempting to ${props.action === BuySellAction.Buy ? 'buy' : 'sell'} ${
+        amount / coin.current_price
+      } ${currency.value} for ${amount}.`
     )
     await ky
       .post('/api/transaction', {
@@ -80,26 +99,24 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
           portfolioID: accountInfo.portfolios[0]._id.toString(), // TODO: add support for other portfolios eventually
           coin: coin.id,
           amountUSD: amount,
-          // TODO: add sell option
-          action: 'buy',
+          action: props.action,
         },
       })
       .json<Account>()
       .then((account) => {
-        setTransactionStatus('success')
+        setTransactionStatus(TransactionState.Success)
         setAccountInfo(account)
       })
-      .catch((e) => {
-        setTransactionStatus('failed')
+      .catch((err) => {
+        console.error(err)
+        setTransactionStatus(TransactionState.Failed)
       })
   }
 
   if (!props.visible) return <></>
 
   return (
-    <div
-      className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full`}
-    >
+    <div className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full`}>
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
           {transactionStatus === 'success' && (
@@ -120,21 +137,36 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
           {transactionStatus !== 'success' && (
             <>
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Buy
+                {capitalize(props.action)}
               </h3>
               <div className="mt-2 px-7 py-3">
                 <form className="w-full max-w-sm" onSubmit={handleSubmit}>
                   <div className="w-full text-left py-2">
-                    Available to spend: {formatUSD(availableToSpend)}
+                    {props.action === BuySellAction.Buy && (
+                      <span>
+                        <span className="font-bold">Available to spend:</span>
+                        <br /> {formatUSD(availableToSpend)}
+                      </span>
+                    )}
+                    {props.action === 'sell' && coin && (
+                      <div className="w-full text-left py-2">
+                        <span className="font-bold">Available to sell:</span> <br />
+                        {availableToSell} {coin.symbol.toUpperCase()}
+                        <br />
+                        (~
+                        {formatUSD(availableToSell * coin.current_price)})
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center border-b border-teal-500 py-2">
                     {/*TODO: allow switching to enter amount in coin currency instead of in USD*/}
-                    <span className="text-gray-700 text-5xl text-center">
-                      $
-                    </span>
+                    <span className="text-gray-700 text-5xl text-center">$</span>
                     <input
                       className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-5xl text-center ${
-                        amount > availableToSpend
+                        (props.action === BuySellAction.Buy && amount > availableToSpend) ||
+                        (props.action === BuySellAction.Sell &&
+                          coin &&
+                          amount > availableToSell * coin.current_price)
                           ? 'text-red-500'
                           : 'text-gray-700'
                       }`}
@@ -144,18 +176,13 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
                       aria-label="Amount"
                       value={amount}
                       onChange={(event) =>
-                        setAmount(
-                          event.target.value
-                            ? parseFloat(event.target.value)
-                            : 0
-                        )
+                        setAmount(event.target.value ? parseFloat(event.target.value) : 0)
                       }
                       maxLength={7}
                       autoFocus
                     />
                   </div>
                   <div className="w-full items-center py-2 text-left">
-                    {/*TODO: if opening from a "Buy" button on the Prices list, default to that currency*/}
                     <Select
                       options={prices?.map((price) => ({
                         value: price.id,
@@ -168,12 +195,14 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
                   {coin && (
                     <>
                       <div className="w-full text-left py-2">
-                        Exchange Price: {formatUSD(coin.current_price)}
+                        <span className="font-bold">Exchange Price:</span>
+                        <br /> {formatUSD(coin.current_price)}
                       </div>
-                      <div className="w-full text-left py-2 font-bold">
-                        Purchase amount:
-                        <br />~{amount / coin.current_price}{' '}
-                        {coin.symbol.toUpperCase()}
+                      <div className="w-full text-left py-2">
+                        <span className="font-bold">
+                          {props.action === BuySellAction.Buy ? 'Purchase' : 'Sale'} amount:
+                        </span>
+                        <br />~{amount / coin.current_price} {coin.symbol.toUpperCase()}
                       </div>
                     </>
                   )}
@@ -182,14 +211,16 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
                     <button
                       className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50"
                       disabled={
-                        amount > availableToSpend ||
-                        amount < 1 ||
                         !coin ||
+                        (props.action === BuySellAction.Buy && amount > availableToSpend) ||
+                        (props.action === BuySellAction.Sell &&
+                          amount > availableToSell * coin.current_price) ||
+                        amount < 1 ||
                         transactionStatus === 'pending'
                       }
                       type="submit"
                     >
-                      BUY NOW
+                      {props.action.toUpperCase()} NOW
                     </button>
                     <button
                       onClick={(event) => {
@@ -203,8 +234,7 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
                     {transactionStatus === 'failed' && (
                       <div className="text-red-400 mt-3">
                         {/*TODO: figure out how to handle different errors and show better message*/}
-                        ERROR SUBMITTING TRANSACTION (maybe not enough funds or
-                        internal server error or other error?)
+                        ERROR SUBMITTING TRANSACTION (maybe not enough funds or some other error?)
                       </div>
                     )}
                   </div>
@@ -212,7 +242,6 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
               </div>
             </>
           )}
-          {/*TODO: add option to buy or sell*/}
         </div>
       </div>
     </div>

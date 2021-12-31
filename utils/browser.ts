@@ -14,5 +14,4 @@ export const isBrowserCompatible = (): boolean => {
   return isChrome || isChromium || isFirefox || isEdge || isEdgeChromium
 }
 
-export const isEthereumObjectOnWindow = (): boolean =>
-  !!(window as any)?.ethereum
+export const isEthereumObjectOnWindow = (): boolean => !!(window as any)?.ethereum

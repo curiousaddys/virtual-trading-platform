@@ -76,9 +76,7 @@ export const WalletConnector: React.FC = () => {
       )}
       {!user && metaMaskBrowserStatus === 'supported' && (
         <button
-          onClick={() =>
-            window.open('https://metamask.io/download.html', '_blank')
-          }
+          onClick={() => window.open('https://metamask.io/download.html', '_blank')}
           className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
         >
           Install MetaMask to Login
@@ -89,10 +87,7 @@ export const WalletConnector: React.FC = () => {
         <button
           className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
           onClick={() => {
-            if (window)
-              window.alert(
-                'TODO: Add instructions re: using a supported browser.'
-              )
+            if (window) window.alert('TODO: Add instructions re: using a supported browser.')
           }}
         >
           Browser unsupported

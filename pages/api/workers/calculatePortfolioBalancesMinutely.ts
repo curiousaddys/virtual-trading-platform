@@ -53,17 +53,13 @@ export default async function handler(
         currency: '',
       })).amount,
     }))
-    console.info(
-      `Calculated all portfolio balances in ${Date.now() - start} ms.`
-    )
+    console.info(`Calculated all portfolio balances in ${Date.now() - start} ms.`)
 
     // insert into database
     start = Date.now()
     const recordsInserted = await insertMinutelyPortfolioHistory(balances)
     console.info(`Balances inserted into DB in ${Date.now() - start} ms.`)
-    console.info(
-      `[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`
-    )
+    console.info(`[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`)
 
     return res.status(200).json({ status: 'ok' })
   } catch (err: any) {

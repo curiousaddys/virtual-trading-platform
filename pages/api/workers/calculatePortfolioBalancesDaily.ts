@@ -39,9 +39,7 @@ export default async function handler(
 
     const recordsInserted = await insertDailyPortfolioHistory(balancesToInsert)
 
-    console.info(
-      `[Portfolio Price History – Daily] ${recordsInserted} records inserted.`
-    )
+    console.info(`[Portfolio Price History – Daily] ${recordsInserted} records inserted.`)
 
     return res.status(200).json({ status: 'ok' })
   } catch (err: any) {

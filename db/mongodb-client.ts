@@ -7,10 +7,7 @@ let session: ClientSession | null = null
 
 export const getMongoDB = async () => {
   if (!client) {
-    client = await new MongoClient(
-      config.MONGO_URI,
-      config.MONGO_OPTIONS
-    ).connect()
+    client = await new MongoClient(config.MONGO_URI, config.MONGO_OPTIONS).connect()
     console.log('🔥 New DB Connection')
   }
 

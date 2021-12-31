@@ -24,11 +24,7 @@ export default async function handler(
       return res.status(200).json({ status: 'ok' })
     }
 
-    const timestamp = dayjs()
-      .set('millisecond', 0)
-      .set('second', 0)
-      .set('minute', 0)
-      .toDate()
+    const timestamp = dayjs().set('millisecond', 0).set('second', 0).set('minute', 0).toDate()
 
     const balancesToInsert = avgBalances.map(
       (balance): PortfolioBalance => ({
@@ -40,9 +36,7 @@ export default async function handler(
 
     const recordsInserted = await insertHourlyPortfolioHistory(balancesToInsert)
 
-    console.info(
-      `[Portfolio Price History – Hourly] ${recordsInserted} records inserted.`
-    )
+    console.info(`[Portfolio Price History – Hourly] ${recordsInserted} records inserted.`)
 
     return res.status(200).json({ status: 'ok' })
   } catch (err: any) {

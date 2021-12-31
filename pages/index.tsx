@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import Image from 'next/image'
-import { useContext, useEffect, useState } from 'react'
-import React from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import ky from 'ky'
 import {
   CartesianGrid,
@@ -16,24 +15,24 @@ import { UserContext } from '../hooks/useUser'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PortfolioBalance } from '../db/portfolioHistory_minutely'
 import dayjs from 'dayjs'
-import { BuySellModal } from '../components/BuySellModal'
+import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
 import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
-  const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] =
-    useState<number>(0)
+  const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartData, setChartData] = useState<PortfolioBalance[] | null>(null)
   // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
   const [modalOpen, setModalOpen] = useState(false)
-  const [buyButtonClicked, setBuyButtonClicked] =
-    useState<{ value: string; label: string }>()
+  const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
+  const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
-  const openBuyModal = (value: string, label: string) => {
-    setBuyButtonClicked({ value, label })
+  const openBuySellModal = (value: string, label: string, action: BuySellAction) => {
+    setBuySellCurrency({ value, label })
+    setBuySellAction(action)
     setModalOpen(true)
   }
 
@@ -47,7 +46,6 @@ const Home: NextPage = () => {
       const data = await ky.get('/api/balance').json<PortfolioBalance[]>()
       // TODO(jh): remove logging
       console.log(data)
-      // TODO(jh): append current portfolio amount to end so that it updates immediately after a buy/sell happens?
       setChartData(data)
     })()
   }, [accountInfo])
@@ -57,10 +55,7 @@ const Home: NextPage = () => {
     if (!prices || !accountInfo?.portfolios[0].holdings) return
     const sum = accountInfo.portfolios[0].holdings.reduce(
       (prev, cur) =>
-        prev +
-        (prices.find((price) => price.id === cur.currency)?.current_price ??
-          1) *
-          cur.amount,
+        prev + (prices.find((price) => price.id === cur.currency)?.current_price ?? 1) * cur.amount,
       0
     )
     setTotalPortfolioBalanceUSD(sum)
@@ -74,8 +69,9 @@ const Home: NextPage = () => {
         <>
           <BuySellModal
             visible={modalOpen}
-            defaultCoin={buyButtonClicked}
+            currency={buySellCurrency}
             onClose={() => setModalOpen(false)}
+            action={buySellAction}
           />
           {prices && accountInfo && chartData && chartData?.length > 0 && (
             <>
@@ -129,53 +125,68 @@ const Home: NextPage = () => {
           {prices && accountInfo && (
             <>
               <section>
-                <h2 className="text-lg text-black font-semibold mt-10">
-                  Your Portfolio
-                </h2>
+                <h2 className="text-lg text-black font-semibold mt-10">Your Portfolio</h2>
                 <div className="shadow border mt-2">
                   <table className="w-full table-auto">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-2 text-xs text-gray-500 text-left">
-                          Name
-                        </th>
+                        <th className="px-4 py-2 text-xs text-gray-500 text-left">Name</th>
                         <th className="px-4 py-2" />
-                        <th className="px-6 py-2 text-xs text-gray-500 text-right">
-                          Balance
-                        </th>
-                        <th className="px-6 py-2 text-xs text-gray-500 text-right">
+                        <th className="px-6 py-2 text-xs text-gray-500 text-right">Balance</th>
+                        <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                           Allocation
                         </th>
+                        <th className="px-6 py-2" />
                       </tr>
                     </thead>
                     <tbody className="bg-white">
-                      {/*TODO: sort this by the coins w/ the most value held*/}
-                      {accountInfo.portfolios[0].holdings.map((h) => {
-                        const coin = prices.find(
-                          (price) => price.id === h.currency
-                        ) ?? {
-                          id: 'usd',
-                          symbol: 'USD',
-                          name: 'US Dollars',
-                          current_price: 1,
-                          price_change_percentage_24h: 0,
-                          image:
-                            // TODO: maybe host this image ourselves
-                            'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-                        }
-                        return (
-                          <tr
-                            key={h.currency}
-                            className="whitespace-nowrap even:bg-gray-50"
-                          >
-                            {/*TODO: figure out best way to simplify this (we just need the USD row to not be a link)*/}
-                            {coin.id !== 'usd' ? (
-                              <>
-                                <Link
-                                  href={`/details?coin=${coin.id}`}
-                                  passHref
-                                >
-                                  <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
+                      {accountInfo.portfolios[0].holdings
+                        .sort((a, b) => {
+                          const aCurrentPrice =
+                            prices.find((price) => price.id === a.currency)?.current_price ?? 1 // If not found, then it's USD.
+                          const bCurrentPrice =
+                            prices.find((price) => price.id === b.currency)?.current_price ?? 1 // If not found, then it's USD.
+                          return bCurrentPrice * b.amount - aCurrentPrice * a.amount
+                        })
+                        .map((h) => {
+                          const coin = prices.find((price) => price.id === h.currency) ?? {
+                            id: 'usd',
+                            symbol: 'USD',
+                            name: 'US Dollars',
+                            current_price: 1,
+                            price_change_percentage_24h: 0,
+                            image:
+                              // TODO: maybe host this image ourselves
+                              'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                          }
+                          return (
+                            <tr key={h.currency} className="whitespace-nowrap even:bg-gray-50">
+                              {/*TODO: figure out best way to simplify this (we just need the USD row to not be a link)*/}
+                              {coin.id !== 'usd' ? (
+                                <>
+                                  <Link href={`/details?coin=${coin.id}`} passHref>
+                                    <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
+                                      <Image
+                                        src={coin.image}
+                                        height={40}
+                                        width={40}
+                                        alt={coin.symbol}
+                                      />
+                                    </td>
+                                  </Link>
+                                  <Link href={`/details?coin=${coin.id}`} passHref>
+                                    <td className="px-4 py-4 text-sm text-gray-900 cursor-pointer">
+                                      <span className="font-bold">{coin.name}</span>
+                                      <br />
+                                      <span className="font-light">
+                                        {coin.symbol.toUpperCase()}
+                                      </span>
+                                    </td>
+                                  </Link>
+                                </>
+                              ) : (
+                                <>
+                                  <td className="px-4 py-4 whitespace-nowrap w-px">
                                     <Image
                                       src={coin.image}
                                       height={40}
@@ -183,61 +194,46 @@ const Home: NextPage = () => {
                                       alt={coin.symbol}
                                     />
                                   </td>
-                                </Link>
-                                <Link
-                                  href={`/details?coin=${coin.id}`}
-                                  passHref
-                                >
-                                  <td className="px-4 py-4 text-sm text-gray-900 cursor-pointer">
-                                    <span className="font-bold">
-                                      {coin.name}
-                                    </span>
+                                  <td className="px-4 py-4 text-sm text-gray-900">
+                                    <span className="font-bold">{coin.name}</span>
                                     <br />
-                                    <span className="font-light">
-                                      {coin.symbol.toUpperCase()}
-                                    </span>
+                                    <span className="font-light">{coin.symbol.toUpperCase()}</span>
                                   </td>
-                                </Link>
-                              </>
-                            ) : (
-                              <>
-                                <td className="px-4 py-4 whitespace-nowrap w-px">
-                                  <Image
-                                    src={coin.image}
-                                    height={40}
-                                    width={40}
-                                    alt={coin.symbol}
-                                  />
-                                </td>
-                                <td className="px-4 py-4 text-sm text-gray-900">
-                                  <span className="font-bold">{coin.name}</span>
-                                  <br />
-                                  <span className="font-light">
-                                    {coin.symbol.toUpperCase()}
-                                  </span>
-                                </td>
-                              </>
-                            )}
-
-                            <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                              <span className="font-bold text-gray-700 text-base">
-                                {formatUSD(coin.current_price * h.amount)}
-                              </span>
-                              <br />
-                              {formatFloat(h.amount)}{' '}
-                              {coin.symbol.toUpperCase()}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                              {formatPercent(
-                                ((coin.current_price * h.amount) /
-                                  totalPortfolioBalanceUSD) *
-                                  100,
-                                false
+                                </>
                               )}
-                            </td>
-                          </tr>
-                        )
-                      })}
+
+                              <td className="px-6 py-4 text-sm text-gray-500 text-right">
+                                <span className="font-bold text-gray-700 text-base">
+                                  {formatUSD(coin.current_price * h.amount)}
+                                </span>
+                                <br />
+                                {formatFloat(h.amount)} {coin.symbol.toUpperCase()}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell">
+                                {formatPercent(
+                                  ((coin.current_price * h.amount) / totalPortfolioBalanceUSD) *
+                                    100,
+                                  false
+                                )}
+                              </td>
+                              {/*TODO: don't display for USD*/}
+
+                              <td className="px-4 py-4 text-right">
+                                {coin.id !== 'usd' && (
+                                  <button
+                                    className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                                    style={{ maxWidth: 75 }}
+                                    onClick={() =>
+                                      openBuySellModal(coin.id, coin.name, BuySellAction.Sell)
+                                    }
+                                  >
+                                    Sell
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        })}
                     </tbody>
                   </table>
                 </div>
@@ -245,20 +241,14 @@ const Home: NextPage = () => {
             </>
           )}
           <section>
-            <h2 className="text-lg text-black font-semibold mt-10">
-              All Prices
-            </h2>
+            <h2 className="text-lg text-black font-semibold mt-10">All Prices</h2>
             <div className="shadow border mt-2">
               <table className="table-auto w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-xs text-gray-500 text-left">
-                      Name
-                    </th>
+                    <th className="px-4 py-2 text-xs text-gray-500 text-left">Name</th>
                     <th className="px-4 py-2" />
-                    <th className="px-6 py-2 text-xs text-gray-500 text-right">
-                      Price
-                    </th>
+                    <th className="px-6 py-2 text-xs text-gray-500 text-right">Price</th>
                     <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                       Change (1 day)
                     </th>
@@ -270,55 +260,37 @@ const Home: NextPage = () => {
                 <tbody className="bg-white">
                   {prices &&
                     prices.map((coin) => (
-                      <tr
-                        className="whitespace-nowrap even:bg-gray-50"
-                        key={coin.id}
-                      >
+                      <tr className="whitespace-nowrap even:bg-gray-50" key={coin.id}>
                         <Link href={`/details?coin=${coin.id}`} passHref>
                           <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
-                            <Image
-                              src={coin.image}
-                              height={40}
-                              width={40}
-                              alt={coin.symbol}
-                            />
+                            <Image src={coin.image} height={40} width={40} alt={coin.symbol} />
                           </td>
                         </Link>
                         <Link href={`/details?coin=${coin.id}`} passHref>
                           <td className="px-4 py-4 text-sm text-gray-900 font-bold cursor-pointer">
                             {coin.name} <br />
-                            <span className="font-light">
-                              {coin.symbol.toUpperCase()}
-                            </span>
+                            <span className="font-light">{coin.symbol.toUpperCase()}</span>
                           </td>
                         </Link>
                         <td className="px-6 py-4 text-sm text-gray-500 text-right">
                           {formatUSD(coin.current_price)}
                           <div className="md:hidden w-100">
-                            <PrettyPercent
-                              value={coin.price_change_percentage_24h}
-                            />
+                            <PrettyPercent value={coin.price_change_percentage_24h} />
                           </div>
                         </td>
                         <td
                           className={`px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell`}
                         >
-                          <PrettyPercent
-                            value={coin.price_change_percentage_24h}
-                          />
+                          <PrettyPercent value={coin.price_change_percentage_24h} />
                         </td>
-                        <td
-                          className="px-4 py-4 hidden md:table-cell"
-                          style={{ maxWidth: 150 }}
-                        >
+                        <td className="px-4 py-4 hidden md:table-cell" style={{ maxWidth: 150 }}>
                           <ResponsiveContainer width="100%" height={40}>
                             <LineChart
                               data={
                                 // TODO(jh): handle this data on backend
                                 (coin.sparkline_in_7d.price ?? [0])
                                   .slice(
-                                    (coin.sparkline_in_7d.price ?? [0]).length -
-                                      25,
+                                    (coin.sparkline_in_7d.price ?? [0]).length - 25,
                                     coin.sparkline_in_7d.price?.length
                                   )
                                   .map((n) => ({
@@ -332,18 +304,12 @@ const Home: NextPage = () => {
                                 left: 10,
                               }}
                             >
-                              <YAxis
-                                type="number"
-                                domain={['dataMin', 'dataMax']}
-                                hide
-                              />
+                              <YAxis type="number" domain={['dataMin', 'dataMax']} hide />
                               <Line
                                 type="linear"
                                 dataKey="n"
                                 stroke={
-                                  coin.price_change_percentage_24h >= 0
-                                    ? '#22c55e'
-                                    : '#ef4444'
+                                  coin.price_change_percentage_24h >= 0 ? '#22c55e' : '#ef4444'
                                 }
                                 dot={false}
                                 isAnimationActive={false}
@@ -352,10 +318,13 @@ const Home: NextPage = () => {
                           </ResponsiveContainer>
                         </td>
                         {accountInfo && (
-                          <td className="px-4 py-4">
+                          <td className="px-4 py-4 text-right">
                             <button
                               className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                              onClick={() => openBuyModal(coin.id, coin.name)}
+                              style={{ maxWidth: 75 }}
+                              onClick={() =>
+                                openBuySellModal(coin.id, coin.name, BuySellAction.Buy)
+                              }
                             >
                               Buy
                             </button>

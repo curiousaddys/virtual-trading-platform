@@ -16,9 +16,7 @@ export interface PortfolioBalanceAvg {
 
 export const getPortfolioHistoryMinutelyCollection = async () => {
   const { db, session } = await getMongoDB()
-  const collection = await db.collection<PortfolioBalance>(
-    'portfolioHistory_minutely'
-  )
+  const collection = await db.collection<PortfolioBalance>('portfolioHistory_minutely')
   await collection.createIndex(
     { timestamp: -1 },
     {
@@ -26,10 +24,7 @@ export const getPortfolioHistoryMinutelyCollection = async () => {
       session,
     }
   )
-  await collection.createIndex(
-    { portfolioID: 1, timestamp: -1 },
-    { unique: true, session }
-  )
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
   return { collection, session }
 }
 
@@ -57,11 +52,7 @@ export const insertMinutelyPortfolioHistory = async (
 export const getPortfolioBalancesAvgForHour = async (
   date: Date
 ): Promise<PortfolioBalanceAvg[]> => {
-  const startOfHour = dayjs(date)
-    .set('millisecond', 0)
-    .set('second', 0)
-    .set('minute', 0)
-    .toDate()
+  const startOfHour = dayjs(date).set('millisecond', 0).set('second', 0).set('minute', 0).toDate()
   const startOfNextHour = dayjs(startOfHour).add(1, 'hour').toDate()
   const { collection, session } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<PortfolioBalanceAvg>(

@@ -1,16 +1,11 @@
-import {
-  PortfolioBalance,
-  PortfolioBalanceAvg,
-} from './portfolioHistory_minutely'
+import { PortfolioBalance, PortfolioBalanceAvg } from './portfolioHistory_minutely'
 import { getMongoDB } from './mongodb-client'
 import { THIRTY_DAYS_SEC } from '../utils/constants'
 import dayjs from 'dayjs'
 
 export const getPortfolioHistoryHourlyCollection = async () => {
   const { db, session } = await getMongoDB()
-  const collection = await db.collection<PortfolioBalance>(
-    'portfolioHistory_hourly'
-  )
+  const collection = await db.collection<PortfolioBalance>('portfolioHistory_hourly')
   await collection.createIndex(
     { timestamp: -1 },
     {
@@ -18,10 +13,7 @@ export const getPortfolioHistoryHourlyCollection = async () => {
       session,
     }
   )
-  await collection.createIndex(
-    { portfolioID: 1, timestamp: -1 },
-    { unique: true, session }
-  )
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
   return { collection, session }
 }
 
@@ -45,14 +37,8 @@ export const insertHourlyPortfolioHistory = async (
   }
 }
 
-export const getPortfolioBalancesAvgForDay = async (
-  date: Date
-): Promise<PortfolioBalanceAvg[]> => {
-  const startOfDay = dayjs()
-    .set('millisecond', 0)
-    .set('second', 0)
-    .set('minute', 0)
-    .set('hour', 0)
+export const getPortfolioBalancesAvgForDay = async (date: Date): Promise<PortfolioBalanceAvg[]> => {
+  const startOfDay = dayjs().set('millisecond', 0).set('second', 0).set('minute', 0).set('hour', 0)
   const startOfNextDay = dayjs(startOfDay).add(1, 'day')
   const { collection, session } = await getPortfolioHistoryHourlyCollection()
   const results = await collection.aggregate<PortfolioBalanceAvg>(

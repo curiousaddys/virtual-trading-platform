@@ -2,10 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { z } from 'zod'
 import { getErrorDetails } from '../../utils/errors'
-import {
-  GeckoPriceHistory,
-  getMarketChart,
-} from '../../api/CoinGecko/market_chart'
+import { GeckoPriceHistory, getMarketChart } from '../../api/CoinGecko/market_chart'
 
 const QuerySchema = z.object({
   coin: z.enum(SUPPORTED_COINS),

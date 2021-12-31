@@ -49,7 +49,5 @@ export const getMarketData = async (): Promise<GeckoPrices[]> => {
     sparkline: true,
     price_change_percentage: '1h,24h,7d,30d,1y',
   }
-  return got
-    .get(geckoMarketsPath, { searchParams: geckoOpts })
-    .json<GeckoPrices[]>()
+  return got.get(geckoMarketsPath, { searchParams: geckoOpts }).json<GeckoPrices[]>()
 }
