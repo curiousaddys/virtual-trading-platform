@@ -15,6 +15,7 @@ export default async function handler(
   try {
     cloudflareWorkerAuth(req)
     const oneDayAgo = dayjs().subtract(1, 'day').toDate()
+    console.log('one day ago:' + oneDayAgo.getTime())
     const avgBalances = await getPortfolioBalancesAvgForDay(oneDayAgo)
 
     // TODO: This should never be true after this has been running for a day, so remove it later.

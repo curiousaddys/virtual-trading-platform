@@ -2,6 +2,8 @@ import { PortfolioBalance, PortfolioBalanceAvg } from './portfolioHistory_minute
 import { getMongoDB } from './mongodb-client'
 import { THIRTY_DAYS_SEC } from '../utils/constants'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
 
 export const getPortfolioHistoryHourlyCollection = async () => {
   const { db, session } = await getMongoDB()
@@ -38,8 +40,16 @@ export const insertHourlyPortfolioHistory = async (
 }
 
 export const getPortfolioBalancesAvgForDay = async (date: Date): Promise<PortfolioBalanceAvg[]> => {
-  const startOfDay = dayjs().set('millisecond', 0).set('second', 0).set('minute', 0).set('hour', 0)
-  const startOfNextDay = dayjs(startOfDay).add(1, 'day')
+  // Note that it's crucial to use UTC mode here since we are setting the hour.
+  // It's not needed if only setting smaller units since those aren't impacted by time zones.
+  const startOfDay = dayjs(date)
+    .utc()
+    .set('millisecond', 0)
+    .set('second', 0)
+    .set('minute', 0)
+    .set('hour', 0)
+    .toDate()
+  const startOfNextDay = dayjs(startOfDay).add(1, 'day').toDate()
   const { collection, session } = await getPortfolioHistoryHourlyCollection()
   const results = await collection.aggregate<PortfolioBalanceAvg>(
     [
