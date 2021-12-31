@@ -228,7 +228,7 @@ const Details: NextPage = () => {
                     <div>
                       {transaction.action === 'buy' ? 'Purchased' : 'Sold'}{' '}
                       {transaction.amountUSD / transaction.exchangeRateUSD}{' '}
-                      {data?.symbol.toUpperCase()} for ${formatUSD(transaction.amountUSD)}.
+                      {data?.symbol.toUpperCase()} for {formatUSD(transaction.amountUSD)}.
                     </div>
                   </div>
                 ))}
