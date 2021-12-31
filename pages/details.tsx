@@ -92,7 +92,7 @@ const Details: NextPage = () => {
         .get('/api/transactions', {
           searchParams: {
             coin: coin,
-            portfolioID: '61ce1722db11e201724381ac', // TODO: get ID from AccountInfo
+            portfolioID: accountInfo.portfolios[0]._id.toString(),
           },
         })
         .json<Transaction[]>()
