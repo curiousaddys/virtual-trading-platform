@@ -70,7 +70,7 @@ export const persistLatestPortfolioBalances = async (
   targetCollection: Collection<PortfolioBalance>
 ) => {
   const { collection, session } = await getPortfolioHistoryMinutelyCollection()
-  await collection.aggregate(
+  const results = await collection.aggregate(
     [
       // sort by timestamp desc
       {
@@ -108,4 +108,6 @@ export const persistLatestPortfolioBalances = async (
     ],
     { session }
   )
+  // Must do this in order for Node.js MongoDB driver to actually execute the aggregation.
+  await results.toArray()
 }

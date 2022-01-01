@@ -14,8 +14,8 @@ const QuerySchema = z.object({
 })
 
 const getCollection = {
-  hourly: getPortfolioHistoryHourlyCollection(),
-  daily: getPortfolioHistoryDailyCollection(),
+  hourly: getPortfolioHistoryHourlyCollection,
+  daily: getPortfolioHistoryDailyCollection,
 }
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
@@ -29,7 +29,7 @@ export default async function handler(
 
     const { period } = QuerySchema.parse(req.query)
 
-    const { collection: targetCollection } = await getCollection[period]
+    const { collection: targetCollection } = await getCollection[period]()
     await persistLatestPortfolioBalances(targetCollection)
 
     console.info(`[Portfolio Price History – ${capitalize(period)}] Finished.`)
