@@ -19,6 +19,7 @@ import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySe
 import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
+import { ObjectID } from 'bson'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
@@ -36,9 +37,9 @@ const Home: NextPage = () => {
     setModalOpen(true)
   }
 
-  // Get fresh data for portfolio price history graph whenever account info changes.
+  // Get fresh data for portfolio price history graph whenever balance changes.
   useEffect(() => {
-    if (!accountInfo) {
+    if (!totalPortfolioBalanceUSD) {
       return
     }
     ;(async () => {
@@ -46,9 +47,17 @@ const Home: NextPage = () => {
       const data = await ky.get('/api/balance').json<PortfolioBalance[]>()
       // TODO(jh): remove logging
       console.log(data)
+      // If length is 0 (i.e. it's new portfolio w/o any history yet), just use current price so graph isn't empty).
+      if (data.length === 0) {
+        data.push({
+          timestamp: new Date(),
+          portfolioID: new ObjectID(),
+          balanceUSD: totalPortfolioBalanceUSD,
+        })
+      }
       setChartData(data)
     })()
-  }, [accountInfo])
+  }, [totalPortfolioBalanceUSD])
 
   // Whenever price data or account info changes, calculate total portfolio balance.
   useEffect(() => {
