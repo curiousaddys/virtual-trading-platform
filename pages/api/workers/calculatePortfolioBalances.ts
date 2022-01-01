@@ -5,6 +5,7 @@ import { insertMinutelyPortfolioHistory, PortfolioBalance } from '../../../db/po
 import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
 import dayjs from 'dayjs'
+import { Timer } from '../../../utils/timer'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -12,37 +13,31 @@ interface CurrentPrices {
   [key: string]: number
 }
 
-// TODO: make "timer" to make this easier to read.
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<WorkerAPIResponse>
 ) {
   try {
-    let start = Date.now()
     cloudflareWorkerAuth(req)
-    console.info(`Auth completed in ${Date.now() - start} ms.`)
+
+    const timer = new Timer()
 
     // get current prices
-    start = Date.now()
     const geckoPrices = await getMarketData()
-    console.info(`Get Gecko market data done in ${Date.now() - start} ms.`)
+    timer.log('Got Gecko market data')
 
     // store prices in key-value pairs to perform quick lookups
-    start = Date.now()
     const currentPrices: CurrentPrices = {}
     geckoPrices.forEach((price) => {
       currentPrices[price.id] = price.current_price
     })
-    console.info(`Gecko data processing done in ${Date.now() - start} ms.`)
+    timer.log('Processed Gecko market data')
 
     // get all portfolios
-    start = Date.now()
     const portfolios = await getAllPortfolios()
-    console.info(`Got all portfolios from DB in ${Date.now() - start} ms.`)
+    timer.log('Got all portfolios from database')
 
     // calculate balance for each portfolio for current minute
-    start = Date.now()
     const timestamp = dayjs().set('second', 0).set('millisecond', 0).toDate()
     const balances: PortfolioBalance[] = portfolios.map((portfolio) => ({
       timestamp: timestamp,
@@ -52,12 +47,12 @@ export default async function handler(
         currency: '',
       })).amount,
     }))
-    console.info(`Calculated all portfolio balances in ${Date.now() - start} ms.`)
+    timer.log('Calculated all portfolio balances')
 
     // insert into database
-    start = Date.now()
     const recordsInserted = await insertMinutelyPortfolioHistory(balances)
-    console.info(`Balances inserted into DB in ${Date.now() - start} ms.`)
+    timer.log('Inserted portfolio balances into database')
+
     console.info(`[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`)
 
     return res.status(200).json({ status: 'ok' })
