@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { findOrInsertAccount } from '../../db/accounts'
 import { auth } from '../../utils/auth'
 import { getErrorDetails } from '../../utils/errors'
-import { PortfolioBalance } from '../../db/portfolioHistory_minutely'
+import { PortfolioBalance } from '../../db/portfolioHistory'
 import { getPortfolioBalanceHistory } from '../../db/portfolioBalance'
 
 export default async function handler(

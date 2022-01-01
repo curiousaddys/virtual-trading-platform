@@ -1,10 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAllPortfolios } from '../../../db/accounts'
 import { getMarketData } from '../../../api/CoinGecko/markets'
-import {
-  insertMinutelyPortfolioHistory,
-  PortfolioBalance,
-} from '../../../db/portfolioHistory_minutely'
+import { insertMinutelyPortfolioHistory, PortfolioBalance } from '../../../db/portfolioHistory'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
 import dayjs from 'dayjs'
@@ -14,6 +11,8 @@ type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 interface CurrentPrices {
   [key: string]: number
 }
+
+// TODO: make "timer" to make this easier to read.
 
 export default async function handler(
   req: NextApiRequest,

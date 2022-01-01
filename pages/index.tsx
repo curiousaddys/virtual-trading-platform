@@ -13,7 +13,7 @@ import {
 } from 'recharts'
 import { UserContext } from '../hooks/useUser'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
-import { PortfolioBalance } from '../db/portfolioHistory_minutely'
+import { PortfolioBalance } from '../db/portfolioHistory'
 import dayjs from 'dayjs'
 import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
 import { usePrices } from '../hooks/usePrices'

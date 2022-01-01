@@ -1,4 +1,4 @@
-import { getPortfolioHistoryMinutelyCollection } from './portfolioHistory_minutely'
+import { getPortfolioHistoryMinutelyCollection } from './portfolioHistory'
 import { ObjectID } from 'bson'
 
 export const getPortfolioBalanceHistory = async (portfolioID: ObjectID) => {
