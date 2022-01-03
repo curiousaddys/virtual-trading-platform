@@ -1,6 +1,4 @@
-import { GeckoPriceHistory } from './market_chart'
-import { COINGECKO_BASE_URL } from '../../utils/constants'
-import got from 'got'
+import client from './client'
 
 export interface GeckoDetails {
   id: string
@@ -91,12 +89,12 @@ interface GeckoPrice {
 }
 
 export const getCoinDetails = async (coin: string): Promise<GeckoDetails> => {
-  const geckoCoinDetailsPath = `${COINGECKO_BASE_URL}/coins/${coin}`
-  const geckoOpts = {
+  const path = `coins/${coin}`
+  const params = {
     localization: false,
     tickers: false,
     community_data: false,
     developer_data: false,
   }
-  return got.get(geckoCoinDetailsPath, { searchParams: geckoOpts }).json<GeckoDetails>()
+  return client.get(path, { searchParams: params }).json<GeckoDetails>()
 }
