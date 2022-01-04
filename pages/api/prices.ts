@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getErrorDetails } from '../../utils/errors'
 import { GeckoPrices, getMarketData } from '../../api/CoinGecko/markets'
 
-export type PricesResp = (Omit<GeckoPrices, 'sparkline_in_7d'> & { sparkline: number[][] })[]
+export type Price = Omit<GeckoPrices, 'sparkline_in_7d'> & { sparkline: number[][] }
 
 // Only keeps hourly sparkline data for the past 24 hrs to slim down the data that is returned to the frontend.
-const filterSparkline = (arr: GeckoPrices[]): PricesResp =>
+const filterSparkline = (arr: GeckoPrices[]): Price[] =>
   arr.map(({ sparkline_in_7d, ...fieldsToKeep }) => ({
     ...fieldsToKeep,
     sparkline: (sparkline_in_7d?.price ?? [0])
@@ -15,7 +15,7 @@ const filterSparkline = (arr: GeckoPrices[]): PricesResp =>
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<PricesResp | { error: string }>
+  res: NextApiResponse<Price[] | { error: string }>
 ) {
   try {
     const data = await getMarketData()

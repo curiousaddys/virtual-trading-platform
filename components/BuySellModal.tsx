@@ -3,10 +3,10 @@ import Select, { SingleValue } from 'react-select'
 import { usePrices } from '../hooks/usePrices'
 import { formatUSD } from '../utils/format'
 import { UserContext } from '../hooks/useUser'
-import { GeckoPrices } from '../api/CoinGecko/markets'
 import ky from 'ky'
 import { Account } from '../db/accounts'
 import React from 'react'
+import { Price } from '../pages/api/prices'
 
 export interface BuySellModalProps {
   visible: boolean
@@ -40,7 +40,7 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
   // TODO: probably need amountUSD & amountCoin (update both when either changes)
   const [amount, setAmount] = useState<number>(0)
   const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
-  const [coin, setCoin] = useState<GeckoPrices | null>(null)
+  const [coin, setCoin] = useState<Price | null>(null)
   const { prices } = usePrices()
   const { accountInfo, setAccountInfo } = useContext(UserContext)
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
