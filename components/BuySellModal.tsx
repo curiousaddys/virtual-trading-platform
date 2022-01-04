@@ -53,6 +53,24 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
     setCurrency(selectedOption)
   }
 
+  // Close modal if click event happened on the background overlay itself.
+  const handleClickOutsideModal = (e: MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      props.onClose()
+    }
+  }
+
+  // Listen for esc key to close modal.
+  useEffect(() => {
+    const closeIfEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        props.onClose()
+      }
+    }
+    window.addEventListener('keydown', closeIfEsc)
+    return () => window.removeEventListener('keydown', closeIfEsc)
+  }, [props])
+
   // Set selected currency whenever prop is passed in.
   useEffect(() => {
     if (!props.currency) return
@@ -66,9 +84,9 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
     setCoin(coin)
   }, [currency, prices])
 
-  // Whenever modal becomes visible, reset transaction status and amount.
+  // Whenever modal is hidden, reset transaction status and amount.
   useEffect(() => {
-    if (!props.visible) return
+    if (props.visible) return // Don't do it when visible since it will be less smooth.
     setTransactionStatus(null)
     setAmount(0)
   }, [props.visible])
@@ -116,13 +134,17 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
   if (!props.visible) return <></>
 
   return (
-    <div className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full`}>
+    <div
+      className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full`}
+      onClick={handleClickOutsideModal}
+    >
       <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
           {transactionStatus === 'success' && (
             <div>
               Success!
               <button
+                autoFocus
                 onClick={(event) => {
                   event.preventDefault()
                   props.onClose()
