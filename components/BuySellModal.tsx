@@ -1,4 +1,4 @@
-import { FormEventHandler, useContext, useEffect, useState } from 'react'
+import { FormEventHandler, useContext, useEffect, useState, MouseEvent } from 'react'
 import Select, { SingleValue } from 'react-select'
 import { usePrices } from '../hooks/usePrices'
 import { formatUSD } from '../utils/format'
@@ -54,7 +54,7 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
   }
 
   // Close modal if click event happened on the background overlay itself.
-  const handleClickOutsideModal = (e: MouseEvent) => {
+  const handleClickOutsideModal = (e: MouseEvent<HTMLElement>) => {
     if (e.target === e.currentTarget) {
       props.onClose()
     }
