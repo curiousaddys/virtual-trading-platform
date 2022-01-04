@@ -27,7 +27,7 @@ export default async function handler(
 
     // get current exchange rate by hitting api endpoint since vercel should be caching it
     const currentCoinDetails = await got
-      .get(`http://${req.headers.host}/api/details?coin=${coin}`)
+      .get(`http://${req.headers.host}/api/coin_details?coin=${coin}`)
       .json<GeckoDetails>()
     const exchangeRate = currentCoinDetails.market_data.current_price.usd
     const amountOfCoin = amountUSD / exchangeRate
