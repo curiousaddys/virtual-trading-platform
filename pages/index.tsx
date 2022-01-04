@@ -308,17 +308,7 @@ const Home: NextPage = () => {
                         <td className="px-4 py-4 hidden md:table-cell" style={{ maxWidth: 150 }}>
                           <ResponsiveContainer width="100%" height={40}>
                             <LineChart
-                              data={
-                                // TODO(jh): handle this data on backend
-                                (coin.sparkline_in_7d.price ?? [0])
-                                  .slice(
-                                    (coin.sparkline_in_7d.price ?? [0]).length - 25,
-                                    coin.sparkline_in_7d.price?.length
-                                  )
-                                  .map((n) => ({
-                                    n,
-                                  }))
-                              }
+                              data={coin.sparkline}
                               margin={{
                                 top: 10,
                                 right: 10,
@@ -329,7 +319,7 @@ const Home: NextPage = () => {
                               <YAxis type="number" domain={['dataMin', 'dataMax']} hide />
                               <Line
                                 type="linear"
-                                dataKey="n"
+                                dataKey="0"
                                 stroke={
                                   coin.price_change_percentage_24h >= 0 ? '#22c55e' : '#ef4444'
                                 }
