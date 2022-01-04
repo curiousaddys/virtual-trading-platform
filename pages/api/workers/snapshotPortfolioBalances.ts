@@ -7,7 +7,6 @@ import {
 import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
 import { z } from 'zod'
-import { capitalize } from '../../../utils/format'
 
 const QuerySchema = z.object({
   period: z.enum(['daily', 'hourly']),
@@ -32,7 +31,7 @@ export default async function handler(
     const { collection: targetCollection } = await getCollection[period]()
     await persistLatestPortfolioBalances(targetCollection)
 
-    console.info(`[Portfolio Price History – ${capitalize(period)}] Finished.`)
+    console.info(`[Portfolio Price History – ${period}] Finished.`)
 
     return res.status(200).json({ status: 'ok' })
   } catch (err: any) {

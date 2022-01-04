@@ -20,10 +20,13 @@ import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 import { ObjectID } from 'bson'
+import { DateRangePicker } from '../components/common/DateRangePicker'
+import { DateRangeValues } from '../utils/constants'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
+  const [chartRange, setChartRange] = useState<DateRangeValues>('7')
   const [chartData, setChartData] = useState<PortfolioBalance[] | null>(null)
   // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
@@ -44,7 +47,9 @@ const Home: NextPage = () => {
     }
     ;(async () => {
       // TODO: handle errors
-      const data = await ky.get('/api/balance').json<PortfolioBalance[]>()
+      const data = await ky
+        .get(`/api/balance_history?days=${chartRange}`)
+        .json<PortfolioBalance[]>()
       // TODO(jh): remove logging
       console.log(data)
       // If length is 0 (i.e. it's new portfolio w/o any history yet), just use current price so graph isn't empty).
@@ -57,7 +62,7 @@ const Home: NextPage = () => {
       }
       setChartData(data)
     })()
-  }, [totalPortfolioBalanceUSD])
+  }, [totalPortfolioBalanceUSD, chartRange])
 
   // Whenever price data or account info changes, calculate total portfolio balance.
   useEffect(() => {
@@ -91,43 +96,53 @@ const Home: NextPage = () => {
                 <p className="text-gray-500">{accountInfo?.address}</p>
               </section>
               <section>
-                <div className="container">
-                  <ResponsiveContainer width="100%" height={400}>
-                    <LineChart
-                      data={chartData}
-                      margin={{
-                        top: 10,
-                        right: 10,
-                        bottom: 10,
-                        left: 10,
-                      }}
-                    >
-                      <CartesianGrid />
-                      <XAxis
-                        dataKey="timestamp"
-                        tickFormatter={(t) => dayjs(t).format('hh:mm A')}
-                        type="category"
-                        domain={['dataMin', 'dataMax']}
-                        minTickGap={15}
-                        tickMargin={10}
-                      />
-                      <YAxis domain={['dataMin-10000', 'dataMax+10000']} hide />
-                      <Tooltip
-                        formatter={(value: number) => formatUSD(value)}
-                        labelFormatter={(t) => dayjs(t).format('hh:mm A')}
-                      />
-                      <Line
-                        type="linear"
-                        dataKey="balanceUSD"
-                        stroke={'#00008B'}
-                        dot={false}
-                        isAnimationActive={true}
-                        name={'Balance'}
-                        strokeWidth={2}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart
+                    data={chartData}
+                    margin={{
+                      top: 10,
+                      right: 10,
+                      bottom: 10,
+                      left: 10,
+                    }}
+                  >
+                    <CartesianGrid />
+                    <XAxis
+                      dataKey="timestamp"
+                      tickFormatter={(t) =>
+                        chartRange !== '1'
+                          ? dayjs(t).format('MMM D, YYYY')
+                          : dayjs(t).format('hh:mm A')
+                      }
+                      type="category"
+                      domain={['dataMin', 'dataMax']}
+                      minTickGap={15}
+                      tickMargin={10}
+                    />
+                    <YAxis
+                      domain={[
+                        (dataMin: number) => dataMin * 0.9,
+                        (dataMax: number) => dataMax * 1.1,
+                      ]}
+                      hide
+                    />
+                    <Tooltip
+                      formatter={(value: number) => formatUSD(value)}
+                      labelFormatter={(t) => dayjs(t).format('MMM D, YYYY [at] hh:mm A')}
+                    />
+                    <Line
+                      type="linear"
+                      dataKey="balanceUSD"
+                      stroke={'#00008B'}
+                      dot={false}
+                      isAnimationActive={true}
+                      animationDuration={500}
+                      name={'Balance'}
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </section>
             </>
           )}

@@ -1,7 +1,7 @@
 import { FormEventHandler, useContext, useEffect, useState } from 'react'
 import Select, { SingleValue } from 'react-select'
 import { usePrices } from '../hooks/usePrices'
-import { capitalize, formatUSD } from '../utils/format'
+import { formatUSD } from '../utils/format'
 import { UserContext } from '../hooks/useUser'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 import ky from 'ky'
@@ -136,8 +136,8 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
 
           {transactionStatus !== 'success' && (
             <>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                {capitalize(props.action)}
+              <h3 className="text-lg leading-6 font-medium text-gray-900 capitalize">
+                {props.action}
               </h3>
               <div className="mt-2 px-7 py-3">
                 <form className="w-full max-w-sm" onSubmit={handleSubmit}>

@@ -20,11 +20,14 @@ import { UserContext } from '../hooks/useUser'
 import Image from 'next/image'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 import { Transaction } from '../db/transactions'
+import { DateRangePicker } from '../components/common/DateRangePicker'
+import { DateRangeValues } from '../utils/constants'
 
 const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')
   const [data, setData] = useState<GeckoDetails>()
   const [chartData, setChartData] = useState<GeckoPriceHistory>()
+  const [chartRange, setChartRange] = useState<DateRangeValues>('7')
   const { accountInfo } = useContext(UserContext)
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -50,11 +53,10 @@ const Details: NextPage = () => {
     const fetchChartData = async () => {
       // TODO: handle errors
       const results = await ky
-        .get('/api/history', {
+        .get('/api/price_history', {
           searchParams: {
             coin: coin,
-            // TODO: use days from option on page
-            days: 7,
+            days: chartRange,
           },
         })
         .json<GeckoPriceHistory>()
@@ -63,11 +65,17 @@ const Details: NextPage = () => {
       setChartData(results)
     }
 
+    fetchChartData()
+  }, [coin, chartRange])
+
+  useEffect(() => {
+    if (!coin) return
+
     // TODO: should these details update on an interval too? maybe use SWR here too?
     const fetchDetailsData = async () => {
       // TODO: handle errors
       const results = await ky
-        .get('/api/details', {
+        .get('/api/coin_details', {
           searchParams: {
             coin: coin,
           },
@@ -79,7 +87,6 @@ const Details: NextPage = () => {
     }
 
     fetchDetailsData()
-    fetchChartData()
   }, [coin])
 
   // Fetch transaction data if user is logged in & whenever account data changes.
@@ -143,47 +150,54 @@ const Details: NextPage = () => {
           </section>
           {chartData && (
             <section className="my-5">
-              <div className="container">
-                {/*TODO: add options to show other time periods (day, week, month, year, all)*/}
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart
-                    data={chartData.prices}
-                    margin={{
-                      top: 10,
-                      right: 10,
-                      bottom: 10,
-                      left: 10,
-                    }}
-                  >
-                    <CartesianGrid />
-                    <XAxis
-                      dataKey="0"
-                      tickFormatter={(t) => dayjs.unix(t / 1000).format('MMM D, YYYY')}
-                      type="number"
-                      domain={['dataMin', 'dataMax']}
-                      scale="time"
-                      minTickGap={15}
-                      tickMargin={10}
-                    />
-                    <YAxis domain={['dataMin-10000', 'dataMax+10000']} hide />
-                    <Tooltip
-                      formatter={(value: number) => formatUSD(value)}
-                      labelFormatter={(t) =>
-                        dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')
-                      }
-                    />
-                    <Line
-                      type="linear"
-                      dataKey="1"
-                      stroke={'#00008B'}
-                      dot={false}
-                      isAnimationActive={true}
-                      name={'Price'}
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart
+                  data={chartData.prices}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10,
+                  }}
+                >
+                  <CartesianGrid />
+                  <XAxis
+                    dataKey="0"
+                    tickFormatter={(t) =>
+                      chartRange !== '1'
+                        ? dayjs.unix(t / 1000).format('MMM D, YYYY')
+                        : dayjs(t).format('hh:mm A')
+                    }
+                    type="number"
+                    domain={['dataMin', 'dataMax']}
+                    scale="time"
+                    minTickGap={15}
+                    tickMargin={10}
+                  />
+                  <YAxis
+                    domain={[
+                      (dataMin: number) => dataMin * 0.9,
+                      (dataMax: number) => dataMax * 1.1,
+                    ]}
+                    hide
+                  />
+                  <Tooltip
+                    formatter={(value: number) => formatUSD(value)}
+                    labelFormatter={(t) => dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')}
+                  />
+                  <Line
+                    type="linear"
+                    dataKey="1"
+                    stroke={'#00008B'}
+                    dot={false}
+                    isAnimationActive={true}
+                    animationDuration={500}
+                    name={'Price'}
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </section>
           )}
           <section className="my-5">
@@ -198,7 +212,6 @@ const Details: NextPage = () => {
           <section className="my-5">
             <h2 className="text-2xl text-black font-semibold mb-2">Price History</h2>
             <div>
-              {/*TODO: color prices*/}
               Price change (last hour):{' '}
               <PrettyPercent value={data.market_data.price_change_percentage_1h_in_currency.usd} />
             </div>
