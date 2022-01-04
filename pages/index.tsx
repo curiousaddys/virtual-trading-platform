@@ -13,21 +13,20 @@ import {
 } from 'recharts'
 import { UserContext } from '../hooks/useUser'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
-import { PortfolioBalance } from '../db/portfolioHistory'
 import dayjs from 'dayjs'
 import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
 import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
-import { ObjectID } from 'bson'
 import { DateRangePicker } from '../components/common/DateRangePicker'
 import { DateRangeValues } from '../utils/constants'
+import { PortfolioBalanceHistoryResp } from './api/balance_history'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartRange, setChartRange] = useState<DateRangeValues>('7')
-  const [chartData, setChartData] = useState<PortfolioBalance[] | null>(null)
+  const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
   // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
   const [modalOpen, setModalOpen] = useState(false)
@@ -49,14 +48,13 @@ const Home: NextPage = () => {
       // TODO: handle errors
       const data = await ky
         .get(`/api/balance_history?days=${chartRange}`)
-        .json<PortfolioBalance[]>()
+        .json<PortfolioBalanceHistoryResp>()
       // TODO(jh): remove logging
       console.log(data)
       // If length is 0 (i.e. it's new portfolio w/o any history yet), just use current price so graph isn't empty).
       if (data.length === 0) {
         data.push({
           timestamp: new Date(),
-          portfolioID: new ObjectID(),
           balanceUSD: totalPortfolioBalanceUSD,
         })
       }

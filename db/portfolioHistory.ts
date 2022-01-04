@@ -1,12 +1,13 @@
 import { getMongoDB } from './mongodb-client'
-import { ONE_DAY_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
+import { DateRangeValues, ONE_DAY_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
 import { ObjectID } from 'bson'
 import { Collection } from 'mongodb'
+import dayjs from 'dayjs'
 
 export interface PortfolioBalance {
   timestamp: Date
   portfolioID: ObjectID
-  balanceUSD: number // TODO(jh): ensure this handles enough precision
+  balanceUSD: number
 }
 
 export const getPortfolioHistoryMinutelyCollection = async () => {
@@ -110,4 +111,25 @@ export const persistLatestPortfolioBalances = async (
   )
   // Must do this in order for Node.js MongoDB driver to actually execute the aggregation.
   await results.toArray()
+}
+
+const getPortfolioHistoryCollectionForDays = {
+  '1': getPortfolioHistoryMinutelyCollection,
+  '7': getPortfolioHistoryHourlyCollection,
+  '30': getPortfolioHistoryHourlyCollection,
+  '365': getPortfolioHistoryDailyCollection,
+  max: getPortfolioHistoryDailyCollection,
+}
+
+export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValues) => {
+  const { collection, session } = await getPortfolioHistoryCollectionForDays[days]()
+  const startDate = (
+    days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')
+  ).toDate()
+  const results = await collection.find(
+    { portfolioID, timestamp: { $gte: startDate } },
+    { session }
+  )
+  const resultsArr = await results.toArray()
+  return resultsArr.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
 }
