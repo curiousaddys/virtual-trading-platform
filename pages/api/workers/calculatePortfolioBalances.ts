@@ -78,6 +78,7 @@ export default async function handler(
     const date = new Date(time)
     const hour = date.getHours()
     const min = date.getMinutes()
+    console.log(`Current time: ${hour} ${min}`)
 
     const snapshotTimer = new Timer()
 
