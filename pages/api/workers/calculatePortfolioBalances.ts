@@ -22,7 +22,7 @@ interface CurrentPrices {
 }
 
 const QuerySchema = z.object({
-  time: z.number(),
+  time: z.string(),
 })
 
 const snapshotCollections = {
