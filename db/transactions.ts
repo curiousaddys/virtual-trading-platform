@@ -10,6 +10,7 @@ export interface Transaction {
   exchangeRateUSD: number
   action: 'buy' | 'sell'
   amountUSD: number
+  amountCoin: number
 }
 
 const getTransactionsCollection = async () => {

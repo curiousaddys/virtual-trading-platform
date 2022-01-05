@@ -74,6 +74,7 @@ export default async function handler(
       portfolioID: new ObjectID(portfolioID),
       timestamp: new Date(),
       amountUSD: calculatedAmountUSD,
+      amountCoin: calculatedAmountCoin,
     })
 
     updatePortfolio(
