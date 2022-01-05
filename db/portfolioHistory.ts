@@ -1,5 +1,5 @@
 import { getMongoDB } from './mongodb-client'
-import { ONE_DAY_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
+import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
 import { ObjectID } from 'bson'
 import { Collection } from 'mongodb'
 import dayjs from 'dayjs'
@@ -14,6 +14,20 @@ export interface PortfolioBalance {
 export const getPortfolioHistoryMinutelyCollection = async () => {
   const { db, session } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>('portfolioHistory_minutely')
+  await collection.createIndex(
+    { timestamp: -1 },
+    {
+      expireAfterSeconds: ONE_HOUR_SEC,
+      session,
+    }
+  )
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
+  return { collection, session }
+}
+
+export const getPortfolioHistoryEveryFiveMinCollection = async () => {
+  const { db, session } = await getMongoDB()
+  const collection = await db.collection<PortfolioBalance>('portfolioHistory_everyFiveMin')
   await collection.createIndex(
     { timestamp: -1 },
     {
@@ -115,7 +129,8 @@ export const persistLatestPortfolioBalances = async (
 }
 
 const getPortfolioHistoryCollectionForDays = {
-  '1': getPortfolioHistoryMinutelyCollection,
+  hour: getPortfolioHistoryMinutelyCollection,
+  '1': getPortfolioHistoryEveryFiveMinCollection,
   '7': getPortfolioHistoryHourlyCollection,
   '30': getPortfolioHistoryHourlyCollection,
   '365': getPortfolioHistoryDailyCollection,

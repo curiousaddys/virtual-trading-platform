@@ -319,6 +319,8 @@ export const INITIAL_PORTFOLIO_FUND_AMOUNT = 100000.0
 
 export const ONE_MINUTE_MS = 60000
 
-export const ONE_DAY_SEC = 60 * 60 * 24
+export const ONE_HOUR_SEC = 60 * 60
+
+export const ONE_DAY_SEC = ONE_HOUR_SEC * 24
 
 export const THIRTY_DAYS_SEC = ONE_DAY_SEC * 30

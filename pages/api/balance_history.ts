@@ -6,7 +6,7 @@ import { getPortfolioBalanceHistory, PortfolioBalance } from '../../db/portfolio
 import { z } from 'zod'
 
 const QuerySchema = z.object({
-  days: z.enum(['1', '7', '30', '365', 'max']).default('7'),
+  days: z.enum(['hour', '1', '7', '30', '365', 'max']).default('7'),
 })
 
 export type PortfolioBalanceHistoryResp = Pick<PortfolioBalance, 'timestamp' | 'balanceUSD'>[]

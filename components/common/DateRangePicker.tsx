@@ -1,6 +1,7 @@
 import React, { Dispatch, SetStateAction } from 'react'
 
 export const DAY_VALUES = {
+  hour: '1 hour',
   '1': '1 day',
   '7': '7 days',
   '30': '30 days',

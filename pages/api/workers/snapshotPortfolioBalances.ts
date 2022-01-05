@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import {
   getPortfolioHistoryDailyCollection,
+  getPortfolioHistoryEveryFiveMinCollection,
   getPortfolioHistoryHourlyCollection,
   persistLatestPortfolioBalances,
 } from '../../../db/portfolioHistory'
@@ -9,10 +10,11 @@ import { getErrorDetails } from '../../../utils/errors'
 import { z } from 'zod'
 
 const QuerySchema = z.object({
-  period: z.enum(['daily', 'hourly']),
+  period: z.enum(['fiveMin', 'daily', 'hourly']),
 })
 
 const getCollection = {
+  fiveMin: getPortfolioHistoryEveryFiveMinCollection,
   hourly: getPortfolioHistoryHourlyCollection,
   daily: getPortfolioHistoryDailyCollection,
 }
