@@ -20,13 +20,13 @@ import { UserContext } from '../hooks/useUser'
 import Image from 'next/image'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 import { Transaction } from '../db/transactions'
-import { DateRangePicker, DateRangeValues } from '../components/common/DateRangePicker'
+import { DateRangePicker, DateRangeValue } from '../components/common/DateRangePicker'
 
 const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')
   const [data, setData] = useState<GeckoDetails>()
   const [chartData, setChartData] = useState<GeckoPriceHistory>()
-  const [chartRange, setChartRange] = useState<DateRangeValues>('7')
+  const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const { accountInfo } = useContext(UserContext)
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [modalOpen, setModalOpen] = useState(false)

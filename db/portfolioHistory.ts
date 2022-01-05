@@ -3,7 +3,7 @@ import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
 import { ObjectID } from 'bson'
 import { Collection } from 'mongodb'
 import dayjs from 'dayjs'
-import { DateRangeValues } from '../components/common/DateRangePicker'
+import { DateRangeValue } from '../components/common/DateRangePicker'
 
 export interface PortfolioBalance {
   timestamp: Date
@@ -129,15 +129,15 @@ export const persistLatestPortfolioBalances = async (
 }
 
 const getPortfolioHistoryCollectionForDays = {
-  hour: getPortfolioHistoryMinutelyCollection,
-  '1': getPortfolioHistoryEveryFiveMinCollection,
-  '7': getPortfolioHistoryHourlyCollection,
-  '30': getPortfolioHistoryHourlyCollection,
-  '365': getPortfolioHistoryDailyCollection,
-  max: getPortfolioHistoryDailyCollection,
+  [DateRangeValue.Hour]: getPortfolioHistoryMinutelyCollection,
+  [DateRangeValue.Day]: getPortfolioHistoryEveryFiveMinCollection,
+  [DateRangeValue.SevenDays]: getPortfolioHistoryHourlyCollection,
+  [DateRangeValue.ThirtyDays]: getPortfolioHistoryHourlyCollection,
+  [DateRangeValue.Year]: getPortfolioHistoryDailyCollection,
+  [DateRangeValue.Max]: getPortfolioHistoryDailyCollection,
 }
 
-export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValues) => {
+export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValue) => {
   const { collection, session } = await getPortfolioHistoryCollectionForDays[days]()
   const startDate = (
     days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')

@@ -18,13 +18,13 @@ import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySe
 import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
-import { DateRangePicker, DateRangeValues } from '../components/common/DateRangePicker'
+import { DateRangePicker, DateRangeValue } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 
 const Home: NextPage = () => {
   const { accountInfo } = useContext(UserContext)
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
-  const [chartRange, setChartRange] = useState<DateRangeValues>('7')
+  const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
   // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
@@ -93,7 +93,11 @@ const Home: NextPage = () => {
                 <p className="text-gray-500">{accountInfo?.address}</p>
               </section>
               <section>
-                <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
+                <DateRangePicker
+                  selectedDays={chartRange}
+                  onSelectionChange={setChartRange}
+                  showHourOption
+                />
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart
                     data={chartData}
@@ -108,9 +112,9 @@ const Home: NextPage = () => {
                     <XAxis
                       dataKey="timestamp"
                       tickFormatter={(t) =>
-                        chartRange !== '1'
-                          ? dayjs(t).format('MMM D, YYYY')
-                          : dayjs(t).format('hh:mm A')
+                        chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
+                          ? dayjs(t).format('hh:mm A')
+                          : dayjs(t).format('MMM D, YYYY')
                       }
                       type="category"
                       domain={['dataMin', 'dataMax']}

@@ -1,35 +1,48 @@
 import React, { Dispatch, SetStateAction } from 'react'
 
-export const DAY_VALUES = {
-  hour: '1 hour',
-  '1': '1 day',
-  '7': '7 days',
-  '30': '30 days',
-  '365': '1 year',
-  max: 'all',
+export enum DateRangeValue {
+  Hour = 'hour',
+  Day = '1',
+  SevenDays = '7',
+  ThirtyDays = '30',
+  Year = '365',
+  Max = 'max',
 }
 
-export type DateRangeValues = keyof typeof DAY_VALUES
+const dayValues = [
+  { value: DateRangeValue.Hour, text: '1 hour' },
+  { value: DateRangeValue.Day, text: '1 day' },
+  { value: DateRangeValue.SevenDays, text: '7 days' },
+  { value: DateRangeValue.ThirtyDays, text: '30 days' },
+  { value: DateRangeValue.Year, text: '1 year' },
+  { value: DateRangeValue.Max, text: 'all' },
+]
 
 export interface DateRangePickerProps {
-  selectedDays: DateRangeValues
-  onSelectionChange: Dispatch<SetStateAction<DateRangeValues>>
+  selectedDays: DateRangeValue
+  onSelectionChange: Dispatch<SetStateAction<DateRangeValue>>
+  showHourOption?: boolean
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
   return (
     <div className="w-100 flex flex-row justify-end gap-2 pr-3">
-      {Object.keys(DAY_VALUES).map((k) => (
-        <div
-          className={`uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer select-none ${
-            props.selectedDays === k && 'bg-blue-700 text-gray-100'
-          }`}
-          onClick={() => props.onSelectionChange(k as DateRangeValues)}
-          key={k}
-        >
-          {DAY_VALUES[k as DateRangeValues]}
-        </div>
-      ))}
+      {dayValues.map(({ text, value }) => {
+        if (value === DateRangeValue.Hour && !props.showHourOption) {
+          return
+        }
+        return (
+          <div
+            className={`uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer select-none ${
+              props.selectedDays === value && 'bg-blue-700 text-gray-100'
+            }`}
+            onClick={() => props.onSelectionChange(value)}
+            key={text}
+          >
+            {text}
+          </div>
+        )
+      })}
     </div>
   )
 }

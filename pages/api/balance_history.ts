@@ -4,9 +4,10 @@ import { auth } from '../../utils/auth'
 import { getErrorDetails } from '../../utils/errors'
 import { getPortfolioBalanceHistory, PortfolioBalance } from '../../db/portfolioHistory'
 import { z } from 'zod'
+import { DateRangeValue } from '../../components/common/DateRangePicker'
 
 const QuerySchema = z.object({
-  days: z.enum(['hour', '1', '7', '30', '365', 'max']).default('7'),
+  days: z.nativeEnum(DateRangeValue).default(DateRangeValue.SevenDays),
 })
 
 export type PortfolioBalanceHistoryResp = Pick<PortfolioBalance, 'timestamp' | 'balanceUSD'>[]
