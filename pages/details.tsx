@@ -20,8 +20,7 @@ import { UserContext } from '../hooks/useUser'
 import Image from 'next/image'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 import { Transaction } from '../db/transactions'
-import { DateRangePicker } from '../components/common/DateRangePicker'
-import { DateRangeValues } from '../utils/constants'
+import { DateRangePicker, DateRangeValues } from '../components/common/DateRangePicker'
 
 const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')

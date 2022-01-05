@@ -18,8 +18,7 @@ import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySe
 import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
-import { DateRangePicker } from '../components/common/DateRangePicker'
-import { DateRangeValues } from '../utils/constants'
+import { DateRangePicker, DateRangeValues } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 
 const Home: NextPage = () => {
@@ -87,7 +86,7 @@ const Home: NextPage = () => {
           />
           {prices && accountInfo && chartData && chartData?.length > 0 && (
             <>
-              <section>
+              <section className="mb-2">
                 <h2 className="text-3xl text-black font-semibold mt-10">
                   Portfolio Balance: {formatUSD(totalPortfolioBalanceUSD)}
                 </h2>

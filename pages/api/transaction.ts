@@ -13,7 +13,9 @@ import { BuySellAction } from '../../components/BuySellModal'
 const QuerySchema = z.object({
   portfolioID: z.string(),
   coin: z.enum(SUPPORTED_COINS),
+  transactInUSD: z.preprocess((a) => a === 'true', z.boolean()),
   amountUSD: z.preprocess((a) => parseFloat(z.string().parse(a)), z.number()),
+  amountCoin: z.preprocess((a) => parseFloat(z.string().parse(a)), z.number()),
   action: z.nativeEnum(BuySellAction),
 })
 
@@ -23,14 +25,20 @@ export default async function handler(
 ) {
   try {
     const { address } = auth(req)
-    const { portfolioID, coin, amountUSD, action } = QuerySchema.parse(req.query)
+    const { portfolioID, coin, transactInUSD, amountUSD, amountCoin, action } = QuerySchema.parse(
+      req.query
+    )
 
     // get current exchange rate by hitting api endpoint since vercel should be caching it
     const currentCoinDetails = await got
       .get(`http://${req.headers.host}/api/coin_details?coin=${coin}`)
       .json<GeckoDetails>()
     const exchangeRate = currentCoinDetails.market_data.current_price.usd
-    const amountOfCoin = amountUSD / exchangeRate
+
+    // Calculate the actual values to use here based on current market data
+    // and whether the user requested to transact in USD or coin denomination.
+    const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
+    const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
     const account = await findOrInsertAccount(address)
     const portfolio = account.portfolios.find(
@@ -43,7 +51,7 @@ export default async function handler(
     if (action === BuySellAction.Buy) {
       const balanceUSD =
         portfolio.holdings.find((holding) => holding.currency === 'USD')?.amount ?? 0
-      if (balanceUSD < amountUSD) {
+      if (balanceUSD < calculatedAmountUSD) {
         return res.status(400).json({ error: 'not enough funds' })
       }
     }
@@ -51,7 +59,7 @@ export default async function handler(
     if (action === BuySellAction.Sell) {
       const balanceCoin =
         portfolio.holdings.find((holding) => holding.currency === coin)?.amount ?? 0
-      if (balanceCoin * exchangeRate < amountUSD) {
+      if (calculatedAmountCoin > balanceCoin) {
         return res.status(400).json({ error: 'not enough coin' })
       }
     }
@@ -65,7 +73,7 @@ export default async function handler(
       exchangeRateUSD: exchangeRate,
       portfolioID: new ObjectID(portfolioID),
       timestamp: new Date(),
-      amountUSD,
+      amountUSD: calculatedAmountUSD,
     })
 
     updatePortfolio(
@@ -73,8 +81,8 @@ export default async function handler(
       account._id,
       portfolio,
       coin,
-      action === BuySellAction.Buy ? amountOfCoin : -amountOfCoin,
-      action === BuySellAction.Buy ? amountUSD : -amountUSD
+      action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,
+      action === BuySellAction.Buy ? calculatedAmountUSD : -calculatedAmountUSD
     )
       .then((newAccountInfo) => {
         res.status(200).json(newAccountInfo!)

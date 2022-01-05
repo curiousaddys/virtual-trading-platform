@@ -1,5 +1,14 @@
 import React, { Dispatch, SetStateAction } from 'react'
-import { DateRangeValues, DAY_VALUES } from '../../utils/constants'
+
+export const DAY_VALUES = {
+  '1': '1 day',
+  '7': '7 days',
+  '30': '30 days',
+  '365': '1 year',
+  max: 'all',
+}
+
+export type DateRangeValues = keyof typeof DAY_VALUES
 
 export interface DateRangePickerProps {
   selectedDays: DateRangeValues

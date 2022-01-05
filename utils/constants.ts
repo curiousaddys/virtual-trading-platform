@@ -322,13 +322,3 @@ export const ONE_MINUTE_MS = 60000
 export const ONE_DAY_SEC = 60 * 60 * 24
 
 export const THIRTY_DAYS_SEC = ONE_DAY_SEC * 30
-
-export const DAY_VALUES = {
-  '1': '1 day',
-  '7': '7 days',
-  '30': '30 days',
-  '365': '1 year',
-  max: 'all',
-}
-
-export type DateRangeValues = keyof typeof DAY_VALUES
