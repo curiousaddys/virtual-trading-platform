@@ -75,7 +75,7 @@ export default async function handler(
 
     // If time meets certain conditions, save snapshot of the data that we just calculated.
     const { time } = QuerySchema.parse(req.query)
-    const date = new Date(time)
+    const date = new Date(parseInt(time))
     const hour = date.getHours()
     const min = date.getMinutes()
     console.log(`Current time: ${hour} ${min}`)
