@@ -1,16 +1,34 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAllPortfolios } from '../../../db/accounts'
 import { getMarketData } from '../../../api/CoinGecko/markets'
-import { insertMinutelyPortfolioHistory, PortfolioBalance } from '../../../db/portfolioHistory'
+import {
+  getPortfolioHistoryDailyCollection,
+  getPortfolioHistoryEveryFiveMinCollection,
+  getPortfolioHistoryHourlyCollection,
+  insertMinutelyPortfolioHistory,
+  persistLatestPortfolioBalances,
+  PortfolioBalance,
+} from '../../../db/portfolioHistory'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
 import dayjs from 'dayjs'
 import { Timer } from '../../../utils/timer'
+import { z } from 'zod'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
 interface CurrentPrices {
   [key: string]: number
+}
+
+const QuerySchema = z.object({
+  time: z.number(),
+})
+
+const snapshotCollections = {
+  fiveMin: getPortfolioHistoryEveryFiveMinCollection,
+  hourly: getPortfolioHistoryHourlyCollection,
+  daily: getPortfolioHistoryDailyCollection,
 }
 
 export default async function handler(
@@ -54,6 +72,33 @@ export default async function handler(
     timer.log('Inserted portfolio balances into database')
 
     console.info(`[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`)
+
+    // If time meets certain conditions, save snapshot of the data that we just calculated.
+    const { time } = QuerySchema.parse(req.query)
+    const date = new Date(time)
+    const hour = date.getHours()
+    const min = date.getMinutes()
+
+    const snapshotTimer = new Timer()
+
+    if (min % 5 === 0) {
+      // Every 5 min.
+      const { collection: targetCollection } = await snapshotCollections.fiveMin()
+      await persistLatestPortfolioBalances(targetCollection)
+      snapshotTimer.log('Snapshot [Portfolio Price History – Every 5 min] completed')
+    }
+    if (min == 0) {
+      // Hourly.
+      const { collection: targetCollection } = await snapshotCollections.hourly()
+      await persistLatestPortfolioBalances(targetCollection)
+      snapshotTimer.log('Snapshot [Portfolio Price History – Hourly] completed')
+    }
+    if (hour === 0 && min == 0) {
+      // Daily.
+      const { collection: targetCollection } = await snapshotCollections.daily()
+      await persistLatestPortfolioBalances(targetCollection)
+      snapshotTimer.log('Snapshot [Portfolio Price History – Daily] completed')
+    }
 
     return res.status(200).json({ status: 'ok' })
   } catch (err: any) {

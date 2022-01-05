@@ -4,7 +4,7 @@ export class Timer {
     this.start = Date.now()
   }
   log(message: string) {
-    console.log(`${message} completed in ${Date.now() - this.start} ms.`)
+    console.log(`${message} in ${Date.now() - this.start} ms.`)
     this.start = Date.now()
   }
 }
