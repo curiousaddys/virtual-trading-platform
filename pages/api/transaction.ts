@@ -52,7 +52,7 @@ export default async function handler(
       const balanceUSD =
         portfolio.holdings.find((holding) => holding.currency === 'USD')?.amount ?? 0
       if (balanceUSD < calculatedAmountUSD) {
-        return res.status(400).json({ error: 'not enough funds' })
+        return res.status(400).json({ error: 'insufficient funds (not enough USD)' })
       }
     }
 
@@ -60,7 +60,7 @@ export default async function handler(
       const balanceCoin =
         portfolio.holdings.find((holding) => holding.currency === coin)?.amount ?? 0
       if (calculatedAmountCoin > balanceCoin) {
-        return res.status(400).json({ error: 'not enough coin' })
+        return res.status(400).json({ error: `insufficient funds (not enough ${coin})` })
       }
     }
 
@@ -91,7 +91,7 @@ export default async function handler(
       .catch(async (err) => {
         console.error(err)
         await deleteTransaction(transactionID)
-        return res.status(500).json({ error: 'failed to update portfolio (database error)' })
+        return res.status(500).json({ error: 'failure to update portfolio (database error)' })
       })
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)

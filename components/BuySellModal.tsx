@@ -9,6 +9,7 @@ import React from 'react'
 import { Price } from '../pages/api/prices'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
+import { toast } from 'react-toastify'
 
 export interface BuySellModalProps {
   visible: boolean
@@ -156,9 +157,6 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
     if (!coinPriceData || !accountInfo || !currency) return
     event.preventDefault()
     setTransactionStatus(TransactionState.Pending)
-    console.log(
-      `Attempting to ${props.action} ${amountCoin} ${currency.value} for ${formatUSD(amountUSD)}.`
-    )
     await ky
       .post('/api/transaction', {
         searchParams: {
@@ -176,7 +174,10 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
         setAccountInfo(account)
       })
       .catch((err) => {
-        console.error(err)
+        err.response.json().then((errResp: { error: string }) => {
+          console.error(errResp)
+          toast(`Transaction failed: ${errResp.error}.`, { type: 'error' })
+        })
         setTransactionStatus(TransactionState.Failed)
       })
   }
