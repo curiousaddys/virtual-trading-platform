@@ -32,6 +32,9 @@ export default async function handler(
   try {
     cloudflareWorkerAuth(req)
 
+    const { time } = QuerySchema.parse(req.query)
+    const date = new Date(parseInt(time))
+
     const timer = new Timer()
 
     // get current prices
@@ -50,7 +53,7 @@ export default async function handler(
     timer.log('Got all portfolios from database')
 
     // calculate balance for each portfolio for current minute
-    const timestamp = dayjs().set('second', 0).set('millisecond', 0).toDate()
+    const timestamp = dayjs(date).set('second', 0).set('millisecond', 0).toDate()
     const balances: PortfolioBalance[] = portfolios.map((portfolio) => ({
       timestamp: timestamp,
       portfolioID: portfolio._id,
@@ -67,13 +70,11 @@ export default async function handler(
 
     console.info(`[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`)
 
+    const snapshotTimer = new Timer()
+
     // If time meets certain conditions, save snapshot of the data that we just calculated.
-    const { time } = QuerySchema.parse(req.query)
-    const date = new Date(parseInt(time))
     const hour = date.getHours()
     const min = date.getMinutes()
-
-    const snapshotTimer = new Timer()
 
     if (min % 5 === 0) {
       // Every 5 min.
