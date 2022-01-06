@@ -8,6 +8,9 @@ import React from 'react'
 import { UserContext, useUser } from '../hooks/useUser'
 import Head from 'next/head'
 import { Navbar } from '../components/Navbar'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { TEN_SEC_MS } from '../utils/constants'
 
 function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
   return new ethers.providers.Web3Provider(provider)
@@ -26,6 +29,12 @@ function MyApp({ Component, pageProps }: AppProps) {
           </Head>
           <Navbar />
           <Component {...pageProps} />
+          <ToastContainer
+            position={'bottom-right'}
+            autoClose={TEN_SEC_MS}
+            newestOnTop={true}
+            theme={'colored'}
+          />
         </UserContext.Provider>
       </CookiesProvider>
     </Web3ReactProvider>

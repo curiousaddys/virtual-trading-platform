@@ -27,6 +27,7 @@
     "react-dom": "17.0.2",
     "react-select": "^5.2.1",
     "react-spinners": "^0.11.0",
+    "react-toastify": "^8.1.0",
     "recharts": "^2.1.8",
     "swr": "^1.1.2",
     "zod": "^3.11.6"

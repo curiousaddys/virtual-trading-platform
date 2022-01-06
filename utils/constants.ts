@@ -317,6 +317,8 @@ export const ACCOUNT_COOKIE = 'catc_vtp_account'
 
 export const INITIAL_PORTFOLIO_FUND_AMOUNT = 100000.0
 
+export const TEN_SEC_MS = 1000 * 10
+
 export const ONE_MINUTE_MS = 60000
 
 export const ONE_HOUR_SEC = 60 * 60

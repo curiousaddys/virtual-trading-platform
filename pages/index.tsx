@@ -20,14 +20,13 @@ import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 import { DateRangePicker, DateRangeValue } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
+import { toast } from 'react-toastify'
 
 const Home: NextPage = () => {
-  const { accountInfo } = useContext(UserContext)
+  const { accountInfo, accountError } = useContext(UserContext)
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
-  const [chartLoading, setChartLoading] = useState<boolean>(false)
-  // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
@@ -44,23 +43,23 @@ const Home: NextPage = () => {
     if (!totalPortfolioBalanceUSD) {
       return
     }
-    setChartLoading(true)
     ;(async () => {
-      // TODO: handle errors
-      const data = await ky
-        .get(`/api/balance_history?days=${chartRange}`)
-        .json<PortfolioBalanceHistoryResp>()
-      // TODO(jh): remove logging
-      console.log(data)
-      // If length is 0 (i.e. it's new portfolio w/o any history yet), just use current price so graph isn't empty).
-      if (data.length === 0) {
-        data.push({
-          timestamp: new Date(),
-          balanceUSD: totalPortfolioBalanceUSD,
-        })
+      try {
+        const data = await ky
+          .get(`/api/balance_history?days=${chartRange}`)
+          .json<PortfolioBalanceHistoryResp>()
+        // If length is 0 (i.e. it's new portfolio w/o any history yet), just use current price so graph isn't empty).
+        if (data.length === 0) {
+          data.push({
+            timestamp: new Date(),
+            balanceUSD: totalPortfolioBalanceUSD,
+          })
+        }
+        setChartData(data)
+      } catch (err) {
+        console.error(err)
+        toast('Error getting portfolio balance history!', { type: 'error' })
       }
-      setChartData(data)
-      setChartLoading(false)
     })()
   }, [totalPortfolioBalanceUSD, chartRange])
 
@@ -75,6 +74,18 @@ const Home: NextPage = () => {
     setTotalPortfolioBalanceUSD(sum)
   }, [prices, accountInfo])
 
+  // Handle errors from hooks that fetch data.
+  useEffect(() => {
+    if (accountError) {
+      console.error(accountError)
+      toast('Error loading account info!', { type: 'error' })
+    }
+    if (pricesError) {
+      console.error(pricesError)
+      toast('Error loading current market data!', { type: 'error' })
+    }
+  }, [accountError, pricesError])
+
   return (
     <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
       {pricesLoading ? (
@@ -87,7 +98,7 @@ const Home: NextPage = () => {
             onClose={() => setModalOpen(false)}
             action={buySellAction}
           />
-          {prices && accountInfo && chartData && chartData?.length > 0 && (
+          {prices && accountInfo && (
             <>
               <section className="mb-2">
                 <h2 className="text-3xl text-black font-semibold mt-10">
@@ -99,12 +110,11 @@ const Home: NextPage = () => {
                 <DateRangePicker
                   selectedDays={chartRange}
                   onSelectionChange={setChartRange}
-                  loading={chartLoading}
                   showHourOption
                 />
                 <ResponsiveContainer width="100%" height={400}>
                   <LineChart
-                    data={chartData}
+                    data={chartData ?? []}
                     margin={{
                       top: 10,
                       right: 10,
@@ -136,16 +146,18 @@ const Home: NextPage = () => {
                       formatter={(value: number) => formatUSD(value)}
                       labelFormatter={(t) => dayjs(t).format('MMM D, YYYY [at] hh:mm A')}
                     />
-                    <Line
-                      type="linear"
-                      dataKey="balanceUSD"
-                      stroke={'#00008B'}
-                      dot={false}
-                      isAnimationActive={true}
-                      animationDuration={500}
-                      name={'Balance'}
-                      strokeWidth={2}
-                    />
+                    {chartData && (
+                      <Line
+                        type="linear"
+                        dataKey="balanceUSD"
+                        stroke={'#00008B'}
+                        dot={false}
+                        isAnimationActive={true}
+                        animationDuration={500}
+                        name={'Balance'}
+                        strokeWidth={2}
+                      />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </section>
@@ -186,7 +198,7 @@ const Home: NextPage = () => {
                             current_price: 1,
                             price_change_percentage_24h: 0,
                             image:
-                              // TODO: maybe host this image ourselves
+                              // TODO: maybe host this image ourselves in case coingecko ever moves or renames it
                               'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
                           }
                           return (
@@ -246,8 +258,6 @@ const Home: NextPage = () => {
                                   false
                                 )}
                               </td>
-                              {/*TODO: don't display for USD*/}
-
                               <td className="px-4 py-4 text-right">
                                 {coin.id !== 'usd' && (
                                   <button

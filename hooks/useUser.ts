@@ -16,6 +16,7 @@ export const useUser = () => {
   const [user, setUser] = useState<UserState>(null)
   const [accountInfo, setAccountInfo] = useState<Account | null>(null)
   const [cookies, setCookie, removeCookie] = useCookies([ACCOUNT_COOKIE])
+  const [accountError, setAccountError] = useState<any>(null)
 
   // On initial render, read from cookie if it's set.
   useEffect(() => {
@@ -40,15 +41,16 @@ export const useUser = () => {
       return
     }
     ;(async () => {
-      // TODO: handle errors
-      const data = await ky.get('/api/account').json<Account>()
-      // TODO(jh): remove logging
-      console.log(data)
-      setAccountInfo(data)
+      try {
+        const data = await ky.get('/api/account').json<Account>()
+        setAccountInfo(data)
+      } catch (err) {
+        setAccountError(err)
+      }
     })()
   }, [user])
 
-  return { user, setUser, accountInfo, setAccountInfo }
+  return { user, setUser, accountInfo, setAccountInfo, accountError }
 }
 
 export const UserContext = React.createContext<{
@@ -56,9 +58,11 @@ export const UserContext = React.createContext<{
   setUser: (user: UserState) => void
   accountInfo: Account | null
   setAccountInfo: (account: Account) => void
+  accountError: any
 }>({
   user: null,
   setUser: (user: UserState) => {},
   accountInfo: null,
   setAccountInfo: (account: Account) => {},
+  accountError: null,
 })

@@ -23,7 +23,6 @@ export interface DateRangePickerProps {
   selectedDays: DateRangeValue
   onSelectionChange: Dispatch<SetStateAction<DateRangeValue>>
   showHourOption?: boolean
-  loading?: boolean
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
@@ -40,16 +39,11 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
             }`}
             style={{ width: 88 }}
             onClick={() => {
-              if (props.loading) return
               props.onSelectionChange(value)
             }}
             key={text}
           >
-            {props.loading && props.selectedDays === value ? (
-              <BeatLoader color={'white'} loading={true} size={10} />
-            ) : (
-              text
-            )}
+            {text}
           </div>
         )
       })}
