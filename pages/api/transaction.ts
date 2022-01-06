@@ -91,10 +91,7 @@ export default async function handler(
       .catch(async (err) => {
         console.error(err)
         await deleteTransaction(transactionID)
-        // TODO: handle errors better and give more specific error message
-        return res
-          .status(500)
-          .json({ error: 'failed to update portfolio. maybe the price changed?' })
+        return res.status(500).json({ error: 'failed to update portfolio (database error)' })
       })
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)

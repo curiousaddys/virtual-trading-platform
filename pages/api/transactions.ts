@@ -30,7 +30,7 @@ export default async function handler(
     }
 
     const data = await getTransactions(portfolioID, coin)
-    // TODO(jh): only return the exact data needed for out frontend to improve loading time
+    // TODO(jh): consider filtering this data (removing redundant information) to improve loading time
     res.status(200).json(data)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)

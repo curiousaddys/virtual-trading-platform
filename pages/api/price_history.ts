@@ -21,7 +21,6 @@ export default async function handler(
   try {
     const { coin, days } = QuerySchema.parse(req.query)
     const data = await getMarketChart(coin, days)
-    // TODO(jh): only return the exact data needed for out frontend to improve loading time
     res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(filterPriceHistory(data))
   } catch (err: any) {

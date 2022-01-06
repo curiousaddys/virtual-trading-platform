@@ -84,7 +84,7 @@ interface GeckoMarketData {
 }
 
 interface GeckoPrice {
-  // TODO(jh): add more currencies to this interface later if needed
+  // Add more currencies to this interface later if needed (out of scope as of Jan 2021).
   usd: number
 }
 

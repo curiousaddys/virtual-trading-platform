@@ -1,4 +1,4 @@
-// TODO(jh): Once using multiple env variables, the error should specify *all* that are missing.
+// TODO(jh): The error should specify *all* that are missing instead of just the first one.
 const mustGetEnv = (key: string) => {
   const value = process.env[key]
   if (!value) {

@@ -19,7 +19,7 @@ export interface Portfolio {
 
 export interface Holding {
   currency: string
-  amount: number // TODO(jh): confirm this will store numbers w/ enough precision
+  amount: number
 }
 
 const getAccountsCollection = async () => {
@@ -36,12 +36,12 @@ export const findOrInsertAccount = async (address: string) => {
       // Create user in database and fund initial portfolio.
       $setOnInsert: {
         address,
-        nickname: 'Anonymous User', // TODO: allow user to change nickname
+        nickname: 'Anonymous User', // Eventually the user will be able to set their own nickname.
         joined: new Date(),
         portfolios: [
           {
             _id: new ObjectID(),
-            name: 'main', // TODO: allow user to set portfolio name
+            name: 'main', // Eventually we may let the user assign names to their different portfolios.
             holdings: [
               {
                 currency: 'USD',

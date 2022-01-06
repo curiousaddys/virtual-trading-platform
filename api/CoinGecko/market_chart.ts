@@ -4,7 +4,7 @@
 import client from './client'
 
 export interface GeckoPriceHistory {
-  prices: number[][] //TODO(jh): seems like the data is not 100% clean and there could sometimes be null values?
+  prices: number[][]
   market_caps: number[][]
   total_volumes: number[][]
 }

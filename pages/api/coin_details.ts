@@ -15,7 +15,7 @@ export default async function handler(
   try {
     const { coin } = QuerySchema.parse(req.query)
     const data = await getCoinDetails(coin)
-    // TODO(jh): only return the exact data needed for out frontend to improve loading time
+    // TODO(jh): filter the coingecko data before returning since there is a lot of extra stuff we don't need
     res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(data)
   } catch (err: any) {
