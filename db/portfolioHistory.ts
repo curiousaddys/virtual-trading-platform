@@ -83,18 +83,25 @@ export const insertMinutelyPortfolioHistory = async (
 }
 
 export const persistLatestPortfolioBalances = async (
-  targetCollection: Collection<PortfolioBalance>
+  targetCollection: Collection<PortfolioBalance>,
+  timestamp: Date
 ) => {
   const { collection, session } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate(
     [
       // sort by timestamp desc
       {
-        $sort: {
+        sort: {
           timestamp: -1,
         },
       },
-      // group by portfolio id & select first (newest) timestamp + balance
+      // filter by the timestamp that was passed into the function
+      {
+        $match: {
+          timestamp: timestamp,
+        },
+      },
+      // group by portfolio id & select first (newest) timestamp + balance (just in case somehow there are duplicates)
       {
         $group: {
           _id: '$portfolioID',

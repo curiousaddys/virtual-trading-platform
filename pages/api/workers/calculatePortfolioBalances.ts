@@ -78,19 +78,19 @@ export default async function handler(
     if (min % 5 === 0) {
       // Every 5 min.
       const { collection: targetCollection } = await getPortfolioHistoryEveryFiveMinCollection()
-      await persistLatestPortfolioBalances(targetCollection)
+      await persistLatestPortfolioBalances(targetCollection, timestamp)
       snapshotTimer.log('Snapshot [Portfolio Price History – Every 5 min] completed')
     }
     if (min == 0) {
       // Hourly.
       const { collection: targetCollection } = await getPortfolioHistoryHourlyCollection()
-      await persistLatestPortfolioBalances(targetCollection)
+      await persistLatestPortfolioBalances(targetCollection, timestamp)
       snapshotTimer.log('Snapshot [Portfolio Price History – Hourly] completed')
     }
     if (hour === 0 && min == 0) {
       // Daily.
       const { collection: targetCollection } = await getPortfolioHistoryDailyCollection()
-      await persistLatestPortfolioBalances(targetCollection)
+      await persistLatestPortfolioBalances(targetCollection, timestamp)
       snapshotTimer.log('Snapshot [Portfolio Price History – Daily] completed')
     }
 
