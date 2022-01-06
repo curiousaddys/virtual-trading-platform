@@ -91,7 +91,7 @@ export const persistLatestPortfolioBalances = async (
     [
       // sort by timestamp desc
       {
-        sort: {
+        $sort: {
           timestamp: -1,
         },
       },
