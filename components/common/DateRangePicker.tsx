@@ -1,5 +1,4 @@
 import React, { Dispatch, SetStateAction } from 'react'
-import BeatLoader from 'react-spinners/BeatLoader'
 
 export enum DateRangeValue {
   Hour = 'hour',
