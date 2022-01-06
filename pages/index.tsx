@@ -177,6 +177,7 @@ const Home: NextPage = () => {
                             prices.find((price) => price.id === b.currency)?.current_price ?? 1 // If not found, then it's USD.
                           return bCurrentPrice * b.amount - aCurrentPrice * a.amount
                         })
+                        .filter((h) => h.amount > 0)
                         .map((h) => {
                           const coin = prices.find((price) => price.id === h.currency) ?? {
                             id: 'usd',
