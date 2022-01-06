@@ -209,7 +209,7 @@ const Home: NextPage = () => {
                               {/*TODO: figure out best way to simplify this (we just need the USD row to not be a link)*/}
                               {coin.id !== 'usd' ? (
                                 <>
-                                  <Link href={`/details?coin=${coin.id}`} passHref>
+                                  <Link href={`/details/${coin.id}`} passHref>
                                     <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
                                       <Image
                                         src={coin.image}
@@ -219,7 +219,7 @@ const Home: NextPage = () => {
                                       />
                                     </td>
                                   </Link>
-                                  <Link href={`/details?coin=${coin.id}`} passHref>
+                                  <Link href={`/details/${coin.id}`} passHref>
                                     <td className="px-4 py-4 text-sm text-gray-900 cursor-pointer">
                                       <span className="font-bold">{coin.name}</span>
                                       <br />
@@ -304,12 +304,12 @@ const Home: NextPage = () => {
                   {prices &&
                     prices.map((coin) => (
                       <tr className="whitespace-nowrap even:bg-gray-50" key={coin.id}>
-                        <Link href={`/details?coin=${coin.id}`} passHref>
+                        <Link href={`/details/${coin.id}`} passHref>
                           <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
                             <Image src={coin.image} height={40} width={40} alt={coin.symbol} />
                           </td>
                         </Link>
-                        <Link href={`/details?coin=${coin.id}`} passHref>
+                        <Link href={`/details/${coin.id}`} passHref>
                           <td className="px-4 py-4 text-sm text-gray-900 font-bold cursor-pointer">
                             {coin.name} <br />
                             <span className="font-light">{coin.symbol.toUpperCase()}</span>

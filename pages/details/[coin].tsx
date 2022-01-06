@@ -1,7 +1,7 @@
-import { NextPage } from 'next'
+import { GetServerSideProps, NextPage } from 'next'
 import React, { useContext, useEffect, useState } from 'react'
 import ky from 'ky'
-import { formatFloat, formatUSD, stripHtmlTags } from '../utils/format'
+import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
 import {
   CartesianGrid,
   Line,
@@ -13,24 +13,44 @@ import {
 } from 'recharts'
 import dayjs from 'dayjs'
 import Link from 'next/link'
-import { BuySellAction, BuySellModal } from '../components/BuySellModal'
-import { UserContext } from '../hooks/useUser'
+import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
+import { UserContext } from '../../hooks/useUser'
 import Image from 'next/image'
-import { PrettyPercent } from '../components/common/PrettyPercent'
-import { Transaction } from '../db/transactions'
-import { DateRangePicker, DateRangeValue } from '../components/common/DateRangePicker'
-import { usePriceHistory } from '../hooks/usePriceHistory'
-import { useCoinDetails } from '../hooks/useCoinDetails'
-import { useQueryString } from '../hooks/useQueryString'
+import { PrettyPercent } from '../../components/common/PrettyPercent'
+import { Transaction } from '../../db/transactions'
+import { DateRangePicker, DateRangeValue } from '../../components/common/DateRangePicker'
+import { usePriceHistory } from '../../hooks/usePriceHistory'
+import { useCoinDetails } from '../../hooks/useCoinDetails'
 import { toast } from 'react-toastify'
+import { SUPPORTED_COINS } from '../../utils/constants'
 
-const Details: NextPage = () => {
-  const coin = useQueryString('coin')
+interface CoinDetailsPageProps {
+  coin: string
+}
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Check that a valid coin was requested before rending the page.
+  const coin = context.query['coin'] as string
+  if (!(SUPPORTED_COINS as ReadonlyArray<string>).includes(coin)) {
+    return {
+      notFound: true,
+    }
+  }
+  // TODO: consider using SSR for initial data
+  return {
+    props: { coin },
+  }
+}
+
+const Details: NextPage<CoinDetailsPageProps> = (props) => {
   // TODO: show some loading spinner or skeleton if loading
-  const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(coin)
+  const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(props.coin)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   // TODO: show some loading spinner or skeleton if loading
-  const { priceHistory, priceHistoryLoading, priceHistoryError } = usePriceHistory(coin, chartRange)
+  const { priceHistory, priceHistoryLoading, priceHistoryError } = usePriceHistory(
+    props.coin,
+    chartRange
+  )
   const { accountInfo } = useContext(UserContext)
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -44,14 +64,14 @@ const Details: NextPage = () => {
 
   // Fetch transaction data if user is logged in & whenever account data changes.
   useEffect(() => {
-    if (!accountInfo || !coin) return
+    if (!accountInfo || !props.coin) return
 
     const fetchTransactionHistory = async () => {
       try {
         const results = await ky
           .get('/api/transactions', {
             searchParams: {
-              coin: coin,
+              coin: props.coin,
               portfolioID: accountInfo.portfolios[0]._id.toString(),
             },
           })
@@ -63,7 +83,7 @@ const Details: NextPage = () => {
       }
     }
     fetchTransactionHistory()
-  }, [accountInfo, coin])
+  }, [accountInfo, props.coin])
 
   // Handle errors from data fetching hooks.
   useEffect(() => {
@@ -73,7 +93,7 @@ const Details: NextPage = () => {
     }
     if (priceHistoryError) {
       console.error(priceHistoryError)
-      toast('Error price history!', { type: 'error' })
+      toast('Error loading price history!', { type: 'error' })
     }
   }, [coinDetailsError, priceHistoryError])
 
@@ -109,8 +129,9 @@ const Details: NextPage = () => {
                 Buy
               </button>
             )}
-            {!!accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === coin)
-              ?.amount && (
+            {!!accountInfo?.portfolios[0].holdings.find(
+              (holding) => holding.currency === props.coin
+            )?.amount && (
               <button
                 className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
                 onClick={() => openBuySellModal(BuySellAction.Sell)}
