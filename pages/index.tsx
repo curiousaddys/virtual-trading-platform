@@ -26,6 +26,7 @@ const Home: NextPage = () => {
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
+  const [chartLoading, setChartLoading] = useState<boolean>(false)
   // TODO: display error if prices fail to load
   const { prices, pricesLoading, pricesError } = usePrices()
   const [modalOpen, setModalOpen] = useState(false)
@@ -43,6 +44,7 @@ const Home: NextPage = () => {
     if (!totalPortfolioBalanceUSD) {
       return
     }
+    setChartLoading(true)
     ;(async () => {
       // TODO: handle errors
       const data = await ky
@@ -58,6 +60,7 @@ const Home: NextPage = () => {
         })
       }
       setChartData(data)
+      setChartLoading(false)
     })()
   }, [totalPortfolioBalanceUSD, chartRange])
 
@@ -96,6 +99,7 @@ const Home: NextPage = () => {
                 <DateRangePicker
                   selectedDays={chartRange}
                   onSelectionChange={setChartRange}
+                  loading={chartLoading}
                   showHourOption
                 />
                 <ResponsiveContainer width="100%" height={400}>

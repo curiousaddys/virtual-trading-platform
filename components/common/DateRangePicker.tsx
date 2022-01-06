@@ -1,4 +1,5 @@
 import React, { Dispatch, SetStateAction } from 'react'
+import BeatLoader from 'react-spinners/BeatLoader'
 
 export enum DateRangeValue {
   Hour = 'hour',
@@ -22,6 +23,7 @@ export interface DateRangePickerProps {
   selectedDays: DateRangeValue
   onSelectionChange: Dispatch<SetStateAction<DateRangeValue>>
   showHourOption?: boolean
+  loading?: boolean
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
@@ -33,13 +35,21 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
         }
         return (
           <div
-            className={`uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer select-none ${
+            className={`uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer disabled:cursor-auto select-none text-center ${
               props.selectedDays === value && 'bg-blue-700 text-gray-100'
             }`}
-            onClick={() => props.onSelectionChange(value)}
+            style={{ width: 88 }}
+            onClick={() => {
+              if (props.loading) return
+              props.onSelectionChange(value)
+            }}
             key={text}
           >
-            {text}
+            {props.loading && props.selectedDays === value ? (
+              <BeatLoader color={'white'} loading={true} size={10} />
+            ) : (
+              text
+            )}
           </div>
         )
       })}

@@ -27,6 +27,7 @@ const Details: NextPage = () => {
   const [data, setData] = useState<GeckoDetails>()
   const [chartData, setChartData] = useState<GeckoPriceHistory>()
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
+  const [chartLoading, setChartLoading] = useState<boolean>(false)
   const { accountInfo } = useContext(UserContext)
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -50,6 +51,7 @@ const Details: NextPage = () => {
 
     // TODO: should this chart update every minute? use SWR for this since it's public info?
     const fetchChartData = async () => {
+      setChartLoading(true)
       // TODO: handle errors
       const results = await ky
         .get('/api/price_history', {
@@ -62,6 +64,7 @@ const Details: NextPage = () => {
       // TODO: remove logging
       console.log(results)
       setChartData(results)
+      setChartLoading(false)
     }
 
     fetchChartData()
@@ -149,7 +152,11 @@ const Details: NextPage = () => {
           </section>
           {chartData && (
             <section className="my-5">
-              <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
+              <DateRangePicker
+                selectedDays={chartRange}
+                onSelectionChange={setChartRange}
+                loading={chartLoading}
+              />
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart
                   data={chartData.prices}
