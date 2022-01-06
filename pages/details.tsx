@@ -133,38 +133,45 @@ const Details: NextPage = () => {
                 }}
               >
                 <CartesianGrid />
-                <XAxis
-                  dataKey="0"
-                  tickFormatter={(t) =>
-                    chartRange !== '1'
-                      ? dayjs.unix(t / 1000).format('MMM D, YYYY')
-                      : dayjs(t).format('hh:mm A')
-                  }
-                  type="number"
-                  domain={['dataMin', 'dataMax']}
-                  scale="time"
-                  minTickGap={15}
-                  tickMargin={10}
-                />
-                <YAxis
-                  domain={[(dataMin: number) => dataMin * 0.9, (dataMax: number) => dataMax * 1.1]}
-                  hide
-                />
-                <Tooltip
-                  formatter={(value: number) => formatUSD(value)}
-                  labelFormatter={(t) => dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')}
-                />
                 {priceHistory && (
-                  <Line
-                    type="linear"
-                    dataKey="1"
-                    stroke={'#00008B'}
-                    dot={false}
-                    isAnimationActive={true}
-                    animationDuration={500}
-                    name={'Price'}
-                    strokeWidth={2}
-                  />
+                  <>
+                    <XAxis
+                      dataKey="0"
+                      tickFormatter={(t) =>
+                        chartRange !== '1'
+                          ? dayjs.unix(t / 1000).format('MMM D, YYYY')
+                          : dayjs(t).format('hh:mm A')
+                      }
+                      type="number"
+                      domain={['dataMin', 'dataMax']}
+                      scale="time"
+                      minTickGap={15}
+                      tickMargin={10}
+                    />
+                    <YAxis
+                      domain={[
+                        (dataMin: number) => dataMin * 0.9,
+                        (dataMax: number) => dataMax * 1.1,
+                      ]}
+                      hide
+                    />
+                    <Tooltip
+                      formatter={(value: number) => formatUSD(value)}
+                      labelFormatter={(t) =>
+                        dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')
+                      }
+                    />
+                    <Line
+                      type="linear"
+                      dataKey="1"
+                      stroke={'#00008B'}
+                      dot={false}
+                      isAnimationActive={true}
+                      animationDuration={500}
+                      name={'Price'}
+                      strokeWidth={2}
+                    />
+                  </>
                 )}
               </LineChart>
             </ResponsiveContainer>

@@ -33,16 +33,16 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
         }
         return (
           <div
-            className={`uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer disabled:cursor-auto select-none text-center ${
+            className={`flex justify-center items-center uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer disabled:cursor-auto select-none text-center text-sm ${
               props.selectedDays === value && 'bg-blue-700 text-gray-100'
             }`}
-            style={{ width: 88 }}
+            style={{ width: 85, maxWidth: '15%' }}
             onClick={() => {
               props.onSelectionChange(value)
             }}
             key={text}
           >
-            {text}
+            <div>{text}</div>
           </div>
         )
       })}

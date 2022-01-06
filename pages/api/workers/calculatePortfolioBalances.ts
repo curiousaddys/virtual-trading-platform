@@ -70,8 +70,6 @@ export default async function handler(
 
     console.info(`[Portfolio Price History – Minutely] ${recordsInserted} records inserted.`)
 
-    const snapshotTimer = new Timer()
-
     // If time meets certain conditions, save snapshot of the data that we just calculated.
     const hour = date.getHours()
     const min = date.getMinutes()
@@ -80,19 +78,19 @@ export default async function handler(
       // Every 5 min.
       const { collection: targetCollection } = await getPortfolioHistoryEveryFiveMinCollection()
       await persistLatestPortfolioBalances(targetCollection, timestamp)
-      snapshotTimer.log('Snapshot [Portfolio Price History – Every 5 min] completed')
+      timer.log('Snapshot [Portfolio Price History – Every 5 min] completed')
     }
     if (min == 0) {
       // Hourly.
       const { collection: targetCollection } = await getPortfolioHistoryHourlyCollection()
       await persistLatestPortfolioBalances(targetCollection, timestamp)
-      snapshotTimer.log('Snapshot [Portfolio Price History – Hourly] completed')
+      timer.log('Snapshot [Portfolio Price History – Hourly] completed')
     }
     if (hour === 0 && min == 0) {
       // Daily.
       const { collection: targetCollection } = await getPortfolioHistoryDailyCollection()
       await persistLatestPortfolioBalances(targetCollection, timestamp)
-      snapshotTimer.log('Snapshot [Portfolio Price History – Daily] completed')
+      timer.log('Snapshot [Portfolio Price History – Daily] completed')
     }
 
     return res.status(200).json({ status: 'ok' })

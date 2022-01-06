@@ -123,40 +123,43 @@ const Home: NextPage = () => {
                     }}
                   >
                     <CartesianGrid />
-                    <XAxis
-                      dataKey="timestamp"
-                      tickFormatter={(t) =>
-                        chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
-                          ? dayjs(t).format('hh:mm A')
-                          : dayjs(t).format('MMM D, YYYY')
-                      }
-                      type="category"
-                      domain={['dataMin', 'dataMax']}
-                      minTickGap={15}
-                      tickMargin={10}
-                    />
-                    <YAxis
-                      domain={[
-                        (dataMin: number) => dataMin * 0.9,
-                        (dataMax: number) => dataMax * 1.1,
-                      ]}
-                      hide
-                    />
-                    <Tooltip
-                      formatter={(value: number) => formatUSD(value)}
-                      labelFormatter={(t) => dayjs(t).format('MMM D, YYYY [at] hh:mm A')}
-                    />
                     {chartData && (
-                      <Line
-                        type="linear"
-                        dataKey="balanceUSD"
-                        stroke={'#00008B'}
-                        dot={false}
-                        isAnimationActive={true}
-                        animationDuration={500}
-                        name={'Balance'}
-                        strokeWidth={2}
-                      />
+                      <>
+                        <XAxis
+                          dataKey="timestamp"
+                          tickFormatter={(t) =>
+                            chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
+                              ? dayjs(t).format('hh:mm A')
+                              : dayjs(t).format('MMM D, YYYY')
+                          }
+                          type="category"
+                          domain={['dataMin', 'dataMax']}
+                          minTickGap={15}
+                          tickMargin={10}
+                        />
+                        <YAxis
+                          domain={[
+                            (dataMin: number) => dataMin * 0.9,
+                            (dataMax: number) => dataMax * 1.1,
+                          ]}
+                          hide
+                        />
+                        <Tooltip
+                          formatter={(value: number) => formatUSD(value)}
+                          labelFormatter={(t) => dayjs(t).format('MMM D, YYYY [at] hh:mm A')}
+                        />
+
+                        <Line
+                          type="linear"
+                          dataKey="balanceUSD"
+                          stroke={'#00008B'}
+                          dot={false}
+                          isAnimationActive={true}
+                          animationDuration={500}
+                          name={'Balance'}
+                          strokeWidth={2}
+                        />
+                      </>
                     )}
                   </LineChart>
                 </ResponsiveContainer>
