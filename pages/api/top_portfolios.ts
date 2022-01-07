@@ -14,6 +14,7 @@ export default async function handler(
   try {
     const { limit } = QuerySchema.parse(req.query)
     const portfolios = await getTopPortfolios(limit)
+    res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(portfolios)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)
