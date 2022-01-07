@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { WalletConnector } from './WalletConnector'
 import React from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCog, faMedal } from '@fortawesome/free-solid-svg-icons'
 
 export const Navbar: React.FC = () => {
   return (
@@ -17,6 +19,26 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3 ">
+            <Link href="/leaderboard" passHref>
+              <a>
+                <FontAwesomeIcon
+                  icon={faMedal}
+                  color={'#FF8C00'}
+                  className="cursor-pointer"
+                  style={{ width: 24 }}
+                />
+              </a>
+            </Link>
+            <Link href="/settings" passHref>
+              <a>
+                <FontAwesomeIcon
+                  icon={faCog}
+                  color={'#00008B'}
+                  className="cursor-pointer"
+                  style={{ width: 24 }}
+                />
+              </a>
+            </Link>
             <WalletConnector />
           </div>
         </div>

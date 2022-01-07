@@ -156,3 +156,74 @@ export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: Da
   const resultsArr = await results.toArray()
   return resultsArr.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
 }
+
+export interface TopPortfolio {
+  _id: ObjectID
+  balanceUSD: number
+  accountNickname: string
+}
+
+export const getTopPortfolios = async (limit: number) => {
+  const { collection, session } = await getPortfolioHistoryMinutelyCollection()
+  const results = await collection.aggregate<TopPortfolio>(
+    [
+      {
+        $sort: {
+          timestamp: -1,
+        },
+      },
+      {
+        $group: {
+          _id: '$portfolioID',
+          balanceUSD: {
+            $first: '$balanceUSD',
+          },
+        },
+      },
+      /*
+      TODO: will this "lookup" stage will be fast enough when dealing w/ a lot of users?
+      if not, then maybe we should run this entire thing in the background & have a "top portfolios" collection
+      that just updates every five min
+      */
+      {
+        $lookup: {
+          from: 'accounts',
+          let: {
+            portfolio_id: '$_id',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$portfolio_id', '$portfolios._id'],
+                },
+              },
+            },
+          ],
+          as: 'accounts',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          balanceUSD: 1,
+          account: {
+            $first: '$accounts',
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          balanceUSD: 1,
+          accountNickname: '$account.nickname',
+        },
+      },
+      { $limit: limit },
+      { $sort: { amountUSD: -1 } },
+    ],
+    { session }
+  )
+  console.log('got it')
+  return await results.toArray()
+}
