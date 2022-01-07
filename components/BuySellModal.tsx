@@ -12,7 +12,6 @@ import { toast } from 'react-toastify'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 
 export interface BuySellModalProps {
-  visible: boolean
   onClose: () => void
   currency?: { value: string; label: string }
   action: BuySellAction
@@ -133,15 +132,6 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
     setCoinPriceData(coin)
   }, [currency, prices])
 
-  // Whenever modal is hidden, reset transaction status and form amounts.
-  useEffect(() => {
-    if (props.visible) return // Don't do it when visible since it will be less smooth.
-    setTransactionStatus(null)
-    setTransactInUSD(true)
-    setAmountUSDString('')
-    setAmountCoinString('')
-  }, [props.visible])
-
   // Whenever account info or price data updates, set the available amount to spend or sell.
   useEffect(() => {
     setAvailableToSpend(
@@ -182,7 +172,7 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
       })
   }
 
-  if (!props.visible) return <></>
+  // TODO: show loading spinner while preparing the form so that it doesn't look jumpy
 
   return (
     <div

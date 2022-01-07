@@ -96,12 +96,13 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          <BuySellModal
-            visible={modalOpen}
-            currency={{ value: coinDetails.id, label: coinDetails.name }}
-            onClose={() => setModalOpen(false)}
-            action={buySellAction}
-          />
+          {modalOpen && (
+            <BuySellModal
+              currency={{ value: coinDetails.id, label: coinDetails.name }}
+              onClose={() => setModalOpen(false)}
+              action={buySellAction}
+            />
+          )}
           <section className="my-5 flex items-center justify-between">
             <div className="flex items-center justify-between">
               <Image

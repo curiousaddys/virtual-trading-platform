@@ -84,12 +84,13 @@ const Home: NextPage = () => {
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          <BuySellModal
-            visible={modalOpen}
-            currency={buySellCurrency}
-            onClose={() => setModalOpen(false)}
-            action={buySellAction}
-          />
+          {modalOpen && (
+            <BuySellModal
+              currency={buySellCurrency}
+              onClose={() => setModalOpen(false)}
+              action={buySellAction}
+            />
+          )}
           {prices && accountInfo && (
             <>
               <section className="mb-2">
