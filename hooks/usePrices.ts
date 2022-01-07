@@ -1,10 +1,10 @@
 import ky from 'ky'
 import useSWR from 'swr'
 import { ONE_MINUTE_MS } from '../utils/constants'
-import { Price } from '../pages/api/prices'
+import { GeckoPrices } from '../api/CoinGecko/markets'
 
-const fetchPrices = async (): Promise<Price[]> => {
-  return await ky.get('/api/prices').json<Price[]>()
+const fetchPrices = async (): Promise<GeckoPrices[]> => {
+  return await ky.get('/api/prices').json<GeckoPrices[]>()
 }
 
 export const usePrices = () => {

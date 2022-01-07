@@ -306,8 +306,7 @@ export const TOP_250_COINS = [
   'origin-dollar',
 ] as const
 
-// TODO: Change to TOP_250_COINS after optimizing loading times.
-export const SUPPORTED_COINS = TOP_50_COINS
+export const SUPPORTED_COINS = TOP_250_COINS
 
 export const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3'
 

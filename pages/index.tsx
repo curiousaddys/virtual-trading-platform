@@ -293,7 +293,9 @@ const Home: NextPage = () => {
                     <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                       Change (1 day)
                     </th>
-                    <th className="px-6 py-2 hidden md:table-cell" />
+                    <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
+                      Volume
+                    </th>
                     {accountInfo && <th className="px-6 py-2" />}
                   </tr>
                 </thead>
@@ -324,29 +326,11 @@ const Home: NextPage = () => {
                         >
                           <PrettyPercent value={coin.price_change_percentage_24h} />
                         </td>
-                        <td className="px-4 py-4 hidden md:table-cell" style={{ maxWidth: 150 }}>
-                          <ResponsiveContainer width="100%" height={40}>
-                            <LineChart
-                              data={coin.sparkline}
-                              margin={{
-                                top: 10,
-                                right: 10,
-                                bottom: 10,
-                                left: 10,
-                              }}
-                            >
-                              <YAxis type="number" domain={['dataMin', 'dataMax']} hide />
-                              <Line
-                                type="linear"
-                                dataKey="0"
-                                stroke={
-                                  coin.price_change_percentage_24h >= 0 ? '#22c55e' : '#ef4444'
-                                }
-                                dot={false}
-                                isAnimationActive={false}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
+                        <td
+                          className="px-4 py-4 text-sm text-gray-500 text-right hidden md:table-cell"
+                          style={{ maxWidth: 150 }}
+                        >
+                          {formatUSD(coin.total_volume, true)}
                         </td>
                         {accountInfo && (
                           <td className="px-4 py-4 text-right">

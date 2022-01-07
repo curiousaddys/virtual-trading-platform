@@ -31,7 +31,8 @@ export interface GeckoPrices {
   roi?: null
   last_updated: string
   // Keep in mind that this sparkline is just an array of prices, it doesn't contain timestamp or date values.
-  sparkline_in_7d: {
+  // Also it seems very inconsistent b/c it can be up to 6 hours behind.
+  sparkline_in_7d?: {
     price?: number[] | null
   }
   price_change_percentage_1h_in_currency: number
@@ -46,7 +47,7 @@ export const getMarketData = async (): Promise<GeckoPrices[]> => {
   const params = {
     vs_currency: 'usd',
     ids: SUPPORTED_COINS.join(','),
-    sparkline: true,
+    sparkline: false,
     price_change_percentage: '1h,24h,7d,30d,1y',
   }
   return client.get(path, { searchParams: params }).json<GeckoPrices[]>()
