@@ -6,10 +6,10 @@ import { UserContext } from '../hooks/useUser'
 import ky from 'ky'
 import { Account } from '../db/accounts'
 import React from 'react'
-import { Price } from '../pages/api/prices'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
+import { GeckoPrices } from '../api/CoinGecko/markets'
 
 export interface BuySellModalProps {
   visible: boolean
@@ -46,7 +46,7 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
   const [amountUSD, setAmountUSD] = useState<number>(0)
   const [amountCoin, setAmountCoin] = useState<number>(0)
   const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
-  const [coinPriceData, setCoinPriceData] = useState<Price | null>(null)
+  const [coinPriceData, setCoinPriceData] = useState<GeckoPrices | null>(null)
   const { prices } = usePrices()
   const { accountInfo, setAccountInfo } = useContext(UserContext)
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
