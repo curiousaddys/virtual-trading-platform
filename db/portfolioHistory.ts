@@ -82,7 +82,7 @@ export const insertMinutelyPortfolioHistory = async (
   }
 }
 
-export const persistLatestPortfolioBalances = async (
+export const persistPortfolioBalances = async (
   targetCollection: Collection<PortfolioBalance>,
   timestamp: Date
 ) => {
@@ -224,6 +224,5 @@ export const getTopPortfolios = async (limit: number) => {
     ],
     { session }
   )
-  console.log('got it')
   return await results.toArray()
 }

@@ -304,7 +304,7 @@ const Home: NextPage = () => {
                 <tbody className="bg-white">
                   {prices &&
                     prices.map((coin) => (
-                      <tr className="whitespace-nowrap even:bg-gray-50" key={coin.id}>
+                      <tr className="even:bg-gray-50" key={coin.id}>
                         <Link href={`/details/${coin.id}`} passHref>
                           <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
                             <Image src={coin.image} height={40} width={40} alt={coin.symbol} />

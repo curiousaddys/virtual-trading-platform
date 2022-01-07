@@ -6,7 +6,7 @@ import {
   getPortfolioHistoryEveryFiveMinCollection,
   getPortfolioHistoryHourlyCollection,
   insertMinutelyPortfolioHistory,
-  persistLatestPortfolioBalances,
+  persistPortfolioBalances,
   PortfolioBalance,
 } from '../../../db/portfolioHistory'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
@@ -74,22 +74,25 @@ export default async function handler(
     const hour = date.getHours()
     const min = date.getMinutes()
 
+    // TODO: Is it really quicker to use the persistPortfolioBalances aggregation or maybe better to just
+    // insert the balances that we calculated above into whatever other collections are appropriate?
+
     if (min % 5 === 0) {
       // Every 5 min.
       const { collection: targetCollection } = await getPortfolioHistoryEveryFiveMinCollection()
-      await persistLatestPortfolioBalances(targetCollection, timestamp)
+      await persistPortfolioBalances(targetCollection, timestamp)
       timer.log('Snapshot [Portfolio Price History – Every 5 min] completed')
     }
     if (min == 0) {
       // Hourly.
       const { collection: targetCollection } = await getPortfolioHistoryHourlyCollection()
-      await persistLatestPortfolioBalances(targetCollection, timestamp)
+      await persistPortfolioBalances(targetCollection, timestamp)
       timer.log('Snapshot [Portfolio Price History – Hourly] completed')
     }
     if (hour === 0 && min == 0) {
       // Daily.
       const { collection: targetCollection } = await getPortfolioHistoryDailyCollection()
-      await persistLatestPortfolioBalances(targetCollection, timestamp)
+      await persistPortfolioBalances(targetCollection, timestamp)
       timer.log('Snapshot [Portfolio Price History – Daily] completed')
     }
 
