@@ -45,6 +45,7 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
   )
   const { accountInfo } = useContext(UserContext)
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
+  const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
@@ -246,8 +247,11 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
             <>
               <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Transactions</h2>
               <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
-                {transactionHistory.map((transaction) => (
-                  <div key={transaction._id.toString()} className="grid grid-cols-2 py-3">
+                {transactionHistory.map((transaction, i) => (
+                  <div
+                    key={transaction._id.toString()}
+                    className={`grid grid-cols-2 py-3 ${i > 4 && !showAllTransactions && 'hidden'}`}
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-2">
                       <div className="text-gray-800">
                         {dayjs(transaction.timestamp).format('MMM D, YYYY h:mm A')}
@@ -265,6 +269,16 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
                     </div>
                   </div>
                 ))}
+                {transactionHistory.length > 5 && (
+                  <div className="text-center">
+                    <button
+                      className="w-100 text-center text-blue-500 cursor-pointer"
+                      onClick={() => setShowAllTransactions(!showAllTransactions)}
+                    >
+                      Show {showAllTransactions ? 'less' : 'more'}
+                    </button>
+                  </div>
+                )}
               </section>
             </>
           )}
