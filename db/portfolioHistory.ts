@@ -220,7 +220,7 @@ export const getTopPortfolios = async (limit: number) => {
         },
       },
       { $limit: limit },
-      { $sort: { amountUSD: -1 } },
+      { $sort: { balanceUSD: -1 } },
     ],
     { session }
   )

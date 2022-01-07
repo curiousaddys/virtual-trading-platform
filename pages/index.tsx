@@ -105,60 +105,63 @@ const Home: NextPage = () => {
                     onSelectionChange={setChartRange}
                     showHourOption
                   />
-                  {!chartData && (
-                    // TODO: nicer loading indicator
-                    <div style={{ height: 400, width: '100%' }} className="flex text-xl">
-                      <div className="m-auto">Loading...</div>
-                    </div>
-                  )}
-                  {chartData && (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <LineChart
-                        data={chartData ?? []}
-                        margin={{
-                          top: 10,
-                          right: 10,
-                          bottom: 10,
-                          left: 10,
-                        }}
-                      >
-                        <XAxis
-                          dataKey="timestamp"
-                          tickFormatter={(t) =>
-                            chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
-                              ? dayjs(t).format('hh:mm A')
-                              : dayjs(t).format('MMM D, YYYY')
-                          }
-                          type="category"
-                          domain={['dataMin', 'dataMax']}
-                          minTickGap={15}
-                          tickMargin={10}
-                        />
-                        <YAxis
-                          domain={[
-                            (dataMin: number) => dataMin * 0.9,
-                            (dataMax: number) => dataMax * 1.1,
-                          ]}
-                          hide
-                        />
-                        <Tooltip
-                          formatter={(value: number) => formatUSD(value)}
-                          labelFormatter={(t) => dayjs(t).format('MMM D, YYYY [at] hh:mm A')}
-                        />
+                  <div className="px-2">
+                    {!chartData && (
+                      // TODO: nicer loading indicator
+                      <div style={{ height: 400, width: '100%' }} className="flex text-xl">
+                        <div className="m-auto">Loading...</div>
+                      </div>
+                    )}
+                    {chartData && (
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart
+                          data={chartData ?? []}
+                          margin={{
+                            top: 10,
+                            right: 10,
+                            bottom: 10,
+                            left: 10,
+                          }}
+                        >
+                          <XAxis
+                            dataKey="timestamp"
+                            tickFormatter={(t) =>
+                              chartRange === DateRangeValue.Hour ||
+                              chartRange === DateRangeValue.Day
+                                ? dayjs(t).format('hh:mm A')
+                                : dayjs(t).format('MMM D, YYYY')
+                            }
+                            type="category"
+                            domain={['dataMin', 'dataMax']}
+                            minTickGap={15}
+                            tickMargin={10}
+                          />
+                          <YAxis
+                            domain={[
+                              (dataMin: number) => dataMin * 0.9,
+                              (dataMax: number) => dataMax * 1.1,
+                            ]}
+                            hide
+                          />
+                          <Tooltip
+                            formatter={(value: number) => formatUSD(value)}
+                            labelFormatter={(t) => dayjs(t).format('MMM D, YYYY [at] hh:mm A')}
+                          />
 
-                        <Line
-                          type="linear"
-                          dataKey="balanceUSD"
-                          stroke={'#00008B'}
-                          dot={false}
-                          isAnimationActive={true}
-                          animationDuration={500}
-                          name={'Balance'}
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  )}
+                          <Line
+                            type="linear"
+                            dataKey="balanceUSD"
+                            stroke={'#00008B'}
+                            dot={false}
+                            isAnimationActive={true}
+                            animationDuration={500}
+                            name={'Balance'}
+                            strokeWidth={2}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
                 </div>
               </section>
             </>
