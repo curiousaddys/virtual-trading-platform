@@ -38,6 +38,11 @@ export enum BuySellAction {
   Sell = 'sell',
 }
 
+const parseFloatOrReturnZero = (s: string) => {
+  const parsed = parseFloat(s)
+  return isNaN(parsed) ? 0 : parsed
+}
+
 export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
   const [transactInUSD, setTransactInUSD] = useState<boolean>(true)
   const [amountUSDString, setAmountUSDString] = useState<string>('')
@@ -72,22 +77,18 @@ export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
     } else {
       setAmountUSDString(amountUSD ? amountUSD.toString() : '')
     }
-    setTransactInUSD(!transactInUSD)
+    setTransactInUSD((prev) => !prev)
   }
 
   // When the amount input string changes, update the actual amount.
   // It's easier to store input amount as strings since storing them as a number would cause
   // it to just update the state w/ "0" when ".0" is typed, preventing the user from entering amounts like ".01"
   useEffect(() => {
-    const parsed = parseFloat(amountUSDString)
-    const amount = isNaN(parsed) ? 0 : parsed
-    setAmountUSD(amount)
+    setAmountUSD(parseFloatOrReturnZero(amountUSDString))
   }, [amountUSDString])
 
   useEffect(() => {
-    const parsed = parseFloat(amountCoinString)
-    const amount = isNaN(parsed) ? 0 : parsed
-    setAmountCoin(amount)
+    setAmountCoin(parseFloatOrReturnZero(amountCoinString))
   }, [amountCoinString])
 
   // Whenever price changes or input changes, update appropriate field based on which one is currently editable.

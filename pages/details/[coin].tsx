@@ -32,12 +32,6 @@ const Details: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
-  const openBuySellModal = (action: BuySellAction) => {
-    if (!coinDetails) return
-    setBuySellAction(action)
-    setModalOpen(true)
-  }
-
   useEffect(() => {
     const coinQuery = router.query.coin as string
     if (!coinQuery) return
@@ -47,6 +41,12 @@ const Details: NextPage = () => {
     }
     setCoin(coinQuery)
   }, [router.query])
+
+  const openBuySellModal = (action: BuySellAction) => {
+    if (!coinDetails) return
+    setBuySellAction(action)
+    setModalOpen(true)
+  }
 
   // Fetch transaction data if user is logged in & whenever account data changes.
   useEffect(() => {
@@ -85,7 +85,7 @@ const Details: NextPage = () => {
 
   return (
     <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
-      {!coin && !coinInvalid && <div className="text-center">Loading...</div>}
+      {coinDetailsLoading && !coinInvalid && <div className="text-center">Loading...</div>}
       {coinInvalid && <div className="text-center">Invalid coin</div>}
       {coinDetails && (
         <>
