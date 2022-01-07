@@ -2,15 +2,7 @@ import type { NextPage } from 'next'
 import Image from 'next/image'
 import React, { useContext, useEffect, useState } from 'react'
 import ky from 'ky'
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { UserContext } from '../hooks/useUser'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import dayjs from 'dayjs'
@@ -107,24 +99,29 @@ const Home: NextPage = () => {
                 <p className="text-gray-500">{accountInfo?.address}</p>
               </section>
               <section>
-                <DateRangePicker
-                  selectedDays={chartRange}
-                  onSelectionChange={setChartRange}
-                  showHourOption
-                />
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart
-                    data={chartData ?? []}
-                    margin={{
-                      top: 10,
-                      right: 10,
-                      bottom: 10,
-                      left: 10,
-                    }}
-                  >
-                    <CartesianGrid />
-                    {chartData && (
-                      <>
+                <div className="rounded-md pt-3 shadow-lg bg-white">
+                  <DateRangePicker
+                    selectedDays={chartRange}
+                    onSelectionChange={setChartRange}
+                    showHourOption
+                  />
+                  {!chartData && (
+                    // TODO: nicer loading indicator
+                    <div style={{ height: 400, width: '100%' }} className="flex text-xl">
+                      <div className="m-auto">Loading...</div>
+                    </div>
+                  )}
+                  {chartData && (
+                    <ResponsiveContainer width="100%" height={400}>
+                      <LineChart
+                        data={chartData ?? []}
+                        margin={{
+                          top: 10,
+                          right: 10,
+                          bottom: 10,
+                          left: 10,
+                        }}
+                      >
                         <XAxis
                           dataKey="timestamp"
                           tickFormatter={(t) =>
@@ -159,10 +156,10 @@ const Home: NextPage = () => {
                           name={'Balance'}
                           strokeWidth={2}
                         />
-                      </>
-                    )}
-                  </LineChart>
-                </ResponsiveContainer>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
               </section>
             </>
           )}

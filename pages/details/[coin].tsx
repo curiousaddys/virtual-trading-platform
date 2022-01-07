@@ -1,16 +1,8 @@
 import { GetServerSideProps, NextPage } from 'next'
 import React, { useContext, useEffect, useState } from 'react'
 import ky from 'ky'
-import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
@@ -141,130 +133,150 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
             )}
           </section>
 
-          <section className="my-5">
-            <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart
-                data={priceHistory?.prices}
-                margin={{
-                  top: 10,
-                  right: 10,
-                  bottom: 10,
-                  left: 10,
-                }}
-              >
-                <CartesianGrid />
-                {priceHistory && (
-                  <>
-                    <XAxis
-                      dataKey="0"
-                      tickFormatter={(t) =>
-                        chartRange !== '1'
-                          ? dayjs.unix(t / 1000).format('MMM D, YYYY')
-                          : dayjs(t).format('hh:mm A')
-                      }
-                      type="number"
-                      domain={['dataMin', 'dataMax']}
-                      scale="time"
-                      minTickGap={15}
-                      tickMargin={10}
-                    />
-                    <YAxis
-                      domain={[
-                        (dataMin: number) => dataMin * 0.9,
-                        (dataMax: number) => dataMax * 1.1,
-                      ]}
-                      hide
-                    />
-                    <Tooltip
-                      formatter={(value: number) => formatUSD(value)}
-                      labelFormatter={(t) =>
-                        dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')
-                      }
-                    />
-                    <Line
-                      type="linear"
-                      dataKey="1"
-                      stroke={'#00008B'}
-                      dot={false}
-                      isAnimationActive={true}
-                      animationDuration={500}
-                      name={'Price'}
-                      strokeWidth={2}
-                    />
-                  </>
+          <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-9 mb-6">
+            <h2 className="text-5xl text-black font-semibold m-2 mb-5">
+              {formatUSD(coinDetails.market_data.current_price.usd)}
+            </h2>
+            <div className="rounded pt-3 shadow-lg">
+              <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
+              <div className="px-2">
+                {priceHistoryLoading && (
+                  // TODO: nicer loading indicator
+                  <div style={{ height: 400, width: '100%' }} className="flex text-xl">
+                    <div className="m-auto">Loading...</div>
+                  </div>
                 )}
-              </LineChart>
-            </ResponsiveContainer>
+                {priceHistory && (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart
+                      data={priceHistory?.prices}
+                      margin={{
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10,
+                      }}
+                    >
+                      <XAxis
+                        dataKey="0"
+                        tickFormatter={(t) =>
+                          chartRange !== '1'
+                            ? dayjs.unix(t / 1000).format('MMM D, YYYY')
+                            : dayjs(t).format('hh:mm A')
+                        }
+                        type="number"
+                        domain={['dataMin', 'dataMax']}
+                        scale="time"
+                        minTickGap={15}
+                        tickMargin={10}
+                      />
+                      <YAxis
+                        domain={[
+                          (dataMin: number) => dataMin * 0.9,
+                          (dataMax: number) => dataMax * 1.1,
+                        ]}
+                        hide
+                      />
+                      <Tooltip
+                        formatter={(value: number) => formatUSD(value)}
+                        labelFormatter={(t) =>
+                          dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')
+                        }
+                      />
+                      <Line
+                        type="linear"
+                        dataKey="1"
+                        stroke={'#00008B'}
+                        dot={false}
+                        isAnimationActive={true}
+                        animationDuration={500}
+                        name={'Price'}
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 my-5">
+              <DataCard title={'Last Hour'}>
+                <PrettyPercent
+                  value={coinDetails.market_data.price_change_percentage_1h_in_currency.usd}
+                />
+              </DataCard>
+
+              <DataCard title={'Last 24 Hours'}>
+                <PrettyPercent
+                  value={coinDetails.market_data.price_change_percentage_24h_in_currency.usd}
+                />
+              </DataCard>
+
+              <DataCard title={'Last 7 Days'}>
+                <PrettyPercent
+                  value={coinDetails.market_data.price_change_percentage_7d_in_currency.usd}
+                />
+              </DataCard>
+
+              <DataCard title={'Last 30 Days'}>
+                <PrettyPercent
+                  value={coinDetails.market_data.price_change_percentage_30d_in_currency.usd}
+                />
+              </DataCard>
+            </div>
+
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+              <DataCard title={'All Time High'}>
+                {formatUSD(coinDetails.market_data.ath.usd)}
+              </DataCard>
+              <DataCard title={'Popularity'}>#{coinDetails.market_cap_rank}</DataCard>
+              <DataCard title={'Market Cap'}>
+                {formatUSD(coinDetails.market_data.market_cap.usd, true)}
+              </DataCard>
+              <DataCard title={'Volume'}>
+                {formatUSD(coinDetails.market_data.total_volume.usd, true)}
+              </DataCard>
+              <DataCard title={'Circulating Supply'}>
+                {formatInt(coinDetails.market_data.circulating_supply)}
+              </DataCard>
+            </div>
           </section>
 
-          <section className="my-5">
-            <h2 className="text-2xl text-black font-semibold mb-2">Stats</h2>
-            <div>Current price: {formatUSD(coinDetails.market_data.current_price.usd)}</div>
-            <div>Market cap: {formatUSD(coinDetails.market_data.market_cap.usd)}</div>
-            <div>Volume: {formatUSD(coinDetails.market_data.total_volume.usd)}</div>
-            <div>Circulating supply: {formatFloat(coinDetails.market_data.circulating_supply)}</div>
-            <div>Popularity: #{coinDetails.market_cap_rank}</div>
-            <div>All time high: {formatUSD(coinDetails.market_data.ath.usd)}</div>
-          </section>
-          <section className="my-5">
-            {/*TODO: make this section look nicer. maybe put it on cards like on cryptoparrot.*/}
-            <h2 className="text-2xl text-black font-semibold mb-2">Price History</h2>
-            <div>
-              Price change (last hour):{' '}
-              <PrettyPercent
-                value={coinDetails.market_data.price_change_percentage_1h_in_currency.usd}
-              />
-            </div>
-            <div>
-              Price change (24 hours):{' '}
-              <PrettyPercent
-                value={coinDetails.market_data.price_change_percentage_24h_in_currency.usd}
-              />
-            </div>
-            <div>
-              Price change (7 days):{' '}
-              <PrettyPercent
-                value={coinDetails.market_data.price_change_percentage_7d_in_currency.usd}
-              />
-            </div>
-            <div>
-              Price change (30 days):{' '}
-              <PrettyPercent
-                value={coinDetails.market_data.price_change_percentage_30d_in_currency.usd}
-              />
-            </div>
-          </section>
-          {/*TODO: display a nice table for this data*/}
           {/*TODO: only show 5-10 recent transactions w/ a "view more" button*/}
           {transactionHistory && transactionHistory.length > 0 && (
-            <section className="my-5">
-              <div>
-                <h2 className="text-2xl text-black font-semibold mb-2">Your Transactions</h2>
+            <>
+              <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Transactions</h2>
+              <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
                 {transactionHistory.map((transaction) => (
-                  <div key={transaction._id.toString()} className="mb-2">
-                    <div className="font-medium underline">
-                      {dayjs(transaction.timestamp).format('MMM D, YYYY [at] h:mm A')}
+                  <div key={transaction._id.toString()} className="grid grid-cols-2 py-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      <div className="text-gray-800">
+                        {dayjs(transaction.timestamp).format('MMM D, YYYY h:mm A')}
+                      </div>
+                      <div className="font-medium capitalize text-left md:text-center">
+                        {transaction.action}
+                      </div>
                     </div>
-                    <div>
-                      {transaction.action === 'buy' ? 'Purchased' : 'Sold'}{' '}
-                      {transaction.amountUSD / transaction.exchangeRateUSD}{' '}
-                      {coinDetails?.symbol.toUpperCase()} for {formatUSD(transaction.amountUSD)}.
+                    <div className="grid grid-cols-1 md:grid-cols-2 text-right">
+                      <div className="text-gray-800 font-medium">
+                        {formatFloat(transaction.amountUSD / transaction.exchangeRateUSD)}{' '}
+                        {coinDetails?.symbol.toUpperCase()}
+                      </div>
+                      <div className="text-gray-700">{formatUSD(transaction.amountUSD)}</div>
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
+              </section>
+            </>
           )}
-          <section className="my-5">
-            <h2 className="text-2xl text-black font-semibold mb-2">About</h2>
+          <h2 className="text-2xl text-gray-800 font-semibold ml-1">About {coinDetails.name}</h2>
+          <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3">
             <p
               dangerouslySetInnerHTML={{
                 __html: stripHtmlTags(coinDetails.description.en),
               }}
             />
             {coinDetails.links?.homepage?.length && (
-              <p className="my-3">
+              <p className="mt-5">
                 <Link href={coinDetails.links.homepage[0]} passHref>
                   <a className="text-blue-500" target="_blank" rel="noreferrer">
                     Official Website
@@ -280,3 +292,18 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
 }
 
 export default Details
+
+// TODO: move these sub-components out to other files
+
+interface DataCardProps {
+  title: string
+}
+
+export const DataCard: React.FC<DataCardProps> = (props) => (
+  <div className="overflow-hidden">
+    <div className="px-6 py-4 text-center">
+      <div className="font-normal text-lg mb-2 text-gray-700">{props.title}</div>
+      <div className="text-2xl font-medium text-gray-800">{props.children}</div>
+    </div>
+  </div>
+)
