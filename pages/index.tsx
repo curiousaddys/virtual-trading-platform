@@ -59,8 +59,8 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (!prices || !accountInfo?.portfolios[0].holdings) return
     const sum = accountInfo.portfolios[0].holdings.reduce(
-      (prev, cur) =>
-        prev + (prices.find((price) => price.id === cur.currency)?.current_price ?? 1) * cur.amount,
+      (acc, cur) =>
+        acc + (prices.find((price) => price.id === cur.currency)?.current_price ?? 1) * cur.amount,
       0
     )
     setTotalPortfolioBalanceUSD(sum)
@@ -292,10 +292,10 @@ const Home: NextPage = () => {
                     <th className="px-4 py-2" />
                     <th className="px-6 py-2 text-xs text-gray-500 text-right">Price</th>
                     <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
-                      Change (1 day)
+                      Change (24h)
                     </th>
                     <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
-                      Volume
+                      Volume (24h)
                     </th>
                     {accountInfo && <th className="px-6 py-2" />}
                   </tr>

@@ -1,4 +1,4 @@
-import { GetServerSideProps, NextPage } from 'next'
+import { NextPage } from 'next'
 import React, { useContext, useEffect, useState } from 'react'
 import ky from 'ky'
 import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
@@ -14,35 +14,18 @@ import { DateRangePicker, DateRangeValue } from '../../components/common/DateRan
 import { usePriceHistory } from '../../hooks/usePriceHistory'
 import { useCoinDetails } from '../../hooks/useCoinDetails'
 import { toast } from 'react-toastify'
+import { useRouter } from 'next/router'
 import { SUPPORTED_COINS } from '../../utils/constants'
 
-interface CoinDetailsPageProps {
-  coin: string
-}
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Check that a valid coin was requested before rending the page.
-  const coin = context.query['coin'] as string
-  if (!(SUPPORTED_COINS as ReadonlyArray<string>).includes(coin)) {
-    return {
-      notFound: true,
-    }
-  }
-  // TODO: consider using SSR for initial data
-  return {
-    props: { coin },
-  }
-}
-
-const Details: NextPage<CoinDetailsPageProps> = (props) => {
+const Details: NextPage = () => {
   // TODO: show some loading spinner or skeleton if loading
-  const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(props.coin)
+  const router = useRouter()
+  const [coin, setCoin] = useState<string>('')
+  const [coinInvalid, setCoinInvalid] = useState<boolean>(false)
+  const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(coin)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   // TODO: show some loading spinner or skeleton if loading
-  const { priceHistory, priceHistoryLoading, priceHistoryError } = usePriceHistory(
-    props.coin,
-    chartRange
-  )
+  const { priceHistory, priceHistoryLoading, priceHistoryError } = usePriceHistory(coin, chartRange)
   const { accountInfo } = useContext(UserContext)
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
@@ -55,16 +38,26 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
     setModalOpen(true)
   }
 
+  useEffect(() => {
+    const coinQuery = router.query.coin as string
+    if (!coinQuery) return
+    if (!(SUPPORTED_COINS as ReadonlyArray<string>).includes(coinQuery)) {
+      setCoinInvalid(true)
+      return
+    }
+    setCoin(coinQuery)
+  }, [router.query])
+
   // Fetch transaction data if user is logged in & whenever account data changes.
   useEffect(() => {
-    if (!accountInfo || !props.coin) return
+    if (!accountInfo || !coin) return
 
     const fetchTransactionHistory = async () => {
       try {
         const results = await ky
           .get('/api/transactions', {
             searchParams: {
-              coin: props.coin,
+              coin: coin,
               portfolioID: accountInfo.portfolios[0]._id.toString(),
             },
           })
@@ -76,7 +69,7 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
       }
     }
     fetchTransactionHistory()
-  }, [accountInfo, props.coin])
+  }, [accountInfo, coin])
 
   // Handle errors from data fetching hooks.
   useEffect(() => {
@@ -92,9 +85,9 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
 
   return (
     <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
-      {!coinDetails ? (
-        <div className="text-center">Loading...</div>
-      ) : (
+      {!coin && !coinInvalid && <div className="text-center">Loading...</div>}
+      {coinInvalid && <div className="text-center">Invalid coin</div>}
+      {coinDetails && (
         <>
           {modalOpen && (
             <BuySellModal
@@ -123,9 +116,8 @@ const Details: NextPage<CoinDetailsPageProps> = (props) => {
                 Buy
               </button>
             )}
-            {!!accountInfo?.portfolios[0].holdings.find(
-              (holding) => holding.currency === props.coin
-            )?.amount && (
+            {!!accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === coin)
+              ?.amount && (
               <button
                 className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
                 onClick={() => openBuySellModal(BuySellAction.Sell)}
