@@ -200,9 +200,7 @@ const Home: NextPage = () => {
                             name: 'US Dollars',
                             current_price: 1,
                             price_change_percentage_24h: 0,
-                            image:
-                              // TODO: maybe host this image ourselves in case coingecko ever moves or renames it
-                              'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                            image: '/usd.jpg',
                           }
                           return (
                             <tr key={h.currency} className="whitespace-nowrap even:bg-gray-50">
