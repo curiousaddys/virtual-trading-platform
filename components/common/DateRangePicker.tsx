@@ -24,7 +24,7 @@ export interface DateRangePickerProps {
   showHourOption?: boolean
 }
 
-export const DateRangePicker: React.FC<DateRangePickerProps> = (props) => {
+export const DateRangePicker: React.VFC<DateRangePickerProps> = (props) => {
   return (
     <div className="w-100 flex flex-row justify-end gap-2 pr-3">
       {dayValues.map(({ text, value }) => {

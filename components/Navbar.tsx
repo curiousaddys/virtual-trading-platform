@@ -4,7 +4,7 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCog, faMedal } from '@fortawesome/free-solid-svg-icons'
 
-export const Navbar: React.FC = () => {
+export const Navbar: React.VFC = () => {
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-6xl mx-auto px-4">

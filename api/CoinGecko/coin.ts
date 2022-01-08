@@ -1,4 +1,4 @@
-import client from './client'
+import CoinGeckoAPI from './client'
 
 export interface GeckoDetails {
   id: string
@@ -88,7 +88,7 @@ interface GeckoPrice {
   usd: number
 }
 
-export const getCoinDetails = async (coin: string): Promise<GeckoDetails> => {
+export const fetchCoinDetails = async (coin: string): Promise<GeckoDetails> => {
   const path = `coins/${coin}`
   const params = {
     localization: false,
@@ -96,5 +96,5 @@ export const getCoinDetails = async (coin: string): Promise<GeckoDetails> => {
     community_data: false,
     developer_data: false,
   }
-  return client.get(path, { searchParams: params }).json<GeckoDetails>()
+  return CoinGeckoAPI.get(path, { searchParams: params }).json<GeckoDetails>()
 }

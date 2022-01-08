@@ -1,7 +1,7 @@
 // Markets API returns current prices.
 
 import { SUPPORTED_COINS } from '../../utils/constants'
-import client from './client'
+import CoinGeckoAPI from './client'
 
 export interface GeckoPrices {
   id: string
@@ -42,7 +42,7 @@ export interface GeckoPrices {
   price_change_percentage_7d_in_currency: number
 }
 
-export const getMarketData = async (): Promise<GeckoPrices[]> => {
+export const fetchMarketData = async (): Promise<GeckoPrices[]> => {
   const path = `coins/markets`
   const params = {
     vs_currency: 'usd',
@@ -50,5 +50,5 @@ export const getMarketData = async (): Promise<GeckoPrices[]> => {
     sparkline: false,
     price_change_percentage: '1h,24h,7d,30d,1y',
   }
-  return client.get(path, { searchParams: params }).json<GeckoPrices[]>()
+  return CoinGeckoAPI.get(path, { searchParams: params }).json<GeckoPrices[]>()
 }

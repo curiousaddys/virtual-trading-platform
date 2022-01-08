@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAllPortfolios } from '../../../db/accounts'
-import { getMarketData } from '../../../api/CoinGecko/markets'
+import { fetchMarketData } from '../../../api/CoinGecko/markets'
 import {
   getPortfolioHistoryDailyCollection,
   getPortfolioHistoryEveryFiveMinCollection,
@@ -38,7 +38,7 @@ export default async function handler(
     const timer = new Timer()
 
     // get current prices
-    const geckoPrices = await getMarketData()
+    const geckoPrices = await fetchMarketData()
     timer.log('Got Gecko market data')
 
     // store prices in key-value pairs to perform quick lookups

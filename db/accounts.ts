@@ -1,4 +1,4 @@
-import { getMongoDB } from './mongodb-client'
+import { getMongoDB } from './client'
 import { ObjectID } from 'bson'
 import { INITIAL_PORTFOLIO_FUND_AMOUNT } from '../utils/constants'
 

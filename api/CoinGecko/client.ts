@@ -1,8 +1,8 @@
 import got from 'got'
 import { COINGECKO_BASE_URL } from '../../utils/constants'
 
-const client = got.extend({
+const CoinGeckoAPI = got.extend({
   prefixUrl: COINGECKO_BASE_URL,
 })
 
-export default client
+export default CoinGeckoAPI

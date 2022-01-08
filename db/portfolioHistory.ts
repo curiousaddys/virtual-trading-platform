@@ -1,4 +1,4 @@
-import { getMongoDB } from './mongodb-client'
+import { getMongoDB } from './client'
 import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
 import { ObjectID } from 'bson'
 import { Collection } from 'mongodb'

@@ -9,7 +9,7 @@ const injected = new InjectedConnector({})
 
 type MetaMaskBrowserStatusState = null | 'supported' | 'unsupported' | 'ready'
 
-export const WalletConnector: React.FC = () => {
+export const WalletConnector: React.VFC = () => {
   const { account, library, activate, deactivate } = useWeb3React()
   const { user, setUser } = useContext(UserContext)
   const [metaMaskBrowserStatus, setMetaMaskBrowserStatus] =

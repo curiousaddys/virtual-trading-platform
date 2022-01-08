@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { z } from 'zod'
 import { getErrorDetails } from '../../utils/errors'
-import { GeckoPriceHistory, getMarketChart } from '../../api/CoinGecko/market_chart'
+import { GeckoPriceHistory, fetchMarketChart } from '../../api/CoinGecko/market_chart'
 
 export type PriceHistory = Pick<GeckoPriceHistory, 'prices'>
 
@@ -20,7 +20,7 @@ export default async function handler(
 ) {
   try {
     const { coin, days } = QuerySchema.parse(req.query)
-    const data = await getMarketChart(coin, days)
+    const data = await fetchMarketChart(coin, days)
     res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(filterPriceHistory(data))
   } catch (err: any) {

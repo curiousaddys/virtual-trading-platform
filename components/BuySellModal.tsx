@@ -43,7 +43,7 @@ const parseFloatOrReturnZero = (s: string) => {
   return isNaN(parsed) ? 0 : parsed
 }
 
-export const BuySellModal: React.FC<BuySellModalProps> = (props) => {
+export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   const [transactInUSD, setTransactInUSD] = useState<boolean>(true)
   const [amountUSDString, setAmountUSDString] = useState<string>('')
   const [amountCoinString, setAmountCoinString] = useState<string>('')

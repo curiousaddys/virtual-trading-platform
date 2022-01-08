@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getMongoDB } from '../../db/mongodb-client'
+import { getMongoDB } from '../../db/client'
 
 export default async function handler(
   req: NextApiRequest,

@@ -1,5 +1,5 @@
 import { ObjectID } from 'bson'
-import { getMongoDB } from './mongodb-client'
+import { getMongoDB } from './client'
 
 export interface Transaction {
   _id: ObjectID
