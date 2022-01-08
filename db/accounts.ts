@@ -25,6 +25,7 @@ export interface Holding {
 const getAccountsCollection = async () => {
   const { db, session } = await getMongoDB()
   const collection = db.collection<Account>('accounts')
+  await collection.createIndex({ address: 1 }, { session })
   return { collection, session }
 }
 
@@ -56,6 +57,20 @@ export const findOrInsertAccount = async (address: string) => {
       },
     },
     { upsert: true, returnDocument: 'after', session }
+  )
+  return result.value!
+}
+
+export const updateAccount = async (address: string, account: Partial<Account>) => {
+  const { collection, session } = await getAccountsCollection()
+  const result = await collection.findOneAndUpdate(
+    { address },
+    {
+      $set: {
+        ...account, // TODO: confirm this syntax is correct
+      },
+    },
+    { returnDocument: 'after', session }
   )
   return result.value!
 }

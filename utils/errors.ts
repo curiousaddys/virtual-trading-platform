@@ -9,8 +9,8 @@ export const getErrorDetails = (err: any): { status: number; message: string } =
     return { status: 401, message: 'unauthorized' }
   }
   if (err instanceof ZodError) {
-    // TODO(jh): list all errors (along w/ field names) instead of just the 1st one
-    return { status: 400, message: err.issues[0].message }
+    // TODO(jh): list all errors instead of just the 1st one
+    return { status: 400, message: `${err.issues[0].path[0]}: ${err.issues[0].message}` }
   }
   if (err instanceof BSONTypeError) {
     return { status: 400, message: err.message }
