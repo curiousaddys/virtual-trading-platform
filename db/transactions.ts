@@ -14,22 +14,22 @@ export interface Transaction {
 }
 
 const getTransactionsCollection = async () => {
-  const { db, session } = await getMongoDB()
+  const { db } = await getMongoDB()
   const collection = db.collection<Transaction>('transactions')
-  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { session })
-  return { collection, session }
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 })
+  return { collection }
 }
 
 export const insertTransaction = async (transaction: Transaction): Promise<ObjectID> => {
-  const { collection, session } = await getTransactionsCollection()
-  const result = await collection.insertOne(transaction, { session })
+  const { collection } = await getTransactionsCollection()
+  const result = await collection.insertOne(transaction)
   return result.insertedId
 }
 
 // TODO: consider just using database transactions to rollback instead of doing this
 export const deleteTransaction = async (id: ObjectID): Promise<number> => {
-  const { collection, session } = await getTransactionsCollection()
-  const result = await collection.deleteOne({ _id: id }, { session })
+  const { collection } = await getTransactionsCollection()
+  const result = await collection.deleteOne({ _id: id })
   return result.deletedCount
 }
 
@@ -37,10 +37,7 @@ export const getTransactions = async (
   portfolioID: ObjectID,
   currency: string
 ): Promise<Transaction[]> => {
-  const { collection, session } = await getTransactionsCollection()
-  const result = await collection.find(
-    { portfolioID: new ObjectID(portfolioID), currency },
-    { session }
-  )
+  const { collection } = await getTransactionsCollection()
+  const result = await collection.find({ portfolioID: new ObjectID(portfolioID), currency })
   return result.toArray()
 }

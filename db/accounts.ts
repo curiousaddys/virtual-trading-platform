@@ -23,14 +23,14 @@ export interface Holding {
 }
 
 const getAccountsCollection = async () => {
-  const { db, session } = await getMongoDB()
+  const { client, db } = await getMongoDB()
   const collection = db.collection<Account>('accounts')
-  await collection.createIndex({ address: 1 }, { session })
-  return { collection, session }
+  await collection.createIndex({ address: 1 })
+  return { client, collection }
 }
 
 export const findOrInsertAccount = async (address: string) => {
-  const { collection, session } = await getAccountsCollection()
+  const { collection } = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {
@@ -56,27 +56,26 @@ export const findOrInsertAccount = async (address: string) => {
         lastLogin: new Date(),
       },
     },
-    { upsert: true, returnDocument: 'after', session }
+    { upsert: true, returnDocument: 'after' }
   )
   return result.value!
 }
 
 export const updateAccount = async (address: string, account: Partial<Account>) => {
-  const { collection, session } = await getAccountsCollection()
+  const { collection } = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {
-      $set: {
-        ...account, // TODO: confirm this syntax is correct
-      },
+      $set: account,
     },
-    { returnDocument: 'after', session }
+    { returnDocument: 'after' }
   )
   return result.value!
 }
 
 export const getAllPortfolios = async (): Promise<Portfolio[]> => {
-  const { collection, session } = await getAccountsCollection()
+  const { client, collection } = await getAccountsCollection()
+  const session = client.startSession()
   const accounts = await collection.find({}, { session }).toArray()
   const portfolios: Portfolio[] = []
   accounts.forEach((account) => {
@@ -84,12 +83,13 @@ export const getAllPortfolios = async (): Promise<Portfolio[]> => {
       portfolios.push(portfolio)
     })
   })
+  await session.endSession()
   return portfolios
 }
 
 export const findPortfoliosByAddress = async (address: string): Promise<Portfolio[]> => {
-  const { collection, session } = await getAccountsCollection()
-  const account = await collection.findOne({ address }, { session })
+  const { collection } = await getAccountsCollection()
+  const account = await collection.findOne({ address })
   return account?.portfolios ?? <Portfolio[]>[]
 }
 
@@ -100,11 +100,12 @@ export const updatePortfolio = async (
   amount: number,
   costUSD: number
 ) => {
-  const { collection, session } = await getAccountsCollection()
+  const { collection } = await getAccountsCollection()
   const balance = portfolio!.holdings.find((holding) => holding.currency === currency)?.amount
   if (!balance && balance !== 0) {
     // insert new object
     // TODO: figure out if there is a way to get $push and $inc working in a single db call w/o conflicts
+    // TODO: just use db transaction here?
     await collection.findOneAndUpdate(
       { _id: accountID },
       {
@@ -114,7 +115,6 @@ export const updatePortfolio = async (
       },
       {
         arrayFilters: [{ 'portfolio._id': portfolio._id }, { 'cost.currency': 'USD' }],
-        session,
         returnDocument: 'after',
       }
     )
@@ -130,7 +130,6 @@ export const updatePortfolio = async (
       },
       {
         arrayFilters: [{ 'portfolio._id': portfolio._id }],
-        session,
         returnDocument: 'after',
       }
     )
@@ -151,7 +150,6 @@ export const updatePortfolio = async (
           { 'coin.currency': currency },
           { 'cost.currency': 'USD' },
         ],
-        session,
         returnDocument: 'after',
       }
     )

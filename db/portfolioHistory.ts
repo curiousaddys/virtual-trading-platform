@@ -12,65 +12,64 @@ export interface PortfolioBalance {
 }
 
 export const getPortfolioHistoryMinutelyCollection = async () => {
-  const { db, session } = await getMongoDB()
+  const { client, db } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>('portfolioHistory_minutely')
   await collection.createIndex(
     { timestamp: -1 },
     {
       expireAfterSeconds: ONE_HOUR_SEC,
-      session,
     }
   )
-  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
-  return { collection, session }
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
+  return { client, collection }
 }
 
 export const getPortfolioHistoryEveryFiveMinCollection = async () => {
-  const { db, session } = await getMongoDB()
+  const { db } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>('portfolioHistory_everyFiveMin')
   await collection.createIndex(
     { timestamp: -1 },
     {
       expireAfterSeconds: ONE_DAY_SEC,
-      session,
     }
   )
-  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
-  return { collection, session }
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
+  return { collection }
 }
 
 export const getPortfolioHistoryHourlyCollection = async () => {
-  const { db, session } = await getMongoDB()
+  const { db } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>('portfolioHistory_hourly')
   await collection.createIndex(
     { timestamp: -1 },
     {
       expireAfterSeconds: THIRTY_DAYS_SEC,
-      session,
     }
   )
-  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
-  return { collection, session }
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
+  return { collection }
 }
 
 export const getPortfolioHistoryDailyCollection = async () => {
-  const { db, session } = await getMongoDB()
+  const { db } = await getMongoDB()
   const collection = await db.collection<PortfolioBalance>('portfolioHistory_daily')
-  await collection.createIndex({ timestamp: -1 }, { session })
-  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true, session })
-  return { collection, session }
+  await collection.createIndex({ timestamp: -1 })
+  await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
+  return { collection }
 }
 
 // Returns the number of records inserted.
 export const insertMinutelyPortfolioHistory = async (
   history: PortfolioBalance[]
 ): Promise<number> => {
-  const { collection, session } = await getPortfolioHistoryMinutelyCollection()
+  const { client, collection } = await getPortfolioHistoryMinutelyCollection()
+  const session = await client.startSession()
   try {
     const result = await collection.insertMany(history, {
       ordered: false,
       session,
     })
+    await session.endSession()
     return result.insertedCount
   } catch (err: any) {
     // Ignore duplicate key errors since that just means we tried to insert the same data twice.
@@ -86,51 +85,48 @@ export const persistPortfolioBalances = async (
   targetCollection: Collection<PortfolioBalance>,
   timestamp: Date
 ) => {
-  const { collection, session } = await getPortfolioHistoryMinutelyCollection()
-  const results = await collection.aggregate(
-    [
-      // sort by timestamp desc
-      {
-        $sort: {
-          timestamp: -1,
+  const { collection } = await getPortfolioHistoryMinutelyCollection()
+  const results = await collection.aggregate([
+    // sort by timestamp desc
+    {
+      $sort: {
+        timestamp: -1,
+      },
+    },
+    // filter by the timestamp that was passed into the function
+    {
+      $match: {
+        timestamp: timestamp,
+      },
+    },
+    // group by portfolio id & select first (newest) timestamp + balance (just in case somehow there are duplicates)
+    {
+      $group: {
+        _id: '$portfolioID',
+        timestamp: {
+          $first: '$timestamp',
+        },
+        balance: {
+          $first: '$balanceUSD',
         },
       },
-      // filter by the timestamp that was passed into the function
-      {
-        $match: {
-          timestamp: timestamp,
-        },
+    },
+    // project into desired format
+    {
+      $project: {
+        _id: 0,
+        timestamp: '$timestamp',
+        balanceUSD: '$balance',
+        portfolioID: '$_id',
       },
-      // group by portfolio id & select first (newest) timestamp + balance (just in case somehow there are duplicates)
-      {
-        $group: {
-          _id: '$portfolioID',
-          timestamp: {
-            $first: '$timestamp',
-          },
-          balance: {
-            $first: '$balanceUSD',
-          },
-        },
+    },
+    // merge results into target collection
+    {
+      $merge: {
+        into: targetCollection.collectionName,
       },
-      // project into desired format
-      {
-        $project: {
-          _id: 0,
-          timestamp: '$timestamp',
-          balanceUSD: '$balance',
-          portfolioID: '$_id',
-        },
-      },
-      // merge results into target collection
-      {
-        $merge: {
-          into: targetCollection.collectionName,
-        },
-      },
-    ],
-    { session }
-  )
+    },
+  ])
   // Must do this in order for Node.js MongoDB driver to actually execute the aggregation.
   await results.toArray()
 }
@@ -145,14 +141,11 @@ const getPortfolioHistoryCollectionForDays = {
 }
 
 export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValue) => {
-  const { collection, session } = await getPortfolioHistoryCollectionForDays[days]()
+  const { collection } = await getPortfolioHistoryCollectionForDays[days]()
   const startDate = (
     days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')
   ).toDate()
-  const results = await collection.find(
-    { portfolioID, timestamp: { $gte: startDate } },
-    { session }
-  )
+  const results = await collection.find({ portfolioID, timestamp: { $gte: startDate } })
   const resultsArr = await results.toArray()
   return resultsArr.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
 }
@@ -164,65 +157,62 @@ export interface TopPortfolio {
 }
 
 export const getTopPortfolios = async (limit: number) => {
-  const { collection, session } = await getPortfolioHistoryMinutelyCollection()
-  const results = await collection.aggregate<TopPortfolio>(
-    [
-      {
-        $sort: {
-          timestamp: -1,
+  const { collection } = await getPortfolioHistoryMinutelyCollection()
+  const results = await collection.aggregate<TopPortfolio>([
+    {
+      $sort: {
+        timestamp: -1,
+      },
+    },
+    {
+      $group: {
+        _id: '$portfolioID',
+        balanceUSD: {
+          $first: '$balanceUSD',
         },
       },
-      {
-        $group: {
-          _id: '$portfolioID',
-          balanceUSD: {
-            $first: '$balanceUSD',
-          },
-        },
-      },
-      /*
+    },
+    /*
       TODO: will this "lookup" stage will be fast enough when dealing w/ a lot of users?
       if not, then maybe we should run this entire thing in the background & have a "top portfolios" collection
       that just updates every five min
       */
-      {
-        $lookup: {
-          from: 'accounts',
-          let: {
-            portfolio_id: '$_id',
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $in: ['$$portfolio_id', '$portfolios._id'],
-                },
+    {
+      $lookup: {
+        from: 'accounts',
+        let: {
+          portfolio_id: '$_id',
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: ['$$portfolio_id', '$portfolios._id'],
               },
             },
-          ],
-          as: 'accounts',
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          balanceUSD: 1,
-          account: {
-            $first: '$accounts',
           },
+        ],
+        as: 'accounts',
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        balanceUSD: 1,
+        account: {
+          $first: '$accounts',
         },
       },
-      {
-        $project: {
-          _id: 1,
-          balanceUSD: 1,
-          accountNickname: '$account.nickname',
-        },
+    },
+    {
+      $project: {
+        _id: 1,
+        balanceUSD: 1,
+        accountNickname: '$account.nickname',
       },
-      { $limit: limit },
-      { $sort: { balanceUSD: -1 } },
-    ],
-    { session }
-  )
+    },
+    { $limit: limit },
+    { $sort: { balanceUSD: -1 } },
+  ])
   return await results.toArray()
 }
