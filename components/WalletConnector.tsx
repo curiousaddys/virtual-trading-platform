@@ -84,13 +84,12 @@ export const WalletConnector: React.VFC = () => {
         </button>
       )}
       {metaMaskBrowserStatus === 'unsupported' && (
-        // TODO: make a small modal w/ more info re: supported browser
         <button
           className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
           onClick={() => {
             if (window)
               window.alert(
-                'Sorry, your browser does not support MetaMask, which is required to login.'
+                'Sorry, your browser does not support MetaMask, which is required to login. Please use Chrome, Firefox, Brave, or Edge.'
               )
           }}
         >

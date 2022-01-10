@@ -230,7 +230,7 @@ const Home: NextPage = () => {
                                 </>
                               ) : (
                                 <>
-                                  <td className="px-4 py-4 whitespace-nowrap w-px">
+                                  <td className="px-4 py-4 whitespace-nowrap w-px opacity-50">
                                     <Image
                                       src={coin.image}
                                       height={40}
@@ -238,7 +238,7 @@ const Home: NextPage = () => {
                                       alt={coin.symbol}
                                     />
                                   </td>
-                                  <td className="px-4 py-4 text-sm text-gray-900">
+                                  <td className="px-4 py-4 text-sm text-gray-900 opacity-50">
                                     <span className="font-bold">{coin.name}</span>
                                     <br />
                                     <span className="font-light">{coin.symbol.toUpperCase()}</span>
