@@ -1,28 +1,12 @@
 import Link from 'next/link'
 import { WalletConnector } from './WalletConnector'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCog, faMedal } from '@fortawesome/free-solid-svg-icons'
-import ky from 'ky'
-import { Account } from '../db/accounts'
 import { useAccountContext } from '../hooks/useAccount'
 
 export const Navbar: React.VFC = () => {
-  const { accountInfo, setAccountInfo } = useAccountContext()
-
-  useEffect(() => {
-    // Try to fetch account info on initial page load (hoping that cookie is set).
-    // TODO: consider checking if cookie exists before trying to fetch.
-    const fetchAccountInfo = async () => {
-      try {
-        const data = await ky.get('/api/account').json<Account>()
-        setAccountInfo(data)
-      } catch (err) {
-        console.log('Could not fetch account info. Probably because user is not logged in.')
-      }
-    }
-    fetchAccountInfo()
-  }, [setAccountInfo])
+  const { accountInfo } = useAccountContext()
 
   return (
     <nav className="bg-white shadow-lg">
