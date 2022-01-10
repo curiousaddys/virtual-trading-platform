@@ -1,8 +1,8 @@
 import { useWeb3React } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SIGNATURE_TEXT } from '../utils/constants'
-import { UserContext } from '../hooks/useUser'
+import { useAccountContext } from '../hooks/useAccount'
 import { isBrowserCompatible, isEthereumObjectOnWindow } from '../utils/browser'
 
 const injected = new InjectedConnector({})
@@ -11,23 +11,24 @@ type MetaMaskBrowserStatusState = null | 'supported' | 'unsupported' | 'ready'
 
 export const WalletConnector: React.VFC = () => {
   const { account, library, activate, deactivate } = useWeb3React()
-  const { user, setUser } = useContext(UserContext)
+  const { login, logout, accountInfo } = useAccountContext()
   const [metaMaskBrowserStatus, setMetaMaskBrowserStatus] =
     useState<MetaMaskBrowserStatusState>(null)
 
-  // Whenever web3 account is set, set the logged-in user.
+  // Whenever web3 account is set, ask the user to sign.
   useEffect(() => {
-    if (account) {
+    if (account && !accountInfo) {
       ;(async () => {
         const signer = await library.getSigner(account)
         const signature = await signer.signMessage(SIGNATURE_TEXT + account)
-        setUser({ address: account, signature })
+        // TODO: submit signature to backend to verify (using UserContext)
+        await login(account, signature)
       })()
     }
-  }, [account, library, setUser])
+  }, [account, accountInfo, library, login])
 
   // Activate wallet.
-  const login = async () => {
+  const activateWallet = async () => {
     try {
       await activate(injected, undefined, true)
     } catch (err) {
@@ -36,10 +37,10 @@ export const WalletConnector: React.VFC = () => {
   }
 
   // Deactivate wallet & clear the logged-in user.
-  const logout = async () => {
+  const deactivateWallet = async () => {
     try {
       deactivate()
-      setUser(null)
+      await logout()
     } catch (err) {
       console.error(err)
     }
@@ -58,23 +59,23 @@ export const WalletConnector: React.VFC = () => {
 
   return (
     <>
-      {user && (
+      {accountInfo && (
         <button
-          onClick={logout}
+          onClick={deactivateWallet}
           className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
         >
           Logout
         </button>
       )}
-      {!user && metaMaskBrowserStatus === 'ready' && (
+      {!accountInfo && metaMaskBrowserStatus === 'ready' && (
         <button
-          onClick={login}
+          onClick={activateWallet}
           className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
         >
           Login with MetaMask
         </button>
       )}
-      {!user && metaMaskBrowserStatus === 'supported' && (
+      {!accountInfo && metaMaskBrowserStatus === 'supported' && (
         <button
           onClick={() => window.open('https://metamask.io/download.html', '_blank')}
           className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"

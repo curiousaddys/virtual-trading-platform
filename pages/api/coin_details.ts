@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { z } from 'zod'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { GeckoDetails, fetchCoinDetails } from '../../api/CoinGecko/coin'
 
 const QuerySchema = z.object({
@@ -10,7 +10,7 @@ const QuerySchema = z.object({
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GeckoDetails | { error: string }>
+  res: NextApiResponse<GeckoDetails | ErrResp>
 ) {
   try {
     const { coin } = QuerySchema.parse(req.query)

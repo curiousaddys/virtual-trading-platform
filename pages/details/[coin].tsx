@@ -1,12 +1,12 @@
 import { NextPage } from 'next'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ky from 'ky'
 import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
-import { UserContext } from '../../hooks/useUser'
+import { useAccountContext } from '../../hooks/useAccount'
 import Image from 'next/image'
 import { PrettyPercent } from '../../components/common/PrettyPercent'
 import { Transaction } from '../../db/transactions'
@@ -27,7 +27,7 @@ const Details: NextPage = () => {
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   // TODO: show some loading spinner or skeleton if loading
   const { priceHistory, priceHistoryLoading, priceHistoryError } = usePriceHistory(coin, chartRange)
-  const { accountInfo } = useContext(UserContext)
+  const { accountInfo } = useAccountContext()
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -240,8 +240,7 @@ const Details: NextPage = () => {
               </div>
             </section>
 
-            {/*TODO: only show 5-10 recent transactions w/ a "view more" button*/}
-            {transactionHistory && transactionHistory.length > 0 && (
+            {accountInfo && transactionHistory && transactionHistory.length > 0 && (
               <>
                 <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Transactions</h2>
                 <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">

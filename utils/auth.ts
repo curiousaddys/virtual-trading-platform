@@ -1,33 +1,27 @@
 import { NextApiRequest } from 'next'
-import { UnauthorizedError } from './errors'
-import { ethers } from 'ethers'
-import { SIGNATURE_TEXT } from './constants'
 import { config } from './config'
+import { Account } from '../db/accounts'
 
-interface AuthCookie {
-  address: string
-  signature: string
+export class UnauthorizedError extends Error {}
+
+type AuthedAccount = Pick<Account, '_id' | 'address'>
+
+// This is where we specify the typings of req.session.*
+declare module 'iron-session' {
+  interface IronSessionData {
+    account: AuthedAccount
+  }
 }
 
-export const auth = (req: NextApiRequest): AuthCookie => {
-  const cookie = req.cookies.catc_vtp_account
-  if (!cookie) {
-    throw new UnauthorizedError('cookie not found')
+export const auth = (req: NextApiRequest): AuthedAccount => {
+  if (!req.session.account) {
+    throw new UnauthorizedError()
   }
-  const account: AuthCookie = JSON.parse(cookie)
-
-  try {
-    ethers.utils.verifyMessage(SIGNATURE_TEXT + account.address, account.signature)
-  } catch (err) {
-    throw new UnauthorizedError('invalid signature')
-  }
-
-  return account
+  return req.session.account
 }
 
 export const cloudflareWorkerAuth = (req: NextApiRequest): void => {
-  const secret = req.headers['x-auth-token']
-  if (secret !== config.CLOUDFLARE_SECRET) {
-    throw new UnauthorizedError('invalid secret')
+  if (req.headers['x-auth-token'] !== config.CLOUDFLARE_SECRET) {
+    throw new UnauthorizedError()
   }
 }

@@ -312,7 +312,7 @@ export const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3'
 
 export const SIGNATURE_TEXT = "Sign in to Curious Addys' Virtual Trading Platform as "
 
-export const ACCOUNT_COOKIE = 'catc_vtp_account'
+export const IRON_SESSION_COOKIE = 'trading-platform-session'
 
 export const INITIAL_PORTFOLIO_FUND_AMOUNT = 100000.0
 

@@ -1,9 +1,9 @@
 import type { NextPage } from 'next'
 import Image from 'next/image'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ky from 'ky'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { UserContext } from '../hooks/useUser'
+import { useAccountContext } from '../hooks/useAccount'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import dayjs from 'dayjs'
 import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
@@ -15,7 +15,7 @@ import { PortfolioBalanceHistoryResp } from './api/balance_history'
 import { toast } from 'react-toastify'
 
 const Home: NextPage = () => {
-  const { accountInfo, accountError } = useContext(UserContext)
+  const { accountInfo, accountError } = useAccountContext()
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)

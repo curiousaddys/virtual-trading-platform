@@ -1,21 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { z } from 'zod'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { getTransactions, Transaction } from '../../db/transactions'
 import { ObjectID } from 'bson'
 import { auth } from '../../utils/auth'
 import { findPortfoliosByAddress } from '../../db/accounts'
+import { withIronSessionApiRoute } from 'iron-session/next'
+import { sessionOptions } from '../../utils/config'
 
 const QuerySchema = z.object({
   coin: z.enum(SUPPORTED_COINS),
   portfolioID: z.string().transform((p) => new ObjectID(p)),
 })
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Transaction[] | { error: string }>
-) {
+export default withIronSessionApiRoute(handler, sessionOptions)
+
+async function handler(req: NextApiRequest, res: NextApiResponse<Transaction[] | ErrResp>) {
   try {
     const { address } = auth(req)
     const { coin, portfolioID } = QuerySchema.parse(req.query)

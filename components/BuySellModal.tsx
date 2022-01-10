@@ -1,8 +1,8 @@
-import { FormEventHandler, useContext, useEffect, useState, MouseEvent, FormEvent } from 'react'
+import { FormEventHandler, useEffect, useState, MouseEvent, FormEvent } from 'react'
 import Select, { SingleValue } from 'react-select'
 import { usePrices } from '../hooks/usePrices'
 import { formatUSD } from '../utils/format'
-import { UserContext } from '../hooks/useUser'
+import { useAccountContext } from '../hooks/useAccount'
 import ky from 'ky'
 import { Account } from '../db/accounts'
 import React from 'react'
@@ -52,7 +52,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
   const [coinPriceData, setCoinPriceData] = useState<GeckoPrices | null>(null)
   const { prices } = usePrices()
-  const { accountInfo, setAccountInfo } = useContext(UserContext)
+  const { accountInfo, setAccountInfo } = useAccountContext()
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
   const [availableToSell, setAvailableToSell] = useState<number>(0)
   const [transactionStatus, setTransactionStatus] = useState<null | TransactionState>(null)

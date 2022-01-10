@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { z } from 'zod'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { getTopPortfolios, TopPortfolio } from '../../db/portfolioHistory'
 
 const QuerySchema = z.object({
@@ -9,12 +9,11 @@ const QuerySchema = z.object({
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<TopPortfolio[] | { error: string }>
+  res: NextApiResponse<TopPortfolio[] | ErrResp>
 ) {
   try {
     const { limit } = QuerySchema.parse(req.query)
     const portfolios = await getTopPortfolios(limit)
-    res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(portfolios)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)

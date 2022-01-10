@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { z } from 'zod'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { GeckoPriceHistory, fetchMarketChart } from '../../api/CoinGecko/market_chart'
 
 export type PriceHistory = Pick<GeckoPriceHistory, 'prices'>
@@ -16,7 +16,7 @@ const filterPriceHistory = (data: GeckoPriceHistory): PriceHistory => ({ prices:
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<PriceHistory | { error: string }>
+  res: NextApiResponse<PriceHistory | ErrResp>
 ) {
   try {
     const { coin, days } = QuerySchema.parse(req.query)

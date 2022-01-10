@@ -1,6 +1,6 @@
 import { NextPage } from 'next'
-import React, { FormEventHandler, useContext, useEffect, useState } from 'react'
-import { UserContext } from '../hooks/useUser'
+import React, { FormEventHandler, useEffect, useState } from 'react'
+import { useAccountContext } from '../hooks/useAccount'
 import { toast } from 'react-toastify'
 import dayjs from 'dayjs'
 import ky from 'ky'
@@ -8,7 +8,7 @@ import { Account } from '../db/accounts'
 import Head from 'next/head'
 
 const Settings: NextPage = () => {
-  const { accountInfo, setAccountInfo, user, accountError } = useContext(UserContext)
+  const { accountInfo, setAccountInfo, accountError } = useAccountContext()
   const [nickname, setNickname] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
@@ -53,10 +53,13 @@ const Settings: NextPage = () => {
         <title>User Settings</title>
       </Head>
       <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
-        {/*TODO: improve loading message*/}
-        {!user && <div>You must connect your MetaMask wallet in order to access this page.</div>}
-        {user && !accountInfo && <div>Loading...</div>}
-        {accountError && <div>Error loading account info. Please try again.</div>}
+        {/*TODO: improve loading message */}
+        {!accountInfo && (
+          <>
+            <div className="mb-3">Loading...</div>
+            <div className="text-sm">Stuck? Ensure that you are logged in.</div>
+          </>
+        )}
         {accountInfo && (
           <>
             <h2 className="text-2xl text-gray-800 font-semibold ml-1">Settings</h2>

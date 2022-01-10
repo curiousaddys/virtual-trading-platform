@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { GeckoPrices, fetchMarketData } from '../../api/CoinGecko/markets'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GeckoPrices[] | { error: string }>
+  res: NextApiResponse<GeckoPrices[] | ErrResp>
 ) {
   try {
     const data = await fetchMarketData()

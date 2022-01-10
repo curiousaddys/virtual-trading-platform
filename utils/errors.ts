@@ -1,7 +1,10 @@
 import { ZodError } from 'zod'
 import { BSONTypeError } from 'bson'
+import { UnauthorizedError } from './auth'
 
-export class UnauthorizedError extends Error {}
+export interface ErrResp {
+  error: string
+}
 
 export const getErrorDetails = (err: any): { status: number; message: string } => {
   console.error(err)

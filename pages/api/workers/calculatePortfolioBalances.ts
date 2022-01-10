@@ -9,11 +9,11 @@ import {
   persistPortfolioBalances,
   PortfolioBalance,
 } from '../../../db/portfolioHistory'
-import { cloudflareWorkerAuth } from '../../../utils/auth'
 import { getErrorDetails } from '../../../utils/errors'
 import dayjs from 'dayjs'
 import { Timer } from '../../../utils/timer'
 import { z } from 'zod'
+import { cloudflareWorkerAuth } from '../../../utils/auth'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -73,9 +73,6 @@ export default async function handler(
     // If time meets certain conditions, save snapshot of the data that we just calculated.
     const hour = date.getHours()
     const min = date.getMinutes()
-
-    // TODO: Is it really quicker to use the persistPortfolioBalances aggregation or maybe better to just
-    // insert the balances that we calculated above into whatever other collections are appropriate?
 
     if (min % 5 === 0) {
       // Every 5 min.

@@ -3,9 +3,8 @@ import type { AppProps } from 'next/app'
 import { Web3ReactProvider } from '@web3-react/core'
 import { ethers } from 'ethers'
 import { ExternalProvider, JsonRpcFetchFunc } from '@ethersproject/providers'
-import { CookiesProvider } from 'react-cookie'
 import React from 'react'
-import { UserContext, useUser } from '../hooks/useUser'
+import { AccountContext, useAccount } from '../hooks/useAccount'
 import Head from 'next/head'
 import { Navbar } from '../components/Navbar'
 import { ToastContainer } from 'react-toastify'
@@ -17,26 +16,24 @@ function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const userState = useUser()
+  const account = useAccount()
   return (
     <Web3ReactProvider getLibrary={getLibrary}>
-      <CookiesProvider>
-        <UserContext.Provider value={userState}>
-          <Head>
-            <title>Virtual Trading Platform</title>
-            <meta name="description" content="Curious Addys' Trading Club" />
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-          <Navbar />
-          <Component {...pageProps} />
-          <ToastContainer
-            position={'bottom-right'}
-            autoClose={TEN_SEC_MS}
-            newestOnTop={true}
-            theme={'colored'}
-          />
-        </UserContext.Provider>
-      </CookiesProvider>
+      <AccountContext.Provider value={account}>
+        <Head>
+          <title>Virtual Trading Platform</title>
+          <meta name="description" content="Curious Addys' Trading Club" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <Navbar />
+        <Component {...pageProps} />
+        <ToastContainer
+          position={'bottom-right'}
+          autoClose={TEN_SEC_MS}
+          newestOnTop={true}
+          theme={'colored'}
+        />
+      </AccountContext.Provider>
     </Web3ReactProvider>
   )
 }

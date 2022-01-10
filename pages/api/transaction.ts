@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Account, findOrInsertAccount, updatePortfolio } from '../../db/accounts'
 import { auth } from '../../utils/auth'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { ObjectID } from 'bson'
@@ -9,6 +9,8 @@ import { deleteTransaction, insertTransaction } from '../../db/transactions'
 import got from 'got'
 import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
+import { withIronSessionApiRoute } from 'iron-session/next'
+import { sessionOptions } from '../../utils/config'
 
 const QuerySchema = z.object({
   portfolioID: z.string(),
@@ -19,10 +21,9 @@ const QuerySchema = z.object({
   action: z.nativeEnum(BuySellAction),
 })
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Account | { error: string }>
-) {
+export default withIronSessionApiRoute(handler, sessionOptions)
+
+async function handler(req: NextApiRequest, res: NextApiResponse<Account | ErrResp>) {
   try {
     const { address } = auth(req)
     const { portfolioID, coin, transactInUSD, amountUSD, amountCoin, action } = QuerySchema.parse(

@@ -1,10 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { findOrInsertAccount } from '../../db/accounts'
 import { auth } from '../../utils/auth'
-import { getErrorDetails } from '../../utils/errors'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { getPortfolioBalanceHistory, PortfolioBalance } from '../../db/portfolioHistory'
 import { z } from 'zod'
 import { DateRangeValue } from '../../components/common/DateRangePicker'
+import { withIronSessionApiRoute } from 'iron-session/next'
+import { sessionOptions } from '../../utils/config'
 
 const QuerySchema = z.object({
   days: z.nativeEnum(DateRangeValue).default(DateRangeValue.SevenDays),
@@ -20,15 +22,17 @@ const stripFields = (arr: PortfolioBalance[]): PortfolioBalanceHistoryResp => {
   }))
 }
 
-export default async function handler(
+export default withIronSessionApiRoute(handler, sessionOptions)
+
+async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<PortfolioBalanceHistoryResp | { error: string }>
+  res: NextApiResponse<PortfolioBalanceHistoryResp | ErrResp>
 ) {
   try {
     const { address } = auth(req)
     const { days } = QuerySchema.parse(req.query)
     const account = await findOrInsertAccount(address)
-    // TODO: add param for portfolio ID
+    // TODO: add param for portfolio ID (or just selected portfolio in the session cookie)
     const portfolioID = account.portfolios[0]._id
     const results = await getPortfolioBalanceHistory(portfolioID, days)
     res.status(200).json(stripFields(results))
