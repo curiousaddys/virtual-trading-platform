@@ -86,49 +86,49 @@ export const persistPortfolioBalances = async (
   timestamp: Date
 ) => {
   const { collection } = await getPortfolioHistoryMinutelyCollection()
-  const results = await collection.aggregate([
-    // sort by timestamp desc
-    {
-      $sort: {
-        timestamp: -1,
-      },
-    },
-    // filter by the timestamp that was passed into the function
-    {
-      $match: {
-        timestamp: timestamp,
-      },
-    },
-    // group by portfolio id & select first (newest) timestamp + balance (just in case somehow there are duplicates)
-    {
-      $group: {
-        _id: '$portfolioID',
-        timestamp: {
-          $first: '$timestamp',
-        },
-        balance: {
-          $first: '$balanceUSD',
+  return await collection
+    .aggregate([
+      // sort by timestamp desc
+      {
+        $sort: {
+          timestamp: -1,
         },
       },
-    },
-    // project into desired format
-    {
-      $project: {
-        _id: 0,
-        timestamp: '$timestamp',
-        balanceUSD: '$balance',
-        portfolioID: '$_id',
+      // filter by the timestamp that was passed into the function
+      {
+        $match: {
+          timestamp: timestamp,
+        },
       },
-    },
-    // merge results into target collection
-    {
-      $merge: {
-        into: targetCollection.collectionName,
+      // group by portfolio id & select first (newest) timestamp + balance (just in case somehow there are duplicates)
+      {
+        $group: {
+          _id: '$portfolioID',
+          timestamp: {
+            $first: '$timestamp',
+          },
+          balance: {
+            $first: '$balanceUSD',
+          },
+        },
       },
-    },
-  ])
-  // Must do this in order for Node.js MongoDB driver to actually execute the aggregation.
-  await results.toArray()
+      // project into desired format
+      {
+        $project: {
+          _id: 0,
+          timestamp: '$timestamp',
+          balanceUSD: '$balance',
+          portfolioID: '$_id',
+        },
+      },
+      // merge results into target collection
+      {
+        $merge: {
+          into: targetCollection.collectionName,
+        },
+      },
+    ])
+    .toArray()
 }
 
 const getPortfolioHistoryCollectionForDays = {
@@ -159,11 +159,13 @@ export interface TopPortfolio {
 export const getTopPortfolios = async (limit: number) => {
   const { collection } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<TopPortfolio>([
+    // Sort by timestamp desc.
     {
       $sort: {
         timestamp: -1,
       },
     },
+    // Group by portfolio ID to get latest balance for each portfolio.
     {
       $group: {
         _id: '$portfolioID',
@@ -172,29 +174,47 @@ export const getTopPortfolios = async (limit: number) => {
         },
       },
     },
-    /*
-      TODO: will this "lookup" stage will be fast enough when dealing w/ a lot of users?
-      if not, then maybe we should run this entire thing in the background & have a "top portfolios" collection
-      that just updates every five min
-      */
+    // Limit to top 10 now so we have much less data to work with.
+    {
+      $limit: 10,
+    },
+    // Lookup (join) full portfolio data for the top 10.
+    {
+      $lookup: {
+        from: 'portfolios',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'portfolios',
+      },
+    },
+    // Project to get the 1st element from the array of joined portfolios.
+    {
+      $project: {
+        _id: 1,
+        balanceUSD: 1,
+        portfolio: {
+          $first: '$portfolios',
+        },
+      },
+    },
+    // Project to just get the accountID from the joined portfolio.
+    {
+      $project: {
+        _id: 1,
+        balanceUSD: 1,
+        accountID: '$portfolio.accountID',
+      },
+    },
+    // Lookup (join) full account data.
     {
       $lookup: {
         from: 'accounts',
-        let: {
-          portfolio_id: '$_id',
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $in: ['$$portfolio_id', '$portfolios._id'],
-              },
-            },
-          },
-        ],
+        localField: 'accountID',
+        foreignField: '_id',
         as: 'accounts',
       },
     },
+    // Project to get the 1st element from the array of joined accounts.
     {
       $project: {
         _id: 1,
@@ -204,6 +224,7 @@ export const getTopPortfolios = async (limit: number) => {
         },
       },
     },
+    // Project to just get the nickname from the joined account.
     {
       $project: {
         _id: 1,
@@ -211,7 +232,6 @@ export const getTopPortfolios = async (limit: number) => {
         accountNickname: '$account.nickname',
       },
     },
-    { $limit: limit },
     { $sort: { balanceUSD: -1 } },
   ])
   return await results.toArray()

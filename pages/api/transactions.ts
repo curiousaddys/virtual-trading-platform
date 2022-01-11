@@ -3,34 +3,24 @@ import { SUPPORTED_COINS } from '../../utils/constants'
 import { z } from 'zod'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { getTransactions, Transaction } from '../../db/transactions'
-import { ObjectID } from 'bson'
 import { auth } from '../../utils/auth'
-import { findPortfoliosByAddress } from '../../db/accounts'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
 
 const QuerySchema = z.object({
   coin: z.enum(SUPPORTED_COINS),
-  portfolioID: z.string().transform((p) => new ObjectID(p)),
+  portfolioID: z.string().nonempty(),
 })
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Transaction[] | ErrResp>) {
   try {
-    const { address } = auth(req)
+    const { _id } = auth(req)
     const { coin, portfolioID } = QuerySchema.parse(req.query)
 
-    // confirm ownership
-    const portfolios = await findPortfoliosByAddress(address)
-    const matchedPortfolio = portfolios.find(
-      (portfolio) => portfolio._id.toString() === portfolioID.toString()
-    )
-    if (!matchedPortfolio) {
-      return res.status(401).json({ error: 'portfolio is not owned by you' })
-    }
+    const data = await getTransactions(_id.toString(), portfolioID, coin)
 
-    const data = await getTransactions(portfolioID, coin)
     // TODO(jh): consider filtering this data (removing redundant information) to improve loading time
     res.status(200).json(data)
   } catch (err: any) {

@@ -32,9 +32,7 @@ async function handler(
     const { address } = auth(req)
     const { days } = QuerySchema.parse(req.query)
     const account = await findOrInsertAccount(address)
-    // TODO: add param for portfolio ID (or just selected portfolio in the session cookie)
-    const portfolioID = account.portfolios[0]._id
-    const results = await getPortfolioBalanceHistory(portfolioID, days)
+    const results = await getPortfolioBalanceHistory(account.defaultPortfolioID, days)
     res.status(200).json(stripFields(results))
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)

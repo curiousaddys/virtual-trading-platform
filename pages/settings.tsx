@@ -29,7 +29,7 @@ const Settings: NextPage = () => {
     ky.post('/api/account', { searchParams: { nickname } })
       .json<Account>()
       .then((data) => {
-        setAccountInfo(data)
+        setAccountInfo((prev) => ({ ...data, portfolio: prev!.portfolio }))
         toast('Account updated!', { type: 'success' })
       })
       .catch((err) => {

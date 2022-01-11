@@ -11,7 +11,7 @@ type MetaMaskBrowserStatusState = null | 'supported' | 'unsupported' | 'ready'
 
 export const WalletConnector: React.VFC = () => {
   const { account, library, activate, deactivate } = useWeb3React()
-  const { login, logout, setAccountInfo, accountInfo, isLoaded } = useAccountContext()
+  const { login, logout, accountInfo, isLoaded } = useAccountContext()
   const [metaMaskBrowserStatus, setMetaMaskBrowserStatus] =
     useState<MetaMaskBrowserStatusState>(null)
 

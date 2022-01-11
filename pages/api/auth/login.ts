@@ -4,8 +4,10 @@ import { ethers } from 'ethers'
 import { SIGNATURE_TEXT } from '../../../utils/constants'
 import { z } from 'zod'
 import { sessionOptions } from '../../../utils/config'
-import { Account, findOrInsertAccount } from '../../../db/accounts'
+import { findOrInsertAccount } from '../../../db/accounts'
 import { ErrResp, getErrorDetails } from '../../../utils/errors'
+import { findOrInsertPortfolio } from '../../../db/portfolios'
+import { AccountWithPortfolio } from '../account'
 
 const QuerySchema = z.object({
   address: z.string().nonempty(),
@@ -14,7 +16,7 @@ const QuerySchema = z.object({
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Account | ErrResp>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPortfolio | ErrResp>) {
   const { address, signature } = QuerySchema.parse(req.query)
 
   // verify signature
@@ -26,13 +28,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Account | ErrRe
 
   try {
     // get (or create) account from database
-    const account = await findOrInsertAccount(address)
+    const account = (await findOrInsertAccount(address)) as AccountWithPortfolio
+    account.portfolio = await findOrInsertPortfolio(account.defaultPortfolioID, account._id)
 
     // set session cookie
     req.session.account = { _id: account._id, address: account.address }
     await req.session.save()
 
-    // return full account details
+    // return full account details w/ portfolio
     return res.status(200).json(account)
   } catch (err) {
     const { status, message } = getErrorDetails(err)

@@ -4,12 +4,12 @@ import { usePrices } from '../hooks/usePrices'
 import { formatUSD } from '../utils/format'
 import { useAccountContext } from '../hooks/useAccount'
 import ky from 'ky'
-import { Account } from '../db/accounts'
 import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
 import { GeckoPrices } from '../api/CoinGecko/markets'
+import { Portfolio } from '../db/portfolios'
 
 export interface BuySellModalProps {
   onClose: () => void
@@ -136,10 +136,10 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   // Whenever account info or price data updates, set the available amount to spend or sell.
   useEffect(() => {
     setAvailableToSpend(
-      accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === 'USD')?.amount ?? 0
+      accountInfo?.portfolio.holdings.find((holding) => holding.currency === 'USD')?.amount ?? 0
     )
     setAvailableToSell(
-      accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === coinPriceData?.id)
+      accountInfo?.portfolio.holdings.find((holding) => holding.currency === coinPriceData?.id)
         ?.amount ?? 0
     )
   }, [accountInfo, coinPriceData])
@@ -151,7 +151,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
     await ky
       .post('/api/transaction', {
         searchParams: {
-          portfolioID: accountInfo.portfolios[0]._id.toString(), // TODO: add support for other portfolios eventually
+          portfolioID: accountInfo.portfolio._id.toString(),
           coin: coinPriceData.id,
           transactInUSD,
           amountUSD,
@@ -159,10 +159,10 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
           action: props.action,
         },
       })
-      .json<Account>()
-      .then((account) => {
+      .json<Portfolio>()
+      .then((portfolio) => {
         setTransactionStatus(TransactionState.Success)
-        setAccountInfo(account)
+        setAccountInfo((prev) => ({ ...prev!, portfolio }))
       })
       .catch((err) => {
         err.response.json().then((errResp: { error: string }) => {

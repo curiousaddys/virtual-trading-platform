@@ -57,8 +57,8 @@ const Home: NextPage = () => {
 
   // Whenever price data or account info changes, calculate total portfolio balance.
   useEffect(() => {
-    if (!prices || !accountInfo?.portfolios[0].holdings) return
-    const sum = accountInfo.portfolios[0].holdings.reduce(
+    if (!prices || !accountInfo?.portfolio.holdings) return
+    const sum = accountInfo.portfolio.holdings.reduce(
       (acc, cur) =>
         acc + (prices.find((price) => price.id === cur.currency)?.current_price ?? 1) * cur.amount,
       0
@@ -170,7 +170,9 @@ const Home: NextPage = () => {
           {prices && accountInfo && (
             <>
               <section>
-                <h2 className="text-lg text-black font-semibold mt-10">Your Portfolio</h2>
+                <h2 className="text-lg text-black font-semibold mt-10">
+                  Your Portfolio: {accountInfo.portfolio.name}
+                </h2>
                 <div className="shadow border mt-2">
                   <table className="w-full table-auto">
                     <thead className="bg-gray-50">
@@ -179,13 +181,16 @@ const Home: NextPage = () => {
                         <th className="px-4 py-2" />
                         <th className="px-6 py-2 text-xs text-gray-500 text-right">Balance</th>
                         <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
+                          Total Profit/Loss
+                        </th>
+                        <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                           Allocation
                         </th>
                         <th className="px-6 py-2" />
                       </tr>
                     </thead>
                     <tbody className="bg-white">
-                      {accountInfo.portfolios[0].holdings
+                      {accountInfo.portfolio.holdings
                         .sort((a, b) => {
                           const aCurrentPrice =
                             prices.find((price) => price.id === a.currency)?.current_price ?? 1 // If not found, then it's USD.
@@ -230,7 +235,7 @@ const Home: NextPage = () => {
                                 </>
                               ) : (
                                 <>
-                                  <td className="px-4 py-4 whitespace-nowrap w-px opacity-50">
+                                  <td className="px-4 py-4 whitespace-nowrap w-px opacity-50 cursor-not-allowed">
                                     <Image
                                       src={coin.image}
                                       height={40}
@@ -238,7 +243,7 @@ const Home: NextPage = () => {
                                       alt={coin.symbol}
                                     />
                                   </td>
-                                  <td className="px-4 py-4 text-sm text-gray-900 opacity-50">
+                                  <td className="px-4 py-4 text-sm text-gray-900 opacity-50 cursor-not-allowed">
                                     <span className="font-bold">{coin.name}</span>
                                     <br />
                                     <span className="font-light">{coin.symbol.toUpperCase()}</span>
@@ -252,6 +257,24 @@ const Home: NextPage = () => {
                                 </span>
                                 <br />
                                 {formatFloat(h.amount)} {coin.symbol.toUpperCase()}
+                              </td>
+                              {/*P&L*/}
+                              <td className="px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell">
+                                {coin.id !== 'usd' && (
+                                  <>
+                                    {formatUSD(
+                                      h.amount * coin.current_price - h.amount * h.avgBuyCost
+                                    )}
+                                    <br />
+                                    <PrettyPercent
+                                      value={
+                                        ((h.amount * coin.current_price - h.amount * h.avgBuyCost) /
+                                          (h.amount * h.avgBuyCost)) *
+                                        100
+                                      }
+                                    />
+                                  </>
+                                )}
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell">
                                 {formatPercent(

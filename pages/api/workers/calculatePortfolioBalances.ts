@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { getAllPortfolios } from '../../../db/accounts'
 import { fetchMarketData } from '../../../api/CoinGecko/markets'
 import {
   getPortfolioHistoryDailyCollection,
@@ -14,6 +13,7 @@ import dayjs from 'dayjs'
 import { Timer } from '../../../utils/timer'
 import { z } from 'zod'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
+import { findAllPortfolios } from '../../../db/portfolios'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -49,7 +49,7 @@ export default async function handler(
     timer.log('Processed Gecko market data')
 
     // get all portfolios
-    const portfolios = await getAllPortfolios()
+    const portfolios = await findAllPortfolios()
     timer.log('Got all portfolios from database')
 
     // calculate balance for each portfolio for current minute
@@ -59,6 +59,7 @@ export default async function handler(
       portfolioID: portfolio._id,
       balanceUSD: portfolio.holdings.reduce((prev: any, cur: any) => ({
         amount: prev.amount + cur.amount * currentPrices[cur.currency],
+        avgBuyCost: 0,
         currency: '',
       })).amount,
     }))

@@ -34,10 +34,16 @@ export const deleteTransaction = async (id: ObjectID): Promise<number> => {
 }
 
 export const getTransactions = async (
-  portfolioID: ObjectID,
+  accountID: string,
+  portfolioID: string,
   currency: string
 ): Promise<Transaction[]> => {
   const { collection } = await getTransactionsCollection()
-  const result = await collection.find({ portfolioID: new ObjectID(portfolioID), currency })
-  return result.toArray()
+  return await collection
+    .find({
+      accountID: new ObjectID(accountID),
+      portfolioID: new ObjectID(portfolioID),
+      currency,
+    })
+    .toArray()
 }

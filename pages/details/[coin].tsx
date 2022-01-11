@@ -59,7 +59,7 @@ const Details: NextPage = () => {
           .get('/api/transactions', {
             searchParams: {
               coin: coin,
-              portfolioID: accountInfo.portfolios[0]._id.toString(),
+              portfolioID: accountInfo.portfolio._id.toString(),
             },
           })
           .json<Transaction[]>()
@@ -121,7 +121,7 @@ const Details: NextPage = () => {
                   Buy
                 </button>
               )}
-              {!!accountInfo?.portfolios[0].holdings.find((holding) => holding.currency === coin)
+              {!!accountInfo?.portfolio.holdings.find((holding) => holding.currency === coin)
                 ?.amount && (
                 <button
                   className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"

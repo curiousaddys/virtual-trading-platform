@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Account, findOrInsertAccount, updatePortfolio } from '../../db/accounts'
 import { auth } from '../../utils/auth'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
@@ -11,6 +10,7 @@ import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
+import { findPortfolioByID, Portfolio, updatePortfolio } from '../../db/portfolios'
 
 const QuerySchema = z.object({
   portfolioID: z.string(),
@@ -23,14 +23,14 @@ const QuerySchema = z.object({
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Account | ErrResp>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | ErrResp>) {
   try {
-    const { address } = auth(req)
+    const { _id } = auth(req)
     const { portfolioID, coin, transactInUSD, amountUSD, amountCoin, action } = QuerySchema.parse(
       req.query
     )
 
-    // get current exchange rate by hitting api endpoint since vercel should be caching it
+    // get current exchange rate by hitting api endpoint since vercel is probably already caching it
     const currentCoinDetails = await got
       .get(`http://${req.headers.host}/api/coin_details?coin=${coin}`)
       .json<GeckoDetails>()
@@ -41,13 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Account | ErrRe
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const account = await findOrInsertAccount(address)
-    const portfolio = account.portfolios.find(
-      (portfolio) => portfolio._id.toString() === portfolioID
-    )
-    if (!portfolio) {
-      return res.status(400).json({ error: 'portfolio not found' })
-    }
+    const portfolio = await findPortfolioByID(_id, new ObjectID(portfolioID))
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -68,26 +62,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Account | ErrRe
     // TODO: maybe create a db transaction here, if mongo supports it, so it's easier to rollback?
     const transactionID = await insertTransaction({
       _id: new ObjectID(),
-      accountID: account._id,
+      accountID: new ObjectID(_id.toString()),
       action,
       currency: coin,
       exchangeRateUSD: exchangeRate,
-      portfolioID: new ObjectID(portfolioID),
+      portfolioID: portfolio._id,
       timestamp: new Date(),
       amountUSD: calculatedAmountUSD,
       amountCoin: calculatedAmountCoin,
     })
 
-    updatePortfolio(
+    await updatePortfolio(
       // TODO: make interface to hold params to make this easier to read
-      account._id,
+      _id,
       portfolio,
       coin,
       action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,
       action === BuySellAction.Buy ? calculatedAmountUSD : -calculatedAmountUSD
     )
-      .then((newAccountInfo) => {
-        res.status(200).json(newAccountInfo!)
+      .then((newPortfolioInfo) => {
+        res.status(200).json(newPortfolioInfo)
       })
       .catch(async (err) => {
         console.error(err)
