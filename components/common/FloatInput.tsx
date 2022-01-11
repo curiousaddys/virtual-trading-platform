@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { trimToPrecision } from '../../utils/format'
 
-export const FloatInput: React.VFC<
-  React.InputHTMLAttributes<HTMLInputElement> & {
-    value: number
-    onValueChange: (newValue: number) => void
-    precision?: number
-  }
-> = (props) => {
+interface FloatInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  value: number
+  onValueChange: (newValue: number) => void
+  precision?: number
+}
+
+export const FloatInput: React.VFC<FloatInputProps> = (props) => {
+  const { value, onValueChange, precision } = props
   const [stringValue, setStringValue] = useState(() =>
     trimToPrecision(props.value.toString(), props.precision)
   )
-  const { value, onValueChange, precision } = props
 
   const onChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,10 +39,10 @@ export const FloatInput: React.VFC<
 
   // if the user has typed something, and it differs numerically from props.value, update the input value
   useEffect(() => {
-    if (stringValue && props.value !== parseFloat(stringValue)) {
-      setStringValue(trimToPrecision(props.value.toString(), props.precision))
+    if (stringValue && value !== parseFloat(stringValue)) {
+      setStringValue(trimToPrecision(value.toString(), precision))
     }
-  }, [props.value, props.precision, stringValue])
+  }, [value, precision, stringValue])
 
   const inputProps = { ...props, value: undefined, onValueChange: undefined }
   delete inputProps.value
