@@ -36,7 +36,7 @@ export const findOrInsertAccount = async (address: string) => {
     { upsert: true, returnDocument: 'after' }
   )
   if (!result.value) {
-    throw 'failed to find or insert account'
+    throw new Error('failed to find or insert account')
   }
   return result.value
 }
@@ -50,5 +50,8 @@ export const updateAccount = async (address: string, account: Partial<Account>) 
     },
     { returnDocument: 'after' }
   )
-  return result.value!
+  if (!result.value) {
+    throw new Error('failed to update account')
+  }
+  return result.value
 }

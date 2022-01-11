@@ -10,6 +10,8 @@ import { toast } from 'react-toastify'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 import { Portfolio } from '../db/portfolios'
 import { usePricesContext } from '../hooks/usePrices'
+import { ErrResp } from '../utils/errors'
+import { FloatInput } from './common/FloatInput'
 
 export interface BuySellModalProps {
   onClose: () => void
@@ -38,17 +40,10 @@ export enum BuySellAction {
   Sell = 'sell',
 }
 
-const parseFloatOrReturnZero = (s: string) => {
-  const parsed = parseFloat(s)
-  return isNaN(parsed) ? 0 : parsed
-}
-
 export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   const [transactInUSD, setTransactInUSD] = useState<boolean>(true)
-  const [amountUSDString, setAmountUSDString] = useState<string>('')
-  const [amountCoinString, setAmountCoinString] = useState<string>('')
-  const [amountUSD, setAmountUSD] = useState<number>(0)
-  const [amountCoin, setAmountCoin] = useState<number>(0)
+  const [amountUSD, setAmountUSD] = useState(0)
+  const [amountCoin, setAmountCoin] = useState(0)
   const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
   const [coinPriceData, setCoinPriceData] = useState<GeckoPrices | null>(null)
   const { prices } = usePricesContext()
@@ -72,24 +67,8 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
 
   const flipDenominations = (e: FormEvent) => {
     e.preventDefault()
-    if (transactInUSD) {
-      setAmountCoinString(amountCoin ? amountCoin.toString() : '')
-    } else {
-      setAmountUSDString(amountUSD ? amountUSD.toString() : '')
-    }
     setTransactInUSD((prev) => !prev)
   }
-
-  // When the amount input string changes, update the actual amount.
-  // It's easier to store input amount as strings since storing them as a number would cause
-  // it to just update the state w/ "0" when ".0" is typed, preventing the user from entering amounts like ".01"
-  useEffect(() => {
-    setAmountUSD(parseFloatOrReturnZero(amountUSDString))
-  }, [amountUSDString])
-
-  useEffect(() => {
-    setAmountCoin(parseFloatOrReturnZero(amountCoinString))
-  }, [amountCoinString])
 
   // Whenever price changes or input changes, update appropriate field based on which one is currently editable.
   // We can't just let the user update both fields whenever they want b/c one of them has to be constantly
@@ -97,12 +76,12 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   useEffect(() => {
     if (!coinPriceData) return
     if (transactInUSD) {
-      const newAmountCoin = parseFloat((amountUSD / coinPriceData.current_price).toFixed(16))
+      const newAmountCoin = amountUSD / coinPriceData.current_price
       if (amountCoin !== newAmountCoin) {
         setAmountCoin(newAmountCoin)
       }
     } else {
-      const newAmountUSD = parseFloat((amountCoin * coinPriceData.current_price).toFixed(2))
+      const newAmountUSD = amountCoin * coinPriceData.current_price
       if (amountUSD !== newAmountUSD) {
         setAmountUSD(newAmountUSD)
       }
@@ -165,7 +144,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
         setAccountInfo((prev) => ({ ...prev!, portfolio }))
       })
       .catch((err) => {
-        err.response.json().then((errResp: { error: string }) => {
+        err.response.json().then((errResp: ErrResp) => {
           console.error(errResp)
           toast(`Transaction failed: ${errResp.error}.`, { type: 'error' })
         })
@@ -237,7 +216,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                   {transactInUSD && (
                     <div className="flex items-center border-b border-teal-500 py-2">
                       <span className="text-gray-700 text-5xl text-center">$</span>
-                      <input
+                      <FloatInput
                         className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-5xl text-center ${
                           (props.action === BuySellAction.Buy && amountUSD > availableToSpend) ||
                           (props.action === BuySellAction.Sell &&
@@ -250,10 +229,9 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                         inputMode="decimal"
                         placeholder="0"
                         aria-label="Amount"
-                        value={amountUSDString}
-                        onChange={(e) => {
-                          setAmountUSDString(e.target.value)
-                        }}
+                        value={amountUSD}
+                        precision={2}
+                        onValueChange={(value) => setAmountUSD(value)}
                         autoFocus
                       />
                     </div>
@@ -262,7 +240,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                   {/*Editable coin amount*/}
                   {!transactInUSD && (
                     <div className="flex items-center border-b border-teal-500 py-2">
-                      <input
+                      <FloatInput
                         className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-2xl text-center ${
                           (props.action === BuySellAction.Buy && amountUSD > availableToSpend) ||
                           (props.action === BuySellAction.Sell &&
@@ -276,10 +254,9 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                         maxLength={6}
                         placeholder="0"
                         aria-label="Amount"
-                        value={amountCoinString}
-                        onChange={(e) => {
-                          setAmountCoinString(e.target.value)
-                        }}
+                        value={amountCoin}
+                        precision={16}
+                        onValueChange={(value) => setAmountCoin(value)}
                         autoFocus
                       />
                       <span className="text-gray-700 text-xl text-center">

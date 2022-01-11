@@ -184,19 +184,10 @@ export const getTopPortfolios = async (limit: number) => {
         from: 'portfolios',
         localField: '_id',
         foreignField: '_id',
-        as: 'portfolios',
+        as: 'portfolio',
       },
     },
-    // Project to get the 1st element from the array of joined portfolios.
-    {
-      $project: {
-        _id: 1,
-        balanceUSD: 1,
-        portfolio: {
-          $first: '$portfolios',
-        },
-      },
-    },
+    { $unwind: '$portfolio' },
     // Project to just get the accountID from the joined portfolio.
     {
       $project: {
@@ -211,19 +202,10 @@ export const getTopPortfolios = async (limit: number) => {
         from: 'accounts',
         localField: 'accountID',
         foreignField: '_id',
-        as: 'accounts',
+        as: 'account',
       },
     },
-    // Project to get the 1st element from the array of joined accounts.
-    {
-      $project: {
-        _id: 1,
-        balanceUSD: 1,
-        account: {
-          $first: '$accounts',
-        },
-      },
-    },
+    { $unwind: '$account' },
     // Project to just get the nickname from the joined account.
     {
       $project: {

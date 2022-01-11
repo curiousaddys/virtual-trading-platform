@@ -20,6 +20,16 @@ export const formatFloat = (num: number): string => {
   })
 }
 
+export const trimToPrecision = (numberString: string, precision?: number) => {
+  if (precision === undefined) {
+    return numberString
+  }
+
+  return numberString.includes('.')
+    ? numberString.slice(0, numberString.indexOf('.') + precision + 1)
+    : numberString
+}
+
 export const formatPercent = (num: number, displaySign: boolean = true): string => {
   return (
     num.toLocaleString('en-US', {
