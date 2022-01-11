@@ -14,9 +14,9 @@ export const formatInt = (num: number): string => {
   })
 }
 
-export const formatFloat = (num: number): string => {
+export const formatFloat = (num: number, maxDigits: number = 8): string => {
   return num.toLocaleString('en-US', {
-    maximumFractionDigits: 8,
+    maximumFractionDigits: maxDigits,
   })
 }
 

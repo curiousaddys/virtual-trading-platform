@@ -1,6 +1,6 @@
 import { FormEventHandler, useEffect, useState, MouseEvent, FormEvent } from 'react'
 import Select, { SingleValue } from 'react-select'
-import { formatUSD } from '../utils/format'
+import { formatFloat, formatUSD } from '../utils/format'
 import { useAccountContext } from '../hooks/useAccount'
 import ky from 'ky'
 import React from 'react'
@@ -206,7 +206,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                       <div className="w-full text-left py-2">
                         <span className="font-bold">Available to sell:</span>
                         <br />
-                        {availableToSell} {coinPriceData.symbol.toUpperCase()} (~
+                        {formatFloat(availableToSell, 16)} {coinPriceData.symbol.toUpperCase()} (~
                         {formatUSD(availableToSell * coinPriceData.current_price)})
                       </div>
                     )}
