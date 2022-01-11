@@ -10,6 +10,7 @@ import { Navbar } from '../components/Navbar'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { TEN_SEC_MS } from '../utils/constants'
+import { PricesContext, usePrices } from '../hooks/usePrices'
 
 function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
   return new ethers.providers.Web3Provider(provider)
@@ -17,22 +18,25 @@ function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
 
 function MyApp({ Component, pageProps }: AppProps) {
   const account = useAccount()
+  const prices = usePrices()
   return (
     <Web3ReactProvider getLibrary={getLibrary}>
       <AccountContext.Provider value={account}>
-        <Head>
-          <title>Virtual Trading Platform</title>
-          <meta name="description" content="Curious Addys' Trading Club" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-        <Navbar />
-        <Component {...pageProps} />
-        <ToastContainer
-          position={'bottom-right'}
-          autoClose={TEN_SEC_MS}
-          newestOnTop={true}
-          theme={'colored'}
-        />
+        <PricesContext.Provider value={prices}>
+          <Head>
+            <title>Virtual Trading Platform</title>
+            <meta name="description" content="Curious Addys' Trading Club" />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
+          <Navbar />
+          <Component {...pageProps} />
+          <ToastContainer
+            position={'bottom-right'}
+            autoClose={TEN_SEC_MS}
+            newestOnTop={true}
+            theme={'colored'}
+          />
+        </PricesContext.Provider>
       </AccountContext.Provider>
     </Web3ReactProvider>
   )

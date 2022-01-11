@@ -1,6 +1,5 @@
 import { FormEventHandler, useEffect, useState, MouseEvent, FormEvent } from 'react'
 import Select, { SingleValue } from 'react-select'
-import { usePrices } from '../hooks/usePrices'
 import { formatUSD } from '../utils/format'
 import { useAccountContext } from '../hooks/useAccount'
 import ky from 'ky'
@@ -10,6 +9,7 @@ import { faCheckCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
 import { GeckoPrices } from '../api/CoinGecko/markets'
 import { Portfolio } from '../db/portfolios'
+import { usePricesContext } from '../hooks/usePrices'
 
 export interface BuySellModalProps {
   onClose: () => void
@@ -51,7 +51,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   const [amountCoin, setAmountCoin] = useState<number>(0)
   const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
   const [coinPriceData, setCoinPriceData] = useState<GeckoPrices | null>(null)
-  const { prices } = usePrices()
+  const { prices } = usePricesContext()
   const { accountInfo, setAccountInfo } = useAccountContext()
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
   const [availableToSell, setAvailableToSell] = useState<number>(0)

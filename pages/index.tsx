@@ -7,19 +7,19 @@ import { useAccountContext } from '../hooks/useAccount'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import dayjs from 'dayjs'
 import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
-import { usePrices } from '../hooks/usePrices'
 import Link from 'next/link'
 import { PrettyPercent } from '../components/common/PrettyPercent'
 import { DateRangePicker, DateRangeValue } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 import { toast } from 'react-toastify'
+import { usePricesContext } from '../hooks/usePrices'
 
 const Home: NextPage = () => {
   const { accountInfo, accountError } = useAccountContext()
   const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
-  const { prices, pricesLoading, pricesError } = usePrices()
+  const { prices, pricesLoading, pricesError } = usePricesContext()
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
   const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)

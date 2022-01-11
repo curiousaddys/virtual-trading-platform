@@ -35,9 +35,9 @@ async function handler(
     const { address } = auth(req)
     switch (req.method) {
       case 'GET':
-        // TODO: is this even really needed anywhere? maybe refactor update db calls to not need this first? or put more data in cookie?
-        // TODO: maybe don't need portfolio here? maybe we only need it when logging in or after making a transaction?
-        // TODO: we may actually need this, but just do an aggregating to return account w/ portfolio instead of 2 calls since no insert needed?
+        // TODO: only the /login handler should be using findOrInsertAccount.
+        // This handler can just use a new db function: findAccountWithPortfolio
+        // & use $lookup so only 1 trip needs to be made to the db.
         const account = (await findOrInsertAccount(address)) as AccountWithPortfolio
         account.portfolio = await findOrInsertPortfolio(account.defaultPortfolioID, account._id)
         return res.status(200).json(account)
