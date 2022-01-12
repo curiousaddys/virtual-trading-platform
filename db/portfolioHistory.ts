@@ -177,7 +177,7 @@ export const getTopPortfolios = async (limit: number) => {
     },
     // Limit to top 10 now so we have much less data to work with.
     {
-      $limit: 10,
+      $limit: limit,
     },
     // Lookup (join) full portfolio data for the top 10.
     {
