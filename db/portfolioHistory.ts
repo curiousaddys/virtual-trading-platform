@@ -151,7 +151,7 @@ const getPortfolioHistoryCollectionForDays = {
   [DateRangeValue.Max]: getPortfolioHistoryDailyCollection,
 }
 
-export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValue) => {
+export const getPortfolioBalanceHistory = async (portfolioID: ObjectId, days: DateRangeValue) => {
   const collection = await getPortfolioHistoryCollectionForDays[days]()
   const startDate = (
     days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')

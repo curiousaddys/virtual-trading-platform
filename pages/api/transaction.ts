@@ -3,14 +3,20 @@ import { auth } from '../../utils/auth'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
 import { SUPPORTED_COINS } from '../../utils/constants'
+<<<<<<< HEAD
 import { ObjectId } from 'mongodb'
 import { deleteTransaction, insertTransaction } from '../../db/transactions'
+=======
+import { ObjectID } from 'bson'
+import { insertTransaction } from '../../db/transactions'
+>>>>>>> b05acaa (use db transactions for buying/selling)
 import got from 'got'
 import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
 import { findPortfolioByID, Portfolio, updatePortfolioBalance } from '../../db/portfolios'
+import { getMongoDB } from '../../db/client'
 
 const QuerySchema = z.object({
   portfolioID: z.string(),
@@ -59,6 +65,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       }
     }
 
+<<<<<<< HEAD
     // TODO: maybe create a db transaction here, if mongo supports it, so it's easier to rollback?
     const transactionID = await insertTransaction({
       _id: new ObjectId(),
@@ -88,6 +95,41 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
         await deleteTransaction(transactionID)
         return res.status(500).json({ error: 'failure to update portfolio (database error)' })
       })
+=======
+    // Start a session for a db transaction.
+    const { client } = await getMongoDB()
+    const session = client.startSession()
+
+    await session.withTransaction(async () => {
+      await insertTransaction(
+        {
+          _id: new ObjectID(),
+          accountID: new ObjectID(_id.toString()),
+          action,
+          currency: coin,
+          exchangeRateUSD: exchangeRate,
+          portfolioID: portfolio._id,
+          timestamp: new Date(),
+          amountUSD: calculatedAmountUSD,
+          amountCoin: calculatedAmountCoin,
+        },
+        session
+      )
+      const updatedPortfolio = await updatePortfolioBalance(
+        {
+          accountID: new ObjectID(_id),
+          portfolio,
+          currency: coin,
+          amount: action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,
+          costUSD: action === BuySellAction.Buy ? calculatedAmountUSD : -calculatedAmountUSD,
+        },
+        session
+      )
+      // TODO: Double check that doing this inside of the transaction won't lead to any issues.
+      res.status(200).json(updatedPortfolio)
+    })
+    await session.endSession()
+>>>>>>> b05acaa (use db transactions for buying/selling)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })

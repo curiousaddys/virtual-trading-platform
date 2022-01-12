@@ -1,6 +1,7 @@
 import { getMongoDB } from './client'
 import { ObjectId } from 'mongodb'
 import { INITIAL_PORTFOLIO_FUND_AMOUNT } from '../utils/constants'
+import { ClientSession } from 'mongodb'
 
 export const PORTFOLIOS_COLLECTION = 'portfolios'
 
@@ -84,12 +85,12 @@ export const findAllPortfolios = async (): Promise<Portfolio[]> => {
   return portfolios
 }
 
-export const findPortfoliosByAccount = async (accountID: ObjectID): Promise<Portfolio[]> => {
+export const findPortfoliosByAccount = async (accountID: ObjectId): Promise<Portfolio[]> => {
   const collection = await getPortfoliosCollection()
   return await collection.find({ accountID }).toArray()
 }
 
-export const findPortfolioByID = async (accountID: ObjectID, _id: ObjectID): Promise<Portfolio> => {
+export const findPortfolioByID = async (accountID: ObjectId, _id: ObjectId): Promise<Portfolio> => {
   const collection = await getPortfoliosCollection()
   const portfolio = await collection.findOne({
     // TODO: figure out why this doesn't work if you just use the ObjectId that is passed in (or maybe just pass it in as a string to simplify)
@@ -102,13 +103,19 @@ export const findPortfolioByID = async (accountID: ObjectID, _id: ObjectID): Pro
   return portfolio
 }
 
-export const updatePortfolioBalance = async (
-  accountID: ObjectId,
-  portfolio: Portfolio,
-  currency: string,
-  amount: number,
+interface UpdatePortfolioBalanceParams {
+  accountID: ObjectId
+  portfolio: Portfolio
+  currency: string
+  amount: number
   costUSD: number
+}
+
+export const updatePortfolioBalance = async (
+  params: UpdatePortfolioBalanceParams,
+  session: ClientSession
 ) => {
+  const { accountID, portfolio, currency, amount, costUSD } = params
   const collection = await getPortfoliosCollection()
 
   const action = amount < 0 ? 'selling' : 'buying'
@@ -134,7 +141,8 @@ export const updatePortfolioBalance = async (
             avgBuyCost: 0,
           },
         },
-      }
+      },
+      { session }
     )
   }
 
@@ -153,6 +161,7 @@ export const updatePortfolioBalance = async (
     {
       arrayFilters: [{ 'coin.currency': currency }, { 'cost.currency': 'USD' }],
       returnDocument: 'after',
+      session,
     }
   )
 
