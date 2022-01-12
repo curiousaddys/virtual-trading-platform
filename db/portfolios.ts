@@ -26,11 +26,9 @@ const getPortfoliosCollection = async () => {
 export const findOrInsertPortfolio = async (_id: ObjectID, accountID: ObjectID) => {
   const { collection } = await getPortfoliosCollection()
   const result = await collection.findOneAndUpdate(
-    { _id },
+    { _id, accountID },
     {
       $setOnInsert: {
-        _id,
-        accountID,
         name: 'Untitled Portfolio',
         created: new Date(),
         holdings: [

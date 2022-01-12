@@ -13,7 +13,7 @@ import dayjs from 'dayjs'
 import { Timer } from '../../../utils/timer'
 import { z } from 'zod'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
-import { findAllPortfolios } from '../../../db/portfolios'
+import { findAllPortfolios, Holding } from '../../../db/portfolios'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -42,7 +42,7 @@ export default async function handler(
     timer.log('Got Gecko market data')
 
     // store prices in key-value pairs to perform quick lookups
-    const currentPrices: CurrentPrices = {}
+    const currentPrices: CurrentPrices = { USD: 1 }
     geckoPrices.forEach((price) => {
       currentPrices[price.id] = price.current_price
     })
@@ -57,11 +57,10 @@ export default async function handler(
     const balances: PortfolioBalance[] = portfolios.map((portfolio) => ({
       timestamp: timestamp,
       portfolioID: portfolio._id,
-      balanceUSD: portfolio.holdings.reduce((prev: any, cur: any) => ({
-        amount: prev.amount + cur.amount * currentPrices[cur.currency],
-        avgBuyCost: 0,
-        currency: '',
-      })).amount,
+      balanceUSD: portfolio.holdings.reduce(
+        (prev: number, cur: Holding) => prev + cur.amount * currentPrices[cur.currency],
+        0
+      ),
     }))
     timer.log('Calculated all portfolio balances')
 
@@ -81,13 +80,13 @@ export default async function handler(
       await persistPortfolioBalances(targetCollection, timestamp)
       timer.log('Snapshot [Portfolio Price History – Every 5 min] completed')
     }
-    if (min == 0) {
+    if (min === 0) {
       // Hourly.
       const { collection: targetCollection } = await getPortfolioHistoryHourlyCollection()
       await persistPortfolioBalances(targetCollection, timestamp)
       timer.log('Snapshot [Portfolio Price History – Hourly] completed')
     }
-    if (hour === 0 && min == 0) {
+    if (hour === 0 && min === 0) {
       // Daily.
       const { collection: targetCollection } = await getPortfolioHistoryDailyCollection()
       await persistPortfolioBalances(targetCollection, timestamp)

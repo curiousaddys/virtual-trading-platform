@@ -3,10 +3,12 @@
 
 import CoinGeckoAPI from './client'
 
+type PriceTuple = [timestamp: number, price: number]
+
 export interface GeckoPriceHistory {
-  prices: number[][]
-  market_caps: number[][]
-  total_volumes: number[][]
+  prices: PriceTuple[]
+  market_caps: PriceTuple[]
+  total_volumes: PriceTuple[]
 }
 
 export const fetchMarketChart = async (coin: string, days: string): Promise<GeckoPriceHistory> => {

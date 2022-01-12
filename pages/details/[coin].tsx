@@ -1,5 +1,5 @@
 import { NextPage } from 'next'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
 import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -17,6 +17,7 @@ import { toast } from 'react-toastify'
 import { useRouter } from 'next/router'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import Head from 'next/head'
+import { Holding } from '../../db/portfolios'
 
 const Details: NextPage = () => {
   // TODO: show some loading spinner or skeleton if loading
@@ -32,6 +33,11 @@ const Details: NextPage = () => {
   const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
+
+  const holding = useMemo<Holding | undefined>(() => {
+    if (!accountInfo) return
+    return accountInfo.portfolio.holdings.find((h) => h.currency === coin)
+  }, [accountInfo, coin])
 
   useEffect(() => {
     const coinQuery = router.query.coin as string
@@ -242,6 +248,37 @@ const Details: NextPage = () => {
 
             {accountInfo && transactionHistory && transactionHistory.length > 0 && (
               <>
+                <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Wallet</h2>
+                <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                    <DataCard title={'Current Balance'}>
+                      {formatFloat(holding?.amount ?? 0, 16)} {coinDetails.symbol.toUpperCase()}
+                    </DataCard>
+                    <DataCard title={'Total Profit/Loss'}>
+                      {formatUSD(
+                        (holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
+                          (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)
+                      )}{' '}
+                      {Math.abs(
+                        (holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
+                          (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)
+                      ).toFixed(2) !== '0.00' && (
+                        <>
+                          (
+                          <PrettyPercent
+                            value={
+                              (((holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
+                                (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)) /
+                                ((holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0))) *
+                              100
+                            }
+                          />
+                          )
+                        </>
+                      )}
+                    </DataCard>
+                  </div>
+                </section>
                 <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Transactions</h2>
                 <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
                   {transactionHistory.map((transaction, i) => (

@@ -14,10 +14,20 @@ export const formatInt = (num: number): string => {
   })
 }
 
-export const formatFloat = (num: number): string => {
+export const formatFloat = (num: number, maxDigits: number = 8): string => {
   return num.toLocaleString('en-US', {
-    maximumFractionDigits: 8,
+    maximumFractionDigits: maxDigits,
   })
+}
+
+export const trimToPrecision = (numberString: string, precision?: number) => {
+  if (precision === undefined) {
+    return numberString
+  }
+
+  return numberString.includes('.')
+    ? numberString.slice(0, numberString.indexOf('.') + precision + 1)
+    : numberString
 }
 
 export const formatPercent = (num: number, displaySign: boolean = true): string => {

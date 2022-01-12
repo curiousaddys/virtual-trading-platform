@@ -266,9 +266,8 @@ const Home: NextPage = () => {
                                       h.amount * coin.current_price - h.amount * h.avgBuyCost
                                     )}
                                     <br />
-                                    {(
-                                      h.amount * coin.current_price -
-                                      h.amount * h.avgBuyCost
+                                    {Math.abs(
+                                      h.amount * coin.current_price - h.amount * h.avgBuyCost
                                     ).toFixed(2) !== '0.00' && (
                                       <PrettyPercent
                                         value={
