@@ -4,7 +4,11 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { findPortfoliosByAccount, Portfolio } from '../../../db/portfolios'
 import { ErrResp, getErrorDetails } from '../../../utils/errors'
 import { auth } from '../../../utils/auth'
+<<<<<<< HEAD
 import { ObjectId } from 'mongodb'
+=======
+import { ObjectID } from 'bson'
+>>>>>>> bbbf331 (support multiple portfolios per user)
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
@@ -15,7 +19,11 @@ async function handler(
 ) {
   try {
     const { _id } = auth(req)
+<<<<<<< HEAD
     const portfolios = await findPortfoliosByAccount(new ObjectId(_id))
+=======
+    const portfolios = await findPortfoliosByAccount(new ObjectID(_id))
+>>>>>>> bbbf331 (support multiple portfolios per user)
     return res.status(200).json(portfolios)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)
