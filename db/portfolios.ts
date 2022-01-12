@@ -2,6 +2,8 @@ import { getMongoDB } from './client'
 import { ObjectID } from 'bson'
 import { INITIAL_PORTFOLIO_FUND_AMOUNT } from '../utils/constants'
 
+export const PORTFOLIOS_COLLECTION = 'portfolios'
+
 export interface Portfolio {
   _id: ObjectID
   accountID: ObjectID
@@ -17,10 +19,10 @@ export interface Holding {
 }
 
 const getPortfoliosCollection = async () => {
-  const { client, db } = await getMongoDB()
-  const collection = db.collection<Portfolio>('portfolios')
+  const { db } = await getMongoDB()
+  const collection = db.collection<Portfolio>(PORTFOLIOS_COLLECTION)
   await collection.createIndex({ accountID: 1 })
-  return { client, collection }
+  return collection
 }
 
 export const findOrInsertPortfolio = async (
@@ -28,7 +30,7 @@ export const findOrInsertPortfolio = async (
   accountID: ObjectID,
   portfolioName: string = 'Untitled Portfolio'
 ) => {
-  const { collection } = await getPortfoliosCollection()
+  const collection = await getPortfoliosCollection()
   const result = await collection.findOneAndUpdate(
     { _id, accountID },
     {
@@ -57,7 +59,7 @@ export const updatePortfolioName = async (
   accountID: ObjectID,
   portfolioName: string
 ) => {
-  const { collection } = await getPortfoliosCollection()
+  const collection = await getPortfoliosCollection()
   const result = await collection.findOneAndUpdate(
     { _id, accountID },
     {
@@ -74,7 +76,8 @@ export const updatePortfolioName = async (
 }
 
 export const findAllPortfolios = async (): Promise<Portfolio[]> => {
-  const { client, collection } = await getPortfoliosCollection()
+  const { client, db } = await getMongoDB()
+  const collection = await db.collection<Portfolio>(PORTFOLIOS_COLLECTION)
   const session = client.startSession()
   const portfolios = await collection.find({}, { session }).toArray()
   await session.endSession()
@@ -82,12 +85,12 @@ export const findAllPortfolios = async (): Promise<Portfolio[]> => {
 }
 
 export const findPortfoliosByAccount = async (accountID: ObjectID): Promise<Portfolio[]> => {
-  const { collection } = await getPortfoliosCollection()
+  const collection = await getPortfoliosCollection()
   return await collection.find({ accountID }).toArray()
 }
 
 export const findPortfolioByID = async (accountID: ObjectID, _id: ObjectID): Promise<Portfolio> => {
-  const { collection } = await getPortfoliosCollection()
+  const collection = await getPortfoliosCollection()
   const portfolio = await collection.findOne({
     // TODO: figure out why this doesn't work if you just use the ObjectID that is passed in (or maybe just pass it in as a string to simplify)
     accountID: new ObjectID(accountID.toString()),
@@ -106,7 +109,7 @@ export const updatePortfolioBalance = async (
   amount: number,
   costUSD: number
 ) => {
-  const { collection } = await getPortfoliosCollection()
+  const collection = await getPortfoliosCollection()
 
   const action = amount < 0 ? 'selling' : 'buying'
   const holding = portfolio.holdings.find((holding) => holding.currency === currency)
