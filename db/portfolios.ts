@@ -23,13 +23,17 @@ const getPortfoliosCollection = async () => {
   return { client, collection }
 }
 
-export const findOrInsertPortfolio = async (_id: ObjectID, accountID: ObjectID) => {
+export const findOrInsertPortfolio = async (
+  _id: ObjectID,
+  accountID: ObjectID,
+  portfolioName: string = 'Untitled Portfolio'
+) => {
   const { collection } = await getPortfoliosCollection()
   const result = await collection.findOneAndUpdate(
     { _id, accountID },
     {
       $setOnInsert: {
-        name: 'Untitled Portfolio',
+        name: portfolioName,
         created: new Date(),
         holdings: [
           {
@@ -44,6 +48,27 @@ export const findOrInsertPortfolio = async (_id: ObjectID, accountID: ObjectID) 
   )
   if (!result.value) {
     throw 'failed to find or insert portfolio'
+  }
+  return result.value
+}
+
+export const updatePortfolioName = async (
+  _id: ObjectID,
+  accountID: ObjectID,
+  portfolioName: string
+) => {
+  const { collection } = await getPortfoliosCollection()
+  const result = await collection.findOneAndUpdate(
+    { _id, accountID },
+    {
+      $set: {
+        name: portfolioName,
+      },
+    },
+    { upsert: true, returnDocument: 'after' }
+  )
+  if (!result.value) {
+    throw 'failed to update portfolio name'
   }
   return result.value
 }
@@ -74,7 +99,7 @@ export const findPortfolioByID = async (accountID: ObjectID, _id: ObjectID): Pro
   return portfolio
 }
 
-export const updatePortfolio = async (
+export const updatePortfolioBalance = async (
   accountID: ObjectID,
   portfolio: Portfolio,
   currency: string,

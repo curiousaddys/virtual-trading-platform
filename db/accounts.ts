@@ -27,7 +27,7 @@ export const findOrInsertAccount = async (address: string) => {
         address,
         nickname: 'Anonymous User',
         joined: new Date(),
-        defaultPortfolioID: new ObjectID(),
+        defaultPortfolioID: new ObjectID(), // really more of an "active" portfolio ID
       },
       $set: {
         lastLogin: new Date(),

@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
     account.portfolio = await findOrInsertPortfolio(account.defaultPortfolioID, account._id)
 
     // set session cookie
-    req.session.account = { _id: account._id, address: account.address }
+    req.session.account = { _id: account._id.toString(), address: account.address }
     await req.session.save()
 
     // return full account details w/ portfolio

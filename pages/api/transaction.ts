@@ -10,7 +10,7 @@ import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
-import { findPortfolioByID, Portfolio, updatePortfolio } from '../../db/portfolios'
+import { findPortfolioByID, Portfolio, updatePortfolioBalance } from '../../db/portfolios'
 
 const QuerySchema = z.object({
   portfolioID: z.string(),
@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const portfolio = await findPortfolioByID(_id, new ObjectID(portfolioID))
+    const portfolio = await findPortfolioByID(new ObjectID(_id), new ObjectID(portfolioID))
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -72,9 +72,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       amountCoin: calculatedAmountCoin,
     })
 
-    await updatePortfolio(
+    await updatePortfolioBalance(
       // TODO: make interface to hold params to make this easier to read
-      _id,
+      new ObjectID(_id),
       portfolio,
       coin,
       action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,

@@ -154,17 +154,12 @@ export interface TopPortfolio {
   _id: ObjectID
   balanceUSD: number
   accountNickname: string
+  portfolioName: string
 }
 
 export const getTopPortfolios = async (limit: number) => {
   const { collection } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<TopPortfolio>([
-    // Sort by timestamp desc.
-    {
-      $sort: {
-        timestamp: -1,
-      },
-    },
     // Group by portfolio ID to get latest balance for each portfolio.
     {
       $group: {
@@ -172,6 +167,12 @@ export const getTopPortfolios = async (limit: number) => {
         balanceUSD: {
           $first: '$balanceUSD',
         },
+      },
+    },
+    // Sort by balance to find the top portfolios
+    {
+      $sort: {
+        balanceUSD: -1,
       },
     },
     // Limit to top 10 now so we have much less data to work with.
@@ -194,6 +195,7 @@ export const getTopPortfolios = async (limit: number) => {
         _id: 1,
         balanceUSD: 1,
         accountID: '$portfolio.accountID',
+        portfolioName: '$portfolio.name',
       },
     },
     // Lookup (join) full account data.
@@ -212,6 +214,7 @@ export const getTopPortfolios = async (limit: number) => {
         _id: 1,
         balanceUSD: 1,
         accountNickname: '$account.nickname',
+        portfolioName: '$portfolioName',
       },
     },
     { $sort: { balanceUSD: -1 } },

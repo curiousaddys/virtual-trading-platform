@@ -8,17 +8,19 @@ import { sessionOptions } from '../../utils/config'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { auth } from '../../utils/auth'
 import { findOrInsertPortfolio, Portfolio } from '../../db/portfolios'
+import { ObjectID } from 'bson'
 
-const isNameAllowed = (name: any) => {
+export const isNameAllowed = (name: any) => {
   const filter = new WordFilter()
   return !filter.isProfane(name)
 }
 
 const PostQuerySchema = z.object({
   nickname: z.intersection(
-    z.custom(isNameAllowed, { message: 'not allowed' }),
+    z.custom<string>(isNameAllowed, { message: 'not allowed' }),
     z.string().nonempty()
   ),
+  defaultPortfolioID: z.string().nonempty(),
 })
 
 export interface AccountWithPortfolio extends Account {
@@ -27,10 +29,7 @@ export interface AccountWithPortfolio extends Account {
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Account | AccountWithPortfolio | ErrResp>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPortfolio | ErrResp>) {
   try {
     const { address } = auth(req)
     switch (req.method) {
@@ -42,8 +41,15 @@ async function handler(
         account.portfolio = await findOrInsertPortfolio(account.defaultPortfolioID, account._id)
         return res.status(200).json(account)
       case 'POST':
-        const { nickname } = PostQuerySchema.parse(req.query)
-        const updatedAccount = await updateAccount(address, { nickname })
+        const { nickname, defaultPortfolioID } = PostQuerySchema.parse(req.query)
+        const updatedAccount = (await updateAccount(address, {
+          nickname,
+          defaultPortfolioID: new ObjectID(defaultPortfolioID),
+        })) as AccountWithPortfolio
+        updatedAccount.portfolio = await findOrInsertPortfolio(
+          updatedAccount.defaultPortfolioID,
+          updatedAccount._id
+        )
         return res.status(200).json(updatedAccount)
     }
   } catch (err: any) {
