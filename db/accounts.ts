@@ -1,6 +1,8 @@
 import { getMongoDB } from './client'
 import { ObjectId } from 'mongodb'
 
+export const ACCOUNT_COLLECTION = 'accounts'
+
 export interface Account {
   _id: ObjectId
   address: string
@@ -11,14 +13,14 @@ export interface Account {
 }
 
 const getAccountsCollection = async () => {
-  const { client, db } = await getMongoDB()
-  const collection = db.collection<Account>('accounts')
+  const { db } = await getMongoDB()
+  const collection = db.collection<Account>(ACCOUNT_COLLECTION)
   await collection.createIndex({ address: 1 })
-  return { client, collection }
+  return collection
 }
 
 export const findOrInsertAccount = async (address: string) => {
-  const { collection } = await getAccountsCollection()
+  const collection = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {
@@ -42,7 +44,7 @@ export const findOrInsertAccount = async (address: string) => {
 }
 
 export const updateAccount = async (address: string, account: Partial<Account>) => {
-  const { collection } = await getAccountsCollection()
+  const collection = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {
