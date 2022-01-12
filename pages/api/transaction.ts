@@ -3,7 +3,6 @@ import { auth } from '../../utils/auth'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
 import { SUPPORTED_COINS } from '../../utils/constants'
-import { ObjectID } from 'bson'
 import { insertTransaction } from '../../db/transactions'
 import got from 'got'
 import { GeckoDetails } from '../../api/CoinGecko/coin'
@@ -12,6 +11,7 @@ import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
 import { findPortfolioByID, Portfolio, updatePortfolioBalance } from '../../db/portfolios'
 import { getMongoDB } from '../../db/client'
+import { ObjectId } from 'mongodb'
 
 const QuerySchema = z.object({
   portfolioID: z.string(),
@@ -42,7 +42,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const portfolio = await findPortfolioByID(new ObjectID(_id), new ObjectID(portfolioID))
+    const portfolio = await findPortfolioByID(new ObjectId(_id), new ObjectId(portfolioID))
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -67,8 +67,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     await session.withTransaction(async () => {
       await insertTransaction(
         {
-          _id: new ObjectID(),
-          accountID: new ObjectID(_id.toString()),
+          _id: new ObjectId(),
+          accountID: new ObjectId(_id.toString()),
           action,
           currency: coin,
           exchangeRateUSD: exchangeRate,
@@ -81,7 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       )
       const updatedPortfolio = await updatePortfolioBalance(
         {
-          accountID: new ObjectID(_id),
+          accountID: new ObjectId(_id),
           portfolio,
           currency: coin,
           amount: action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,

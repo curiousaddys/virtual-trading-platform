@@ -1,14 +1,14 @@
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { getMongoDB } from './client'
 import { ClientSession } from 'mongodb'
 
 export const TRANSACTIONS_COLLECTION = 'transactions'
 
 export interface Transaction {
-  _id: ObjectID
+  _id: ObjectId
   timestamp: Date
-  accountID: ObjectID
-  portfolioID: ObjectID
+  accountID: ObjectId
+  portfolioID: ObjectId
   currency: string
   exchangeRateUSD: number
   action: 'buy' | 'sell'
@@ -26,7 +26,7 @@ const getTransactionsCollection = async () => {
 export const insertTransaction = async (
   transaction: Transaction,
   session: ClientSession
-): Promise<ObjectID> => {
+): Promise<ObjectId> => {
   const { collection } = await getTransactionsCollection()
   const result = await collection.insertOne(transaction, { session })
   return result.insertedId
@@ -40,8 +40,8 @@ export const getTransactions = async (
   const { collection } = await getTransactionsCollection()
   return await collection
     .find({
-      accountID: new ObjectID(accountID),
-      portfolioID: new ObjectID(portfolioID),
+      accountID: new ObjectId(accountID),
+      portfolioID: new ObjectId(portfolioID),
       currency,
     })
     .toArray()

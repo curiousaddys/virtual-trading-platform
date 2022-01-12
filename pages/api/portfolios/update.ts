@@ -6,7 +6,7 @@ import { Portfolio, updatePortfolioName } from '../../../db/portfolios'
 import { ErrResp, getErrorDetails } from '../../../utils/errors'
 import { auth } from '../../../utils/auth'
 import { z } from 'zod'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 
 const PostQuerySchema = z.object({
   portfolioID: z.string().nonempty(),
@@ -23,8 +23,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const { _id } = auth(req)
     const { portfolioID, portfolioName } = PostQuerySchema.parse(req.query)
     const portfolio = await updatePortfolioName(
-      new ObjectID(portfolioID),
-      new ObjectID(_id),
+      new ObjectId(portfolioID),
+      new ObjectId(_id),
       portfolioName
     )
     return res.status(200).json(portfolio)

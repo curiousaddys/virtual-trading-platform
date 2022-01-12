@@ -2,16 +2,15 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { Account, findOrInsertAccount, updateAccount } from '../../db/accounts'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
-//@ts-ignore
-import * as WordFilter from 'bad-words'
+import BadWordsFilter from 'bad-words'
 import { sessionOptions } from '../../utils/config'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { auth } from '../../utils/auth'
 import { findOrInsertPortfolio, Portfolio } from '../../db/portfolios'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 
 export const isNameAllowed = (name: any) => {
-  const filter = new WordFilter()
+  const filter = new BadWordsFilter()
   return !filter.isProfane(name)
 }
 
@@ -44,7 +43,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
         const { nickname, defaultPortfolioID } = PostQuerySchema.parse(req.query)
         const updatedAccount = (await updateAccount(address, {
           nickname,
-          defaultPortfolioID: new ObjectID(defaultPortfolioID),
+          defaultPortfolioID: new ObjectId(defaultPortfolioID),
         })) as AccountWithPortfolio
         updatedAccount.portfolio = await findOrInsertPortfolio(
           updatedAccount.defaultPortfolioID,
