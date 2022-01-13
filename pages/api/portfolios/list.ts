@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { findPortfoliosByAccount, Portfolio } from '../../../db/portfolios'
 import { ErrResp, getErrorDetails } from '../../../utils/errors'
 import { auth } from '../../../utils/auth'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
@@ -15,7 +15,7 @@ async function handler(
 ) {
   try {
     const { _id } = auth(req)
-    const portfolios = await findPortfoliosByAccount(new ObjectID(_id))
+    const portfolios = await findPortfoliosByAccount(new ObjectId(_id))
     return res.status(200).json(portfolios)
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)

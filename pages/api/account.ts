@@ -2,24 +2,22 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { Account, findOrInsertAccount, updateAccount } from '../../db/accounts'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
-//@ts-ignore
-import * as WordFilter from 'bad-words'
+import BadWordsFilter from 'bad-words'
 import { sessionOptions } from '../../utils/config'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { auth } from '../../utils/auth'
 import { findOrInsertPortfolio, Portfolio } from '../../db/portfolios'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 
-export const isNameAllowed = (name: any) => {
-  const filter = new WordFilter()
-  return !filter.isProfane(name)
-}
+const badWordsFilter = new BadWordsFilter()
+
+export const nonProfaneString = z
+  .string()
+  .nonempty()
+  .refine((word) => !badWordsFilter.isProfane(word), 'no profanities allowed')
 
 const PostQuerySchema = z.object({
-  nickname: z.intersection(
-    z.custom<string>(isNameAllowed, { message: 'not allowed' }),
-    z.string().nonempty()
-  ),
+  nickname: nonProfaneString,
   defaultPortfolioID: z.string().nonempty(),
 })
 
@@ -44,7 +42,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
         const { nickname, defaultPortfolioID } = PostQuerySchema.parse(req.query)
         const updatedAccount = (await updateAccount(address, {
           nickname,
-          defaultPortfolioID: new ObjectID(defaultPortfolioID),
+          defaultPortfolioID: new ObjectId(defaultPortfolioID),
         })) as AccountWithPortfolio
         updatedAccount.portfolio = await findOrInsertPortfolio(
           updatedAccount.defaultPortfolioID,

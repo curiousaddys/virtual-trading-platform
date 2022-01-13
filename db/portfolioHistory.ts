@@ -1,13 +1,13 @@
 import { getMongoDB } from './client'
 import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { Collection } from 'mongodb'
 import dayjs from 'dayjs'
 import { DateRangeValue } from '../components/common/DateRangePicker'
 
 export interface PortfolioBalance {
   timestamp: Date
-  portfolioID: ObjectID
+  portfolioID: ObjectId
   balanceUSD: number
 }
 
@@ -140,7 +140,7 @@ const getPortfolioHistoryCollectionForDays = {
   [DateRangeValue.Max]: getPortfolioHistoryDailyCollection,
 }
 
-export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValue) => {
+export const getPortfolioBalanceHistory = async (portfolioID: ObjectId, days: DateRangeValue) => {
   const { collection } = await getPortfolioHistoryCollectionForDays[days]()
   const startDate = (
     days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')
@@ -151,7 +151,7 @@ export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: Da
 }
 
 export interface TopPortfolio {
-  _id: ObjectID
+  _id: ObjectId
   balanceUSD: number
   accountNickname: string
   portfolioName: string

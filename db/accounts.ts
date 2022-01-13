@@ -1,13 +1,13 @@
 import { getMongoDB } from './client'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 
 export interface Account {
-  _id: ObjectID
+  _id: ObjectId
   address: string
   nickname: string
   joined: Date
   lastLogin: Date
-  defaultPortfolioID: ObjectID
+  defaultPortfolioID: ObjectId
 }
 
 const getAccountsCollection = async () => {
@@ -27,7 +27,7 @@ export const findOrInsertAccount = async (address: string) => {
         address,
         nickname: 'Anonymous User',
         joined: new Date(),
-        defaultPortfolioID: new ObjectID(), // really more of an "active" portfolio ID
+        defaultPortfolioID: new ObjectId(), // really more of an "active" portfolio ID
       },
       $set: {
         lastLogin: new Date(),
