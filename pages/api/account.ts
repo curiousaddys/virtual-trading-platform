@@ -18,7 +18,10 @@ export const nonProfaneString = z
 
 const PostQuerySchema = z.object({
   nickname: nonProfaneString,
-  defaultPortfolioID: z.string().nonempty(),
+  defaultPortfolioID: z
+    .string()
+    .nonempty()
+    .transform((val) => new ObjectId(val)),
 })
 
 export interface AccountWithPortfolio extends Account {
