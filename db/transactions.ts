@@ -1,6 +1,8 @@
 import { ObjectId } from 'mongodb'
 import { getMongoDB } from './client'
 
+export const TRANSACTIONS_COLLECTION = 'transactions'
+
 export interface Transaction {
   _id: ObjectId
   timestamp: Date
@@ -15,7 +17,7 @@ export interface Transaction {
 
 const getTransactionsCollection = async () => {
   const { db } = await getMongoDB()
-  const collection = db.collection<Transaction>('transactions')
+  const collection = db.collection<Transaction>(TRANSACTIONS_COLLECTION)
   await collection.createIndex({ portfolioID: 1, timestamp: -1 })
   return { collection }
 }
