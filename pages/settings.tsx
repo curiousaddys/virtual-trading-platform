@@ -1,5 +1,5 @@
 import { NextPage } from 'next'
-import React, { FormEventHandler, useEffect, useState } from 'react'
+import React, { FormEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
 import { useAccountContext } from '../hooks/useAccount'
 import { toast } from 'react-toastify'
 import dayjs from 'dayjs'
@@ -17,6 +17,13 @@ const Settings: NextPage = () => {
   const { portfolios, createPortfolio, updatePortfolio } = usePortfolios()
   const [isRenamingPortfolio, setIsRenamingPortfolio] = useState<boolean>(false)
   const [isCreatingPortfolio, setIsCreatingPortfolio] = useState<boolean>(false)
+  const defaultPortfolio = useMemo(
+    () =>
+      portfolios?.length && defaultPortfolioID
+        ? portfolios.find((portfolio) => portfolio._id.toString() === defaultPortfolioID)
+        : undefined,
+    [portfolios, defaultPortfolioID]
+  )
 
   // Set the default form values after the account info loads.
   useEffect(() => {
@@ -58,7 +65,7 @@ const Settings: NextPage = () => {
       .finally(() => setIsSubmitting(false))
   }
 
-  const submitCreatePortfolio = async () => {
+  const submitCreatePortfolio = useCallback(async () => {
     setIsSubmitting(true)
     try {
       const newPortfolio = await createPortfolio(portfolioName)
@@ -74,9 +81,9 @@ const Settings: NextPage = () => {
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [createPortfolio, portfolioName])
 
-  const submitRenamePortfolio = async () => {
+  const submitRenamePortfolio = useCallback(async () => {
     setIsSubmitting(true)
     try {
       const updatedPortfolio = await updatePortfolio(defaultPortfolioID, portfolioName)
@@ -92,7 +99,7 @@ const Settings: NextPage = () => {
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [updatePortfolio, portfolioName, defaultPortfolioID])
 
   return (
     <>
@@ -100,7 +107,7 @@ const Settings: NextPage = () => {
         <title>User Settings</title>
       </Head>
       <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
-        {!isLoaded && !defaultPortfolioID ? (
+        {!isLoaded || !defaultPortfolioID ? (
           <div className="mb-3">Loading...</div>
         ) : !accountInfo ? (
           <div className="mb-3">
@@ -111,11 +118,12 @@ const Settings: NextPage = () => {
             <h2 className="text-2xl text-gray-800 font-semibold ml-1">Settings</h2>
             <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
               <form className="w-full max-w-md" onSubmit={handleSubmit}>
-                <label className="block text-gray-700 text-sm font-bold" htmlFor="username">
+                <label className="block text-gray-700 text-sm font-bold" htmlFor="nickname">
                   Nickname
                 </label>
                 <div className="mb-2 text-xs">This will be visible to other users.</div>
                 <input
+                  id="nickname"
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
                   type="text"
                   aria-label="nickname"
@@ -125,17 +133,19 @@ const Settings: NextPage = () => {
                   }}
                 />
 
+                {/*TODO: refactor this into its own component*/}
                 {!isCreatingPortfolio && !isRenamingPortfolio ? (
                   <>
                     <label
                       className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="username"
+                      htmlFor="active-portfolio"
                     >
                       Active Portfolio
                     </label>
                     <div className="flex">
                       <div className="block relative mb-3 w-full">
                         <select
+                          id="active-portfolio"
                           value={defaultPortfolioID}
                           onChange={(e) => {
                             setDefaultPortfolioID(e.target.value)
@@ -164,11 +174,7 @@ const Settings: NextPage = () => {
                           type="button"
                           className="text-sm px-2 py-2 ml-2 border rounded"
                           onClick={() => {
-                            setPortfolioName(
-                              portfolios.find(
-                                (portfolio) => portfolio._id.toString() === defaultPortfolioID
-                              )?.name ?? ''
-                            )
+                            setPortfolioName(defaultPortfolio?.name ?? '')
                             setIsRenamingPortfolio(true)
                           }}
                         >
@@ -192,12 +198,13 @@ const Settings: NextPage = () => {
                   <>
                     <label
                       className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="username"
+                      htmlFor="new-portfolio-name"
                     >
                       New Portfolio Name
                     </label>
                     <div className="flex">
                       <input
+                        id="new-portfolio-name"
                         autoFocus
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
                         type="text"
@@ -229,12 +236,13 @@ const Settings: NextPage = () => {
                   <>
                     <label
                       className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="username"
+                      htmlFor="rename-portfolio-name"
                     >
                       Portfolio Name
                     </label>
                     <div className="flex">
                       <input
+                        id="rename-portfolio-name"
                         autoFocus
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
                         type="text"

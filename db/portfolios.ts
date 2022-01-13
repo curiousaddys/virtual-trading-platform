@@ -47,7 +47,7 @@ export const findOrInsertPortfolio = async (
     { upsert: true, returnDocument: 'after' }
   )
   if (!result.value) {
-    throw 'failed to find or insert portfolio'
+    throw Error('failed to find or insert portfolio')
   }
   return result.value
 }
@@ -68,7 +68,7 @@ export const updatePortfolioName = async (
     { upsert: true, returnDocument: 'after' }
   )
   if (!result.value) {
-    throw 'failed to update portfolio name'
+    throw Error('failed to update portfolio name')
   }
   return result.value
 }
@@ -94,7 +94,7 @@ export const findPortfolioByID = async (accountID: ObjectId, _id: ObjectId): Pro
     _id: new ObjectId(_id.toString()),
   })
   if (!portfolio) {
-    throw 'portfolio not found'
+    throw Error('portfolio not found')
   }
   return portfolio
 }
@@ -154,7 +154,7 @@ export const updatePortfolioBalance = async (
   )
 
   if (!results.value) {
-    throw 'failed to find and update portfolio'
+    throw Error('failed to find and update portfolio')
   }
   return results.value
 }

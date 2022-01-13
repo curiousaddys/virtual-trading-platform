@@ -50,6 +50,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
         )
         return res.status(200).json(updatedAccount)
     }
+    return res.status(405).end()
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })
