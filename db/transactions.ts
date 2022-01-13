@@ -31,15 +31,15 @@ export const insertTransaction = async (
   return result.insertedId
 }
 export const getTransactions = async (
-  accountID: string,
-  portfolioID: string,
+  accountID: ObjectId,
+  portfolioID: ObjectId,
   currency: string
 ): Promise<Transaction[]> => {
   const { collection } = await getTransactionsCollection()
   return await collection
     .find({
-      accountID: new ObjectId(accountID),
-      portfolioID: new ObjectId(portfolioID),
+      accountID,
+      portfolioID,
       currency,
     })
     .toArray()

@@ -92,9 +92,8 @@ export const findPortfoliosByAccount = async (accountID: ObjectId): Promise<Port
 export const findPortfolioByID = async (accountID: ObjectId, _id: ObjectId): Promise<Portfolio> => {
   const collection = await getPortfoliosCollection()
   const portfolio = await collection.findOne({
-    // TODO: figure out why this doesn't work if you just use the ObjectId that is passed in (or maybe just pass it in as a string to simplify)
-    accountID: new ObjectId(accountID.toString()),
-    _id: new ObjectId(_id.toString()),
+    accountID,
+    _id,
   })
   if (!portfolio) {
     throw Error('portfolio not found')
@@ -131,7 +130,7 @@ export const updatePortfolioBalance = async (
   if (balance === undefined) {
     // $push new holding object with 0 amount
     await collection.findOneAndUpdate(
-      { _id: portfolio._id, accountID: new ObjectId(accountID.toString()) },
+      { _id: portfolio._id, accountID },
       {
         $push: {
           holdings: {
@@ -147,7 +146,7 @@ export const updatePortfolioBalance = async (
 
   // now that all the objects exist for sure, we can just use $inc
   const results = await collection.findOneAndUpdate(
-    { _id: portfolio._id, accountID: new ObjectId(accountID.toString()) },
+    { _id: portfolio._id, accountID },
     {
       $inc: {
         'holdings.$[coin].amount': amount,
