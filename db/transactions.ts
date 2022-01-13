@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb'
+import { ClientSession, ObjectId } from 'mongodb'
 import { getMongoDB } from './client'
 
 export const TRANSACTIONS_COLLECTION = 'transactions'
@@ -22,19 +22,14 @@ const getTransactionsCollection = async () => {
   return { collection }
 }
 
-export const insertTransaction = async (transaction: Transaction): Promise<ObjectId> => {
+export const insertTransaction = async (
+  transaction: Transaction,
+  session: ClientSession
+): Promise<ObjectId> => {
   const { collection } = await getTransactionsCollection()
-  const result = await collection.insertOne(transaction)
+  const result = await collection.insertOne(transaction, { session })
   return result.insertedId
 }
-
-// TODO: consider just using database transactions to rollback instead of doing this
-export const deleteTransaction = async (id: ObjectId): Promise<number> => {
-  const { collection } = await getTransactionsCollection()
-  const result = await collection.deleteOne({ _id: id })
-  return result.deletedCount
-}
-
 export const getTransactions = async (
   accountID: string,
   portfolioID: string,

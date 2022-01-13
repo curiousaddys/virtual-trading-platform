@@ -1,5 +1,5 @@
 import { getMongoDB } from './client'
-import { ObjectId } from 'mongodb'
+import { ClientSession, ObjectId } from 'mongodb'
 import { INITIAL_PORTFOLIO_FUND_AMOUNT } from '../utils/constants'
 
 export const PORTFOLIOS_COLLECTION = 'portfolios'
@@ -102,13 +102,19 @@ export const findPortfolioByID = async (accountID: ObjectId, _id: ObjectId): Pro
   return portfolio
 }
 
-export const updatePortfolioBalance = async (
-  accountID: ObjectId,
-  portfolio: Portfolio,
-  currency: string,
-  amount: number,
+interface UpdatePortfolioBalanceParams {
+  accountID: ObjectId
+  portfolio: Portfolio
+  currency: string
+  amount: number
   costUSD: number
+}
+
+export const updatePortfolioBalance = async (
+  params: UpdatePortfolioBalanceParams,
+  session: ClientSession
 ) => {
+  const { accountID, portfolio, currency, amount, costUSD } = params
   const collection = await getPortfoliosCollection()
 
   const action = amount < 0 ? 'selling' : 'buying'
@@ -134,7 +140,8 @@ export const updatePortfolioBalance = async (
             avgBuyCost: 0,
           },
         },
-      }
+      },
+      { session }
     )
   }
 
@@ -153,6 +160,7 @@ export const updatePortfolioBalance = async (
     {
       arrayFilters: [{ 'coin.currency': currency }, { 'cost.currency': 'USD' }],
       returnDocument: 'after',
+      session,
     }
   )
 
