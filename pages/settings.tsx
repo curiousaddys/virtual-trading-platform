@@ -10,7 +10,7 @@ import { usePortfolios } from '../hooks/usePortfolios'
 
 const Settings: NextPage = () => {
   const { accountInfo, setAccountInfo, accountError, isLoaded } = useAccountContext()
-  const [nickname, setNickname] = useState<string>('')
+  const [newNickname, setNewNickname] = useState<string | undefined>(undefined)
   const [defaultPortfolioID, setDefaultPortfolioID] = useState<string>('')
   const [portfolioName, setPortfolioName] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -25,13 +25,9 @@ const Settings: NextPage = () => {
     [portfolios, defaultPortfolioID]
   )
 
-  // Set the default form values after the account info loads.
+  // Select the existing default portfolio ID when the account info loads.
   useEffect(() => {
     if (!accountInfo) return
-    // Don't update the nickname if its already set, since that could wipe out the
-    // unsubmitted form state after updating a portfolio name (since the accountInfo changes
-    // when the currently active portfolio is renamed).
-    setNickname((prev) => (!prev ? accountInfo.nickname : prev))
     setDefaultPortfolioID(accountInfo.defaultPortfolioID.toString())
   }, [accountInfo])
 
@@ -43,8 +39,17 @@ const Settings: NextPage = () => {
 
   const handleSubmit: FormEventHandler = async (event) => {
     event.preventDefault()
+    if (!accountInfo) {
+      toast(`Cannot update account since no account info is loaded.`, { type: 'error' })
+      return
+    }
     setIsSubmitting(true)
-    ky.post('/api/account', { searchParams: { nickname, defaultPortfolioID } })
+    ky.post('/api/account', {
+      searchParams: {
+        nickname: newNickname ?? accountInfo.nickname,
+        defaultPortfolioID,
+      },
+    })
       .json<AccountWithPortfolio>()
       .then((data) => {
         setAccountInfo(data)
@@ -127,9 +132,9 @@ const Settings: NextPage = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
                   type="text"
                   aria-label="nickname"
-                  value={nickname}
+                  value={newNickname ?? accountInfo.nickname}
                   onChange={(e) => {
-                    setNickname(e.target.value)
+                    setNewNickname(e.target.value)
                   }}
                 />
 
@@ -285,7 +290,13 @@ const Settings: NextPage = () => {
                 <button
                   className="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
                   type="submit"
-                  disabled={isSubmitting || isRenamingPortfolio || isCreatingPortfolio}
+                  disabled={
+                    !isLoaded ||
+                    !portfolios.length ||
+                    isSubmitting ||
+                    isRenamingPortfolio ||
+                    isCreatingPortfolio
+                  }
                 >
                   Save
                 </button>
