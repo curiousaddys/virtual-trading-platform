@@ -1,10 +1,11 @@
 import { NextApiRequest } from 'next'
 import { config } from './config'
+import { ObjectId } from 'mongodb'
 
 export class UnauthorizedError extends Error {}
 
 interface AuthedAccount {
-  _id: string
+  _id: ObjectId
   address: string
 }
 
@@ -16,10 +17,12 @@ declare module 'iron-session' {
 }
 
 export const auth = (req: NextApiRequest): AuthedAccount => {
-  if (!req.session.account) {
+  const account = req.session.account
+  if (!account) {
     throw new UnauthorizedError()
   }
-  return req.session.account
+  // We must parse the account ID here as a new ObjectId to ensure it's actually an ObjectId.
+  return { _id: new ObjectId(account._id), address: account.address }
 }
 
 export const cloudflareWorkerAuth = (req: NextApiRequest): void => {

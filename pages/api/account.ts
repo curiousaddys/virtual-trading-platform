@@ -18,7 +18,10 @@ export const nonProfaneString = z
 
 const PostQuerySchema = z.object({
   nickname: nonProfaneString,
-  defaultPortfolioID: z.string().nonempty(),
+  defaultPortfolioID: z
+    .string()
+    .nonempty()
+    .transform((val) => new ObjectId(val)),
 })
 
 export interface AccountWithPortfolio extends Account {
@@ -43,7 +46,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
         console.log(nickname, defaultPortfolioID) // TODO: remove after testing
         const updatedAccount = (await updateAccount(address, {
           nickname,
-          defaultPortfolioID: new ObjectId(defaultPortfolioID),
+          defaultPortfolioID,
         })) as AccountWithPortfolio
         updatedAccount.portfolio = await findOrInsertPortfolio(
           updatedAccount.defaultPortfolioID,
