@@ -1,11 +1,11 @@
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { getMongoDB } from './client'
 
 export interface Transaction {
-  _id: ObjectID
+  _id: ObjectId
   timestamp: Date
-  accountID: ObjectID
-  portfolioID: ObjectID
+  accountID: ObjectId
+  portfolioID: ObjectId
   currency: string
   exchangeRateUSD: number
   action: 'buy' | 'sell'
@@ -20,14 +20,14 @@ const getTransactionsCollection = async () => {
   return { collection }
 }
 
-export const insertTransaction = async (transaction: Transaction): Promise<ObjectID> => {
+export const insertTransaction = async (transaction: Transaction): Promise<ObjectId> => {
   const { collection } = await getTransactionsCollection()
   const result = await collection.insertOne(transaction)
   return result.insertedId
 }
 
 // TODO: consider just using database transactions to rollback instead of doing this
-export const deleteTransaction = async (id: ObjectID): Promise<number> => {
+export const deleteTransaction = async (id: ObjectId): Promise<number> => {
   const { collection } = await getTransactionsCollection()
   const result = await collection.deleteOne({ _id: id })
   return result.deletedCount
@@ -41,8 +41,8 @@ export const getTransactions = async (
   const { collection } = await getTransactionsCollection()
   return await collection
     .find({
-      accountID: new ObjectID(accountID),
-      portfolioID: new ObjectID(portfolioID),
+      accountID: new ObjectId(accountID),
+      portfolioID: new ObjectId(portfolioID),
       currency,
     })
     .toArray()

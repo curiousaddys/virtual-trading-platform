@@ -1,6 +1,5 @@
 import { IronSessionOptions } from 'iron-session'
 import { IRON_SESSION_COOKIE } from './constants'
-import { Account } from '../db/accounts'
 
 // TODO(jh): The error should specify *all* that are missing instead of just the first one.
 const mustGetEnv = (key: string) => {

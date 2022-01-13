@@ -1,10 +1,12 @@
 import { NextApiRequest } from 'next'
 import { config } from './config'
-import { Account } from '../db/accounts'
 
 export class UnauthorizedError extends Error {}
 
-type AuthedAccount = Pick<Account, '_id' | 'address'>
+interface AuthedAccount {
+  _id: string
+  address: string
+}
 
 // This is where we specify the typings of req.session.*
 declare module 'iron-session' {

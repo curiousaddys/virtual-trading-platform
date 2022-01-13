@@ -1,10 +1,10 @@
 import { getMongoDB } from './client'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { INITIAL_PORTFOLIO_FUND_AMOUNT } from '../utils/constants'
 
 export interface Portfolio {
-  _id: ObjectID
-  accountID: ObjectID
+  _id: ObjectId
+  accountID: ObjectId
   name: string
   created: Date
   holdings: Holding[]
@@ -23,13 +23,17 @@ const getPortfoliosCollection = async () => {
   return { client, collection }
 }
 
-export const findOrInsertPortfolio = async (_id: ObjectID, accountID: ObjectID) => {
+export const findOrInsertPortfolio = async (
+  _id: ObjectId,
+  accountID: ObjectId,
+  portfolioName: string = 'Untitled Portfolio'
+) => {
   const { collection } = await getPortfoliosCollection()
   const result = await collection.findOneAndUpdate(
     { _id, accountID },
     {
       $setOnInsert: {
-        name: 'Untitled Portfolio',
+        name: portfolioName,
         created: new Date(),
         holdings: [
           {
@@ -43,7 +47,28 @@ export const findOrInsertPortfolio = async (_id: ObjectID, accountID: ObjectID) 
     { upsert: true, returnDocument: 'after' }
   )
   if (!result.value) {
-    throw 'failed to find or insert portfolio'
+    throw Error('failed to find or insert portfolio')
+  }
+  return result.value
+}
+
+export const updatePortfolioName = async (
+  _id: ObjectId,
+  accountID: ObjectId,
+  portfolioName: string
+) => {
+  const { collection } = await getPortfoliosCollection()
+  const result = await collection.findOneAndUpdate(
+    { _id, accountID },
+    {
+      $set: {
+        name: portfolioName,
+      },
+    },
+    { upsert: true, returnDocument: 'after' }
+  )
+  if (!result.value) {
+    throw Error('failed to update portfolio name')
   }
   return result.value
 }
@@ -56,26 +81,26 @@ export const findAllPortfolios = async (): Promise<Portfolio[]> => {
   return portfolios
 }
 
-export const findPortfoliosByAccount = async (accountID: ObjectID): Promise<Portfolio[]> => {
+export const findPortfoliosByAccount = async (accountID: ObjectId): Promise<Portfolio[]> => {
   const { collection } = await getPortfoliosCollection()
   return await collection.find({ accountID }).toArray()
 }
 
-export const findPortfolioByID = async (accountID: ObjectID, _id: ObjectID): Promise<Portfolio> => {
+export const findPortfolioByID = async (accountID: ObjectId, _id: ObjectId): Promise<Portfolio> => {
   const { collection } = await getPortfoliosCollection()
   const portfolio = await collection.findOne({
-    // TODO: figure out why this doesn't work if you just use the ObjectID that is passed in (or maybe just pass it in as a string to simplify)
-    accountID: new ObjectID(accountID.toString()),
-    _id: new ObjectID(_id.toString()),
+    // TODO: figure out why this doesn't work if you just use the ObjectId that is passed in (or maybe just pass it in as a string to simplify)
+    accountID: new ObjectId(accountID.toString()),
+    _id: new ObjectId(_id.toString()),
   })
   if (!portfolio) {
-    throw 'portfolio not found'
+    throw Error('portfolio not found')
   }
   return portfolio
 }
 
-export const updatePortfolio = async (
-  accountID: ObjectID,
+export const updatePortfolioBalance = async (
+  accountID: ObjectId,
   portfolio: Portfolio,
   currency: string,
   amount: number,
@@ -97,7 +122,7 @@ export const updatePortfolio = async (
   if (balance === undefined) {
     // $push new holding object with 0 amount
     await collection.findOneAndUpdate(
-      { _id: portfolio._id, accountID: new ObjectID(accountID.toString()) },
+      { _id: portfolio._id, accountID: new ObjectId(accountID.toString()) },
       {
         $push: {
           holdings: {
@@ -112,7 +137,7 @@ export const updatePortfolio = async (
 
   // now that all the objects exist for sure, we can just use $inc
   const results = await collection.findOneAndUpdate(
-    { _id: portfolio._id, accountID: new ObjectID(accountID.toString()) },
+    { _id: portfolio._id, accountID: new ObjectId(accountID.toString()) },
     {
       $inc: {
         'holdings.$[coin].amount': amount,
@@ -129,7 +154,7 @@ export const updatePortfolio = async (
   )
 
   if (!results.value) {
-    throw 'failed to find and update portfolio'
+    throw Error('failed to find and update portfolio')
   }
   return results.value
 }

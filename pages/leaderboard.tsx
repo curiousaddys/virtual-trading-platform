@@ -29,7 +29,10 @@ const Settings: NextPage = () => {
             {topPortfolios.map((portfolio, i) => (
               <div key={portfolio._id.toString()} className="grid grid-cols-2 my-4 text-lg">
                 <div>
-                  {i + 1}. <span className="font-bold">{portfolio.accountNickname}</span>
+                  {i + 1}.{' '}
+                  <span className="font-bold">
+                    {portfolio.accountNickname}: {portfolio.portfolioName}
+                  </span>
                 </div>
                 <div>{formatUSD(portfolio.balanceUSD)}</div>
               </div>

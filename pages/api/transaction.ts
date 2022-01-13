@@ -3,14 +3,14 @@ import { auth } from '../../utils/auth'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
 import { SUPPORTED_COINS } from '../../utils/constants'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { deleteTransaction, insertTransaction } from '../../db/transactions'
 import got from 'got'
 import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
-import { findPortfolioByID, Portfolio, updatePortfolio } from '../../db/portfolios'
+import { findPortfolioByID, Portfolio, updatePortfolioBalance } from '../../db/portfolios'
 
 const QuerySchema = z.object({
   portfolioID: z.string(),
@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const portfolio = await findPortfolioByID(_id, new ObjectID(portfolioID))
+    const portfolio = await findPortfolioByID(new ObjectId(_id), new ObjectId(portfolioID))
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -61,8 +61,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
 
     // TODO: maybe create a db transaction here, if mongo supports it, so it's easier to rollback?
     const transactionID = await insertTransaction({
-      _id: new ObjectID(),
-      accountID: new ObjectID(_id.toString()),
+      _id: new ObjectId(),
+      accountID: new ObjectId(_id.toString()),
       action,
       currency: coin,
       exchangeRateUSD: exchangeRate,
@@ -72,9 +72,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       amountCoin: calculatedAmountCoin,
     })
 
-    await updatePortfolio(
+    await updatePortfolioBalance(
       // TODO: make interface to hold params to make this easier to read
-      _id,
+      new ObjectId(_id),
       portfolio,
       coin,
       action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,

@@ -1,13 +1,13 @@
 import { getMongoDB } from './client'
 import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { Collection } from 'mongodb'
 import dayjs from 'dayjs'
 import { DateRangeValue } from '../components/common/DateRangePicker'
 
 export interface PortfolioBalance {
   timestamp: Date
-  portfolioID: ObjectID
+  portfolioID: ObjectId
   balanceUSD: number
 }
 
@@ -140,7 +140,7 @@ const getPortfolioHistoryCollectionForDays = {
   [DateRangeValue.Max]: getPortfolioHistoryDailyCollection,
 }
 
-export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValue) => {
+export const getPortfolioBalanceHistory = async (portfolioID: ObjectId, days: DateRangeValue) => {
   const { collection } = await getPortfolioHistoryCollectionForDays[days]()
   const startDate = (
     days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')
@@ -151,20 +151,15 @@ export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: Da
 }
 
 export interface TopPortfolio {
-  _id: ObjectID
+  _id: ObjectId
   balanceUSD: number
   accountNickname: string
+  portfolioName: string
 }
 
 export const getTopPortfolios = async (limit: number) => {
   const { collection } = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<TopPortfolio>([
-    // Sort by timestamp desc.
-    {
-      $sort: {
-        timestamp: -1,
-      },
-    },
     // Group by portfolio ID to get latest balance for each portfolio.
     {
       $group: {
@@ -174,9 +169,15 @@ export const getTopPortfolios = async (limit: number) => {
         },
       },
     },
+    // Sort by balance to find the top portfolios
+    {
+      $sort: {
+        balanceUSD: -1,
+      },
+    },
     // Limit to top 10 now so we have much less data to work with.
     {
-      $limit: 10,
+      $limit: limit,
     },
     // Lookup (join) full portfolio data for the top 10.
     {
@@ -194,6 +195,7 @@ export const getTopPortfolios = async (limit: number) => {
         _id: 1,
         balanceUSD: 1,
         accountID: '$portfolio.accountID',
+        portfolioName: '$portfolio.name',
       },
     },
     // Lookup (join) full account data.
@@ -212,6 +214,7 @@ export const getTopPortfolios = async (limit: number) => {
         _id: 1,
         balanceUSD: 1,
         accountNickname: '$account.nickname',
+        portfolioName: '$portfolioName',
       },
     },
     { $sort: { balanceUSD: -1 } },
