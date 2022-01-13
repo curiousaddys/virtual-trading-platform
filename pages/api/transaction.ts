@@ -45,7 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const portfolio = await findPortfolioByID(new ObjectId(_id), portfolioID)
+    const portfolio = await findPortfolioByID(_id, portfolioID)
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -71,7 +71,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       await insertTransaction(
         {
           _id: new ObjectId(),
-          accountID: new ObjectId(_id),
+          accountID: _id,
           action,
           currency: coin,
           exchangeRateUSD: exchangeRate,
@@ -84,7 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       )
       const updatedPortfolio = await updatePortfolioBalance(
         {
-          accountID: new ObjectId(_id),
+          accountID: _id,
           portfolio,
           currency: coin,
           amount: action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,

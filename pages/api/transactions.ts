@@ -23,7 +23,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Transaction[] |
     const { _id } = auth(req)
     const { coin, portfolioID } = QuerySchema.parse(req.query)
 
-    const data = await getTransactions(new ObjectId(_id), portfolioID, coin)
+    const data = await getTransactions(_id, portfolioID, coin)
 
     // TODO(jh): consider filtering this data (removing redundant information) to improve loading time
     res.status(200).json(data)
