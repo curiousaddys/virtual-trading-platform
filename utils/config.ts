@@ -5,9 +5,9 @@ import { IRON_SESSION_COOKIE } from './constants'
 const mustGetEnv = (key: string) => {
   const value = process.env[key]
   if (!value) {
-    const err = `Missing required environment variable: ${key}`
-    console.error(err)
-    throw err
+    const msg = `Missing required environment variable: ${key}`
+    console.error(msg)
+    throw Error(msg)
   }
   return value
 }
