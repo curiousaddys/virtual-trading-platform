@@ -19,7 +19,10 @@ const PostQuerySchema = z.object({
     z.custom<string>(isNameAllowed, { message: 'not allowed' }),
     z.string().nonempty()
   ),
-  defaultPortfolioID: z.string().nonempty(),
+  defaultPortfolioID: z
+    .string()
+    .nonempty()
+    .transform((val) => new ObjectId(val)),
 })
 
 export interface AccountWithPortfolio extends Account {

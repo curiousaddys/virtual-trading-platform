@@ -14,7 +14,10 @@ import { getMongoDB } from '../../db/client'
 import { ObjectId } from 'mongodb'
 
 const QuerySchema = z.object({
-  portfolioID: z.string(),
+  portfolioID: z
+    .string()
+    .nonempty()
+    .transform((val) => new ObjectId(val)),
   coin: z.enum(SUPPORTED_COINS),
   transactInUSD: z.preprocess((a) => a === 'true', z.boolean()),
   amountUSD: z.preprocess((a) => parseFloat(z.string().parse(a)), z.number()),
@@ -42,7 +45,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const portfolio = await findPortfolioByID(new ObjectId(_id), new ObjectId(portfolioID))
+    // TODO: maybe parse object id w/ zod
+    const portfolio = await findPortfolioByID(new ObjectId(_id), portfolioID)
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -68,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       await insertTransaction(
         {
           _id: new ObjectId(),
-          accountID: new ObjectId(_id.toString()),
+          accountID: new ObjectId(_id),
           action,
           currency: coin,
           exchangeRateUSD: exchangeRate,
