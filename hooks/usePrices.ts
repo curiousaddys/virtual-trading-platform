@@ -1,7 +1,6 @@
 import ky from 'ky'
 import useSWR from 'swr'
 import { ONE_MINUTE_MS } from '../utils/constants'
-import { GeckoPrices } from '../api/CoinGecko/markets'
 import React, { useContext } from 'react'
 import { Price } from '../pages/api/prices'
 
@@ -15,18 +14,18 @@ export const usePrices = () => {
   })
 
   return {
-    prices: data,
+    prices: data ?? ([] as Price[]),
     pricesLoading: !error && !data,
     pricesError: error,
   }
 }
 
 export const PricesContext = React.createContext<{
-  prices: GeckoPrices[] | undefined
+  prices: Price[]
   pricesLoading: boolean
   pricesError: any
 }>({
-  prices: undefined,
+  prices: [] as Price[],
   pricesLoading: false,
   pricesError: null,
 })

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 import { Cell, HeaderCell, Row, Table, TableBody, TableHead } from './common/Table'
 import { useAccountContext } from '../hooks/useAccount'
 import { usePricesContext } from '../hooks/usePrices'
@@ -8,6 +8,7 @@ import { PrettyPercent } from './common/PrettyPercent'
 import { BuySellAction } from './BuySellModal'
 import { Price } from '../pages/api/prices'
 import ReactPaginate from 'react-paginate'
+import { usePagination } from '../hooks/usePagination'
 
 interface AllPricesTableProps {
   // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
@@ -17,25 +18,7 @@ interface AllPricesTableProps {
 export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
-
-  // TODO: consider creating a pagination hook to move abstract most of this out
-  const itemsPerPage = 10
-  const [currentItems, setCurrentItems] = useState<null | Price[]>(null)
-  const pageCount = useMemo(() => {
-    return Math.floor((prices?.length ?? 0) / itemsPerPage)
-  }, [prices?.length])
-  const [itemOffset, setItemOffset] = useState(0)
-
-  const handlePageClick = (event: { selected: number }) => {
-    const newOffset = (event.selected * itemsPerPage) % (prices?.length ?? 0)
-    setItemOffset(newOffset)
-  }
-
-  useEffect(() => {
-    if (!prices) return
-    const endOffset = itemOffset + itemsPerPage
-    setCurrentItems(prices.slice(itemOffset, endOffset))
-  }, [itemOffset, prices])
+  const { currentItems, pageCount, handlePageClick } = usePagination(prices, 10)
 
   const item = (coin: Price) => (
     <Row key={coin.id}>
