@@ -18,6 +18,7 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
 
+  // TODO: consider creating a pagination hook to move abstract most of this out
   const itemsPerPage = 10
   const [currentItems, setCurrentItems] = useState<null | Price[]>(null)
   const pageCount = useMemo(() => {
@@ -34,7 +35,7 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
     if (!prices) return
     const endOffset = itemOffset + itemsPerPage
     setCurrentItems(prices.slice(itemOffset, endOffset))
-  }, [itemOffset, itemsPerPage, prices])
+  }, [itemOffset, prices])
 
   const item = (coin: Price) => (
     <Row key={coin.id}>
