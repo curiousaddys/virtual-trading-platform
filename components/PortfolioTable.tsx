@@ -1,64 +1,77 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { usePricesContext } from '../hooks/usePrices'
-import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from './common/Table'
+import { Table, TableBody, Cell, TableHead, HeaderCell, Row } from './common/Table'
 import Image from 'next/image'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
 import { Holding } from '../db/portfolios'
 import { BuySellAction } from './BuySellModal'
+import { useAccountContext } from '../hooks/useAccount'
 
 interface PortfolioTableProps {
-  holdings: Holding[]
   totalPortfolioBalanceUSD: number
   // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
   onSellButtonClick: (coinID: string, coinName: string, action: BuySellAction) => void
 }
 
 export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
+  const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
-  return !prices || !props.holdings ? null : (
+  const holdingsData = useMemo((): Holding[] => {
+    if (!accountInfo || !prices) return [] as Holding[]
+    return accountInfo.portfolio.holdings
+      .sort((a, b) => {
+        // TODO: allow custom sorting in the table
+        const aCurrentPrice = prices.find((price) => price.id === a.currency)?.current_price ?? 0
+        const bCurrentPrice = prices.find((price) => price.id === b.currency)?.current_price ?? 0
+        return bCurrentPrice * b.amount - aCurrentPrice * a.amount
+      })
+      .filter((h) => h.amount > 0)
+  }, [accountInfo, prices])
+
+  return !prices || !holdingsData ? null : (
     <Table>
       <TableHead>
-        <TableHeaderCell label="Name" />
-        <TableHeaderCell />
-        <TableHeaderCell label="Balance" alignRight />
-        <TableHeaderCell label="Total Profit/Loss" alignRight hideOnMobile />
-        <TableHeaderCell label="Allocation" alignRight hideOnMobile />
-        <TableHeaderCell />
+        <HeaderCell label="Name" />
+        <HeaderCell />
+        <HeaderCell label="Balance" alignRight />
+        <HeaderCell label="Total Profit/Loss" alignRight hideOnMobile />
+        <HeaderCell label="Allocation" alignRight hideOnMobile />
+        <HeaderCell />
       </TableHead>
       <TableBody>
-        {props.holdings.map((h) => {
+        {holdingsData.map((h) => {
           const coin = prices.find((price) => price.id === h.currency)
           return !coin ? null : (
-            <TableRow key={h.currency}>
+            <Row key={h.currency}>
               {/*Image*/}
-              <TableCell
+              <Cell
                 narrow
                 noWrap
                 disabled={coin.id === 'USD'}
                 href={coin.id !== 'USD' ? `/details/${coin.id}` : undefined}
               >
                 <Image src={coin.image} height={40} width={40} alt={coin.symbol} />
-              </TableCell>
+              </Cell>
               {/*Name & Symbol*/}
-              <TableCell
+              <Cell
                 disabled={coin.id === 'USD'}
                 href={coin.id !== 'USD' ? `/details/${coin.id}` : undefined}
               >
                 <span className="font-bold text-gray-800">{coin.name}</span>
                 <br />
                 <span className="font-medium">{coin.symbol.toUpperCase()}</span>
-              </TableCell>
+              </Cell>
               {/*Balance*/}
-              <TableCell alignRight>
+              <Cell alignRight>
                 <span className="font-bold text-gray-700 text-base">
                   {formatUSD(coin.current_price * h.amount)}
                 </span>
                 <br />
                 {formatFloat(h.amount)} {coin.symbol.toUpperCase()}
-              </TableCell>
+              </Cell>
               {/*P&L*/}
-              <TableCell alignRight hideOnMobile>
+              <Cell alignRight hideOnMobile>
                 {coin.id !== 'USD' ? (
                   <>
                     {formatUSD(h.amount * coin.current_price - h.amount * h.avgBuyCost)}
@@ -76,17 +89,17 @@ export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
                     )}
                   </>
                 ) : null}
-              </TableCell>
+              </Cell>
               {/*Allocation*/}
-              <TableCell alignRight hideOnMobile>
+              <Cell alignRight hideOnMobile>
                 {formatPercent(
                   ((coin.current_price * h.amount) / props.totalPortfolioBalanceUSD) * 100,
                   false
                 )}
-              </TableCell>
-              {/*BuySellModal*/}
-              <TableCell alignRight>
-                {coin.id !== 'USD' && (
+              </Cell>
+              {/*BuySellModal Button*/}
+              <Cell alignRight>
+                {coin.id !== 'USD' ? (
                   <button
                     className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
                     style={{ maxWidth: 75 }}
@@ -94,9 +107,9 @@ export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
                   >
                     Sell
                   </button>
-                )}
-              </TableCell>
-            </TableRow>
+                ) : null}
+              </Cell>
+            </Row>
           )
         })}
       </TableBody>

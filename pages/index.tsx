@@ -1,20 +1,18 @@
 import type { NextPage } from 'next'
-import Image from 'next/image'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAccountContext } from '../hooks/useAccount'
 import { formatUSD } from '../utils/format'
 import dayjs from 'dayjs'
 import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
-import Link from 'next/link'
-import { PrettyPercent } from '../components/common/PrettyPercent'
 import { DateRangePicker, DateRangeValue } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 import { toast } from 'react-toastify'
 import { usePricesContext } from '../hooks/usePrices'
-import { Holding } from '../db/portfolios'
 import { PortfolioTable } from '../components/PortfolioTable'
+import { AllPricesTable } from '../components/AllPricesTable'
+import { PageWrapper } from '../components/common/PageWrapper'
 
 const Home: NextPage = () => {
   const { accountInfo, accountError } = useAccountContext()
@@ -25,18 +23,6 @@ const Home: NextPage = () => {
   const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
   const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
-  const holdingsData = useMemo((): Holding[] => {
-    if (!accountInfo || !prices) return [] as Holding[]
-    return accountInfo.portfolio.holdings
-      .sort((a, b) => {
-        // TODO: allow custom sorting in the table
-        const aCurrentPrice = prices.find((price) => price.id === a.currency)?.current_price ?? 0
-        const bCurrentPrice = prices.find((price) => price.id === b.currency)?.current_price ?? 0
-        return bCurrentPrice * b.amount - aCurrentPrice * a.amount
-      })
-      .filter((h) => h.amount > 0)
-  }, [accountInfo, prices])
-
   const totalPortfolioBalanceUSD = useMemo(() => {
     if (!prices || !accountInfo?.portfolio.holdings) return 0
     return accountInfo.portfolio.holdings.reduce(
@@ -46,11 +32,11 @@ const Home: NextPage = () => {
     )
   }, [prices, accountInfo])
 
-  const openBuySellModal = (value: string, label: string, action: BuySellAction) => {
+  const openBuySellModal = useCallback((value: string, label: string, action: BuySellAction) => {
     setBuySellCurrency({ value, label })
     setBuySellAction(action)
     setModalOpen(true)
-  }
+  }, [])
 
   // Get fresh data for portfolio price history graph whenever balance changes.
   useEffect(() => {
@@ -90,19 +76,19 @@ const Home: NextPage = () => {
   }, [accountError, pricesError])
 
   return (
-    <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
+    <PageWrapper>
       {pricesLoading ? (
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          {modalOpen && (
+          {modalOpen ? (
             <BuySellModal
               currency={buySellCurrency}
               onClose={() => setModalOpen(false)}
               action={buySellAction}
             />
-          )}
-          {prices && accountInfo && (
+          ) : null}
+          {prices && accountInfo ? (
             <>
               <section className="mb-2">
                 <h2 className="text-3xl text-black font-semibold mt-10">
@@ -177,93 +163,26 @@ const Home: NextPage = () => {
                 </div>
               </section>
             </>
-          )}
-          {accountInfo && (
+          ) : null}
+          {accountInfo ? (
             <section>
               <h2 className="text-lg text-black font-semibold mt-10">
                 Your Portfolio: {accountInfo.portfolio.name}
               </h2>
               <PortfolioTable
-                holdings={holdingsData}
                 totalPortfolioBalanceUSD={totalPortfolioBalanceUSD}
                 // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
                 onSellButtonClick={openBuySellModal}
               />
             </section>
-          )}
+          ) : null}
           <section>
             <h2 className="text-lg text-black font-semibold mt-10">All Prices</h2>
-            <div className="shadow border mt-2">
-              <table className="table-auto w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-xs text-gray-500 text-left">Name</th>
-                    <th className="px-4 py-2" />
-                    <th className="px-4 py-2 text-xs text-gray-500 text-right">Price</th>
-                    <th className="px-4 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
-                      Change (24h)
-                    </th>
-                    <th className="px-4 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
-                      Volume (24h)
-                    </th>
-                    {accountInfo && <th className="px-4 py-2" />}
-                  </tr>
-                </thead>
-
-                <tbody className="bg-white">
-                  {prices &&
-                    prices.map((coin) => (
-                      <tr className="even:bg-gray-50" key={coin.id}>
-                        <Link href={`/details/${coin.id}`} passHref>
-                          <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
-                            <Image src={coin.image} height={40} width={40} alt={coin.symbol} />
-                          </td>
-                        </Link>
-                        <Link href={`/details/${coin.id}`} passHref>
-                          <td className="px-4 py-4 text-sm text-gray-900 font-bold cursor-pointer">
-                            {coin.name} <br />
-                            <span className="font-light">{coin.symbol.toUpperCase()}</span>
-                          </td>
-                        </Link>
-                        <td className="px-4 py-4 text-sm text-gray-500 text-right">
-                          {formatUSD(coin.current_price)}
-                          <div className="md:hidden w-100">
-                            <PrettyPercent value={coin.price_change_percentage_24h} />
-                          </div>
-                        </td>
-                        <td
-                          className={`px-4 py-4 text-sm text-gray-500 text-right hidden md:table-cell`}
-                        >
-                          <PrettyPercent value={coin.price_change_percentage_24h} />
-                        </td>
-                        <td
-                          className="px-4 py-4 text-sm text-gray-500 text-right hidden md:table-cell"
-                          style={{ maxWidth: 150 }}
-                        >
-                          {formatUSD(coin.total_volume, true)}
-                        </td>
-                        {accountInfo && (
-                          <td className="px-4 py-4 text-right">
-                            <button
-                              className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                              style={{ maxWidth: 75 }}
-                              onClick={() =>
-                                openBuySellModal(coin.id, coin.name, BuySellAction.Buy)
-                              }
-                            >
-                              Buy
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+            <AllPricesTable onBuyButtonClick={openBuySellModal} />
           </section>
         </>
       )}
-    </div>
+    </PageWrapper>
   )
 }
 

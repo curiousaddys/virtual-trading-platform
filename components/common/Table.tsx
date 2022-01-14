@@ -13,13 +13,13 @@ export const TableHead: React.FC = ({ children }) => (
   </thead>
 )
 
-interface TableHeaderCellProps {
+interface HeaderCellProps {
   label?: string
   alignRight?: boolean
   hideOnMobile?: boolean
 }
 
-export const TableHeaderCell: React.VFC<TableHeaderCellProps> = (props) => (
+export const HeaderCell: React.VFC<HeaderCellProps> = (props) => (
   <th
     className={`px-4 py-2 text-xs text-gray-500 text-${props.alignRight ? 'right' : 'left'} ${
       props.hideOnMobile ? 'hidden md:table-cell' : ''
@@ -31,9 +31,9 @@ export const TableHeaderCell: React.VFC<TableHeaderCellProps> = (props) => (
 
 export const TableBody: React.FC = ({ children }) => <tbody className="bg-white">{children}</tbody>
 
-export const TableRow: React.FC = ({ children }) => <tr className="even:bg-gray-50">{children}</tr>
+export const Row: React.FC = ({ children }) => <tr className="even:bg-gray-50">{children}</tr>
 
-interface TableCellProps {
+interface CellProps {
   alignRight?: boolean
   hideOnMobile?: boolean
   disabled?: boolean
@@ -42,7 +42,7 @@ interface TableCellProps {
   href?: string
 }
 
-export const TableCell: React.FC<TableCellProps> = (props) => {
+export const Cell: React.FC<CellProps> = (props) => {
   const td = (
     <td
       className={`

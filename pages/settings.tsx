@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import dayjs from 'dayjs'
 import ky from 'ky'
 import { Account } from '../db/accounts'
-import Head from 'next/head'
+import { PageWrapper } from '../components/common/PageWrapper'
 
 const Settings: NextPage = () => {
   const { accountInfo, setAccountInfo, accountError, isLoaded } = useAccountContext()
@@ -48,62 +48,57 @@ const Settings: NextPage = () => {
   }
 
   return (
-    <>
-      <Head>
-        <title>User Settings</title>
-      </Head>
-      <div className="container justify-center mx-auto my-10 px-2 sm:px-5 max-w-screen-lg">
-        {!isLoaded ? (
-          <div className="mb-3">Loading...</div>
-        ) : !accountInfo ? (
-          <div className="mb-3">
-            You must connect your MetaMask wallet in order to access this page.
-          </div>
-        ) : (
-          <>
-            <h2 className="text-2xl text-gray-800 font-semibold ml-1">Settings</h2>
-            <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
-              <form className="w-full max-w-sm" onSubmit={handleSubmit}>
-                <label className="block text-gray-700 text-sm font-bold" htmlFor="username">
-                  Nickname
-                </label>
-                <div className="mb-2 text-xs">This will be visible to other users.</div>
-                <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
-                  type="text"
-                  aria-label="nickname"
-                  value={nickname}
-                  onChange={(e) => {
-                    setNickname(e.target.value)
-                  }}
-                />
+    <PageWrapper title="User Settings">
+      {!isLoaded ? (
+        <div className="mb-3">Loading...</div>
+      ) : !accountInfo ? (
+        <div className="mb-3">
+          You must connect your MetaMask wallet in order to access this page.
+        </div>
+      ) : (
+        <>
+          <h2 className="text-2xl text-gray-800 font-semibold ml-1">Settings</h2>
+          <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
+            <form className="w-full max-w-sm" onSubmit={handleSubmit}>
+              <label className="block text-gray-700 text-sm font-bold" htmlFor="username">
+                Nickname
+              </label>
+              <div className="mb-2 text-xs">This will be visible to other users.</div>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
+                type="text"
+                aria-label="nickname"
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value)
+                }}
+              />
 
-                {/*TODO: add some options to select a portfolio or create a new one*/}
+              {/*TODO: add some options to select a portfolio or create a new one*/}
 
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-                  Join Date
-                </label>
-                <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  type="text"
-                  aria-label="nickname"
-                  value={dayjs(accountInfo.joined).format('YYYY-MM-DD')}
-                  disabled
-                />
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+                Join Date
+              </label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                type="text"
+                aria-label="nickname"
+                value={dayjs(accountInfo.joined).format('YYYY-MM-DD')}
+                disabled
+              />
 
-                <button
-                  className="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  Save
-                </button>
-              </form>
-            </section>
-          </>
-        )}
-      </div>
-    </>
+              <button
+                className="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                Save
+              </button>
+            </form>
+          </section>
+        </>
+      )}
+    </PageWrapper>
   )
 }
 
