@@ -1,10 +1,10 @@
 import type { NextPage } from 'next'
 import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAccountContext } from '../hooks/useAccount'
-import { formatFloat, formatPercent, formatUSD } from '../utils/format'
+import { formatUSD } from '../utils/format'
 import dayjs from 'dayjs'
 import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
 import Link from 'next/link'
@@ -13,16 +13,38 @@ import { DateRangePicker, DateRangeValue } from '../components/common/DateRangeP
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 import { toast } from 'react-toastify'
 import { usePricesContext } from '../hooks/usePrices'
+import { Holding } from '../db/portfolios'
+import { PortfolioTable } from '../components/PortfolioTable'
 
 const Home: NextPage = () => {
   const { accountInfo, accountError } = useAccountContext()
-  const [totalPortfolioBalanceUSD, setTotalPortfolioBalanceUSD] = useState<number>(0)
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
   const { prices, pricesLoading, pricesError } = usePricesContext()
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
   const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
+
+  const holdingsData = useMemo((): Holding[] => {
+    if (!accountInfo || !prices) return [] as Holding[]
+    return accountInfo.portfolio.holdings
+      .sort((a, b) => {
+        // TODO: allow custom sorting in the table
+        const aCurrentPrice = prices.find((price) => price.id === a.currency)?.current_price ?? 0
+        const bCurrentPrice = prices.find((price) => price.id === b.currency)?.current_price ?? 0
+        return bCurrentPrice * b.amount - aCurrentPrice * a.amount
+      })
+      .filter((h) => h.amount > 0)
+  }, [accountInfo, prices])
+
+  const totalPortfolioBalanceUSD = useMemo(() => {
+    if (!prices || !accountInfo?.portfolio.holdings) return 0
+    return accountInfo.portfolio.holdings.reduce(
+      (acc, cur) =>
+        acc + (prices.find((price) => price.id === cur.currency)?.current_price ?? 1) * cur.amount,
+      0
+    )
+  }, [prices, accountInfo])
 
   const openBuySellModal = (value: string, label: string, action: BuySellAction) => {
     setBuySellCurrency({ value, label })
@@ -54,17 +76,6 @@ const Home: NextPage = () => {
       }
     })()
   }, [totalPortfolioBalanceUSD, chartRange])
-
-  // Whenever price data or account info changes, calculate total portfolio balance.
-  useEffect(() => {
-    if (!prices || !accountInfo?.portfolio.holdings) return
-    const sum = accountInfo.portfolio.holdings.reduce(
-      (acc, cur) =>
-        acc + (prices.find((price) => price.id === cur.currency)?.current_price ?? 1) * cur.amount,
-      0
-    )
-    setTotalPortfolioBalanceUSD(sum)
-  }, [prices, accountInfo])
 
   // Handle errors from hooks that fetch data.
   useEffect(() => {
@@ -167,148 +178,18 @@ const Home: NextPage = () => {
               </section>
             </>
           )}
-          {prices && accountInfo && (
-            <>
-              <section>
-                <h2 className="text-lg text-black font-semibold mt-10">
-                  Your Portfolio: {accountInfo.portfolio.name}
-                </h2>
-                <div className="shadow border mt-2">
-                  <table className="w-full table-auto">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-xs text-gray-500 text-left">Name</th>
-                        <th className="px-4 py-2" />
-                        <th className="px-6 py-2 text-xs text-gray-500 text-right">Balance</th>
-                        <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
-                          Total Profit/Loss
-                        </th>
-                        <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
-                          Allocation
-                        </th>
-                        <th className="px-6 py-2" />
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white">
-                      {accountInfo.portfolio.holdings
-                        .sort((a, b) => {
-                          const aCurrentPrice =
-                            prices.find((price) => price.id === a.currency)?.current_price ?? 1 // If not found, then it's USD.
-                          const bCurrentPrice =
-                            prices.find((price) => price.id === b.currency)?.current_price ?? 1 // If not found, then it's USD.
-                          return bCurrentPrice * b.amount - aCurrentPrice * a.amount
-                        })
-                        .filter((h) => h.amount > 0)
-                        .map((h) => {
-                          const coin = prices.find((price) => price.id === h.currency) ?? {
-                            id: 'usd',
-                            symbol: 'USD',
-                            name: 'US Dollars',
-                            current_price: 1,
-                            price_change_percentage_24h: 0,
-                            image: '/usd.jpg',
-                          }
-                          return (
-                            <tr key={h.currency} className="whitespace-nowrap even:bg-gray-50">
-                              {/*TODO: figure out best way to simplify this (we just need the USD row to not be a link)*/}
-                              {coin.id !== 'usd' ? (
-                                <>
-                                  <Link href={`/details/${coin.id}`} passHref>
-                                    <td className="px-4 py-4 whitespace-nowrap w-px cursor-pointer">
-                                      <Image
-                                        src={coin.image}
-                                        height={40}
-                                        width={40}
-                                        alt={coin.symbol}
-                                      />
-                                    </td>
-                                  </Link>
-                                  <Link href={`/details/${coin.id}`} passHref>
-                                    <td className="px-4 py-4 text-sm text-gray-900 cursor-pointer">
-                                      <span className="font-bold">{coin.name}</span>
-                                      <br />
-                                      <span className="font-light">
-                                        {coin.symbol.toUpperCase()}
-                                      </span>
-                                    </td>
-                                  </Link>
-                                </>
-                              ) : (
-                                <>
-                                  <td className="px-4 py-4 whitespace-nowrap w-px opacity-50 cursor-not-allowed">
-                                    <Image
-                                      src={coin.image}
-                                      height={40}
-                                      width={40}
-                                      alt={coin.symbol}
-                                    />
-                                  </td>
-                                  <td className="px-4 py-4 text-sm text-gray-900 opacity-50 cursor-not-allowed">
-                                    <span className="font-bold">{coin.name}</span>
-                                    <br />
-                                    <span className="font-light">{coin.symbol.toUpperCase()}</span>
-                                  </td>
-                                </>
-                              )}
-
-                              <td className="px-6 py-4 text-sm text-gray-500 text-right">
-                                <span className="font-bold text-gray-700 text-base">
-                                  {formatUSD(coin.current_price * h.amount)}
-                                </span>
-                                <br />
-                                {formatFloat(h.amount)} {coin.symbol.toUpperCase()}
-                              </td>
-                              {/*P&L*/}
-                              <td className="px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell">
-                                {coin.id !== 'usd' && (
-                                  <>
-                                    {formatUSD(
-                                      h.amount * coin.current_price - h.amount * h.avgBuyCost
-                                    )}
-                                    <br />
-                                    {Math.abs(
-                                      h.amount * coin.current_price - h.amount * h.avgBuyCost
-                                    ).toFixed(2) !== '0.00' && (
-                                      <PrettyPercent
-                                        value={
-                                          ((h.amount * coin.current_price -
-                                            h.amount * h.avgBuyCost) /
-                                            (h.amount * h.avgBuyCost)) *
-                                          100
-                                        }
-                                      />
-                                    )}
-                                  </>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell">
-                                {formatPercent(
-                                  ((coin.current_price * h.amount) / totalPortfolioBalanceUSD) *
-                                    100,
-                                  false
-                                )}
-                              </td>
-                              <td className="px-4 py-4 text-right">
-                                {coin.id !== 'usd' && (
-                                  <button
-                                    className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                                    style={{ maxWidth: 75 }}
-                                    onClick={() =>
-                                      openBuySellModal(coin.id, coin.name, BuySellAction.Sell)
-                                    }
-                                  >
-                                    Sell
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </>
+          {accountInfo && (
+            <section>
+              <h2 className="text-lg text-black font-semibold mt-10">
+                Your Portfolio: {accountInfo.portfolio.name}
+              </h2>
+              <PortfolioTable
+                holdings={holdingsData}
+                totalPortfolioBalanceUSD={totalPortfolioBalanceUSD}
+                // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
+                onSellButtonClick={openBuySellModal}
+              />
+            </section>
           )}
           <section>
             <h2 className="text-lg text-black font-semibold mt-10">All Prices</h2>
@@ -318,14 +199,14 @@ const Home: NextPage = () => {
                   <tr>
                     <th className="px-4 py-2 text-xs text-gray-500 text-left">Name</th>
                     <th className="px-4 py-2" />
-                    <th className="px-6 py-2 text-xs text-gray-500 text-right">Price</th>
-                    <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
+                    <th className="px-4 py-2 text-xs text-gray-500 text-right">Price</th>
+                    <th className="px-4 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                       Change (24h)
                     </th>
-                    <th className="px-6 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
+                    <th className="px-4 py-2 text-xs text-gray-500 text-right hidden md:table-cell">
                       Volume (24h)
                     </th>
-                    {accountInfo && <th className="px-6 py-2" />}
+                    {accountInfo && <th className="px-4 py-2" />}
                   </tr>
                 </thead>
 
@@ -344,14 +225,14 @@ const Home: NextPage = () => {
                             <span className="font-light">{coin.symbol.toUpperCase()}</span>
                           </td>
                         </Link>
-                        <td className="px-6 py-4 text-sm text-gray-500 text-right">
+                        <td className="px-4 py-4 text-sm text-gray-500 text-right">
                           {formatUSD(coin.current_price)}
                           <div className="md:hidden w-100">
                             <PrettyPercent value={coin.price_change_percentage_24h} />
                           </div>
                         </td>
                         <td
-                          className={`px-6 py-4 text-sm text-gray-500 text-right hidden md:table-cell`}
+                          className={`px-4 py-4 text-sm text-gray-500 text-right hidden md:table-cell`}
                         >
                           <PrettyPercent value={coin.price_change_percentage_24h} />
                         </td>

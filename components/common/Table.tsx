@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 
 export const Table: React.FC = ({ children }) => (
   <div className="shadow border mt-2">
@@ -6,62 +7,61 @@ export const Table: React.FC = ({ children }) => (
   </div>
 )
 
-interface TableHeaderOptions {
-  label: string
-  align: 'left' | 'right'
-  hideOnMobile?: boolean
-}
-
-export const TableHead: React.VFC<{ headers: TableHeaderOptions[] }> = ({ headers }) => (
+export const TableHead: React.FC = ({ children }) => (
   <thead className="bg-gray-50">
-    <tr>
-      {headers.map((header) => (
-        <th
-          key={header.label}
-          className={`px-4 py-2 text-xs text-gray-500 text-${header.align} ${
-            header.hideOnMobile ? 'hidden md:table-cell' : ''
-          }`}
-        >
-          {header.label}
-        </th>
-      ))}
-    </tr>
+    <tr>{children}</tr>
   </thead>
 )
 
-export const TableBody: React.FC = ({ children }) => (
-  // TODO: WIP
-  <tbody className="bg-white">{children}</tbody>
-)
-
-export const TableRow: React.FC = ({ children }) => (
-  // TODO: WIP
-  <tr className="even:bg-gray-50">{children}</tr>
-)
-
-interface TableCellOptions {
-  align: 'left' | 'right'
+interface TableHeaderCellProps {
+  label?: string
+  alignRight?: boolean
   hideOnMobile?: boolean
-  bold?: boolean // TODO: use this
-  disabled?: boolean // TODO: use this
-  isLink?: boolean // TODO: use this
-  narrow?: boolean // TODO: use this
-  noWrap?: boolean // TODO: use this
 }
 
-export const TableCell: React.FC<{ options: TableCellOptions }> = ({ options, children }) => (
-  // TODO: WIP
-  <td
-    className={`
-      px-4 py-4 text-sm
-      text-${options.align}
-      text-gray-${options.bold ? '900 font-bold' : '500'}
-      ${options.noWrap ? 'whitespace-nowrap' : ''}
-      ${options.isLink ? 'cursor-pointer' : ''} ${options.narrow ? 'w-px' : ''}
-      ${options.disabled ? 'opacity-50 cursor-not-allowed' : ''}
-      ${options.hideOnMobile ? 'hidden md:table-cell' : ''}
-    `}
+export const TableHeaderCell: React.VFC<TableHeaderCellProps> = (props) => (
+  <th
+    className={`px-4 py-2 text-xs text-gray-500 text-${props.alignRight ? 'right' : 'left'} ${
+      props.hideOnMobile ? 'hidden md:table-cell' : ''
+    }`}
   >
-    {children}
-  </td>
+    {props.label}
+  </th>
 )
+
+export const TableBody: React.FC = ({ children }) => <tbody className="bg-white">{children}</tbody>
+
+export const TableRow: React.FC = ({ children }) => <tr className="even:bg-gray-50">{children}</tr>
+
+interface TableCellProps {
+  alignRight?: boolean
+  hideOnMobile?: boolean
+  disabled?: boolean
+  narrow?: boolean
+  noWrap?: boolean
+  href?: string
+}
+
+export const TableCell: React.FC<TableCellProps> = (props) => {
+  const td = (
+    <td
+      className={`
+      px-4 py-4 text-sm text-gray-500
+      text-${props.alignRight ? 'right' : 'left'}
+      ${props.noWrap ? 'whitespace-nowrap' : ''}
+      ${props.href ? 'cursor-pointer' : ''} ${props.narrow ? 'w-px' : ''}
+      ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+      ${props.hideOnMobile ? 'hidden md:table-cell' : ''}
+    `}
+    >
+      {props.children}
+    </td>
+  )
+  return props.href ? (
+    <Link href={props.href} passHref>
+      {td}
+    </Link>
+  ) : (
+    td
+  )
+}
