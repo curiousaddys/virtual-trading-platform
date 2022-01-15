@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 export const usePagination = <Type>(items: Type[], itemsPerPage: number) => {
-  const [currentItems, setCurrentItems] = useState<null | Type[]>(null)
+  const [currentItems, setCurrentItems] = useState<Type[]>([])
   const [itemOffset, setItemOffset] = useState(0)
   const pageCount = useMemo(() => {
     return Math.floor(items.length / itemsPerPage)

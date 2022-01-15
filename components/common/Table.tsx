@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 
 export const Table: React.FC = ({ children }) => (
-  <div className="shadow border mt-2">
+  <div className="shadow border mt-2 bg-white">
     <table className="table-auto w-full">{children}</table>
   </div>
 )

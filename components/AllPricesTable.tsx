@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { Cell, HeaderCell, Row, Table, TableBody, TableHead } from './common/Table'
 import { useAccountContext } from '../hooks/useAccount'
 import { usePricesContext } from '../hooks/usePrices'
@@ -18,7 +18,19 @@ interface AllPricesTableProps {
 export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
-  const { currentItems, pageCount, handlePageClick } = usePagination(prices, 10)
+
+  const [filterName, setFilterName] = useState<string>('')
+  const filteredPrices = useMemo(
+    () =>
+      prices.filter(
+        (price) =>
+          price.name.toLowerCase().startsWith(filterName.toLowerCase()) ||
+          price.symbol.toLowerCase().startsWith(filterName.toLowerCase())
+      ),
+    [prices, filterName]
+  )
+
+  const { currentItems, pageCount, handlePageClick } = usePagination(filteredPrices, 15)
 
   const item = (coin: Price) => (
     <Row key={coin.id}>
@@ -70,8 +82,22 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
     </Row>
   )
 
-  return currentItems?.length ? (
+  return (
     <>
+      <div className="flex flex-row justify-between">
+        <h2 className="text-lg text-black font-semibold mt-10">All Prices</h2>
+        <input
+          className="shadow appearance-none border rounded-3xl py-2 px-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline place-self-end"
+          style={{ minWidth: 275 }}
+          type="text"
+          aria-label="filter"
+          value={filterName}
+          placeholder="Search by name or symbol..."
+          onChange={(e) => {
+            setFilterName(e.target.value)
+          }}
+        />
+      </div>
       <Table>
         <TableHead>
           <HeaderCell label="Name" />
@@ -81,7 +107,15 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
           <HeaderCell label="Volume (24h)" alignRight hideOnMobile />
           {accountInfo ? <HeaderCell /> : null}
         </TableHead>
-        <TableBody>{currentItems.map((coin) => (coin.id === 'USD' ? null : item(coin)))}</TableBody>
+        <TableBody>
+          {currentItems?.length ? (
+            currentItems.map((coin) => (coin.id === 'USD' ? null : item(coin)))
+          ) : (
+            <Row>
+              <Cell>No results found</Cell>
+            </Row>
+          )}
+        </TableBody>
       </Table>
       <ReactPaginate
         breakLabel="..."
@@ -96,5 +130,5 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
         renderOnZeroPageCount={() => null}
       />
     </>
-  ) : null
+  )
 }

@@ -165,21 +165,13 @@ const Home: NextPage = () => {
             </>
           ) : null}
           {accountInfo ? (
-            <section>
-              <h2 className="text-lg text-black font-semibold mt-10">
-                Your Portfolio: {accountInfo.portfolio.name}
-              </h2>
-              <PortfolioTable
-                totalPortfolioBalanceUSD={totalPortfolioBalanceUSD}
-                // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
-                onSellButtonClick={openBuySellModal}
-              />
-            </section>
+            <PortfolioTable
+              totalPortfolioBalanceUSD={totalPortfolioBalanceUSD}
+              // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
+              onSellButtonClick={openBuySellModal}
+            />
           ) : null}
-          <section>
-            <h2 className="text-lg text-black font-semibold mt-10">All Prices</h2>
-            <AllPricesTable onBuyButtonClick={openBuySellModal} />
-          </section>
+          <AllPricesTable onBuyButtonClick={openBuySellModal} />
         </>
       )}
     </PageWrapper>
