@@ -24,17 +24,14 @@ export const Table: React.VFC<TableProps> = (props) => {
   const [sortDesc, setSortDesc] = useState<boolean>(true)
   // Sort & filter.
   useEffect(() => {
-    // TODO: optimize so this doesn't run each time a buy or sell button is clicked
     setAllItems(
       props.data
         .filter((item) =>
           props.filterOn?.some((filter) =>
-            // TODO: make this typesafe if using generics for the table data
             item[filter].toLowerCase().startsWith(filterQuery.toLowerCase())
           )
         )
         .sort((a, b) => {
-          // TODO: make this typesafe if using generics for the table data
           if (typeof a[sortField] === 'string') {
             return sortDesc
               ? b[sortField].localeCompare(a[sortField])
