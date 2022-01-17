@@ -11,6 +11,7 @@ interface ChartProps {
   valueDataKey: number | string
   valueLabel: string
   isLoading: boolean
+  firstAvailableDate?: Date
   onDateRangeOptionChange: (days: DateRangeValue) => void
 }
 
@@ -21,6 +22,7 @@ export const Chart: React.VFC<ChartProps> = ({
   dateDataKey,
   dateIsUnixtime,
   valueDataKey,
+  firstAvailableDate,
   valueLabel,
 }) => {
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
@@ -31,7 +33,11 @@ export const Chart: React.VFC<ChartProps> = ({
 
   return (
     <div className="rounded pt-3 shadow-lg bg-white">
-      <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
+      <DateRangePicker
+        selectedDays={chartRange}
+        onSelectionChange={setChartRange}
+        minDate={firstAvailableDate}
+      />
       <div className="px-2">
         {isLoading ? (
           // TODO: add nicer loading indicator
