@@ -1,14 +1,13 @@
 import { NextPage } from 'next'
 import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
-import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
+import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
 import { useAccountContext } from '../../hooks/useAccount'
 import Image from 'next/image'
-import { PrettyPercent } from '../../components/common/PrettyPercent'
 import { Transaction } from '../../db/transactions'
 import { DateRangePicker, DateRangeValue } from '../../components/common/DateRangePicker'
 import { usePriceHistory } from '../../hooks/usePriceHistory'
@@ -201,45 +200,57 @@ const Details: NextPage = () => {
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 my-5">
-              <DataCard title={'Last Hour'}>
-                <PrettyPercent
-                  value={coinDetails.market_data.price_change_percentage_1h_in_currency.usd}
-                />
-              </DataCard>
+              <DataCard
+                title={'Last Hour'}
+                value={coinDetails.market_data.price_change_percentage_1h_in_currency.usd}
+                format={'percent'}
+              />
 
-              <DataCard title={'Last 24 Hours'}>
-                <PrettyPercent
-                  value={coinDetails.market_data.price_change_percentage_24h_in_currency.usd}
-                />
-              </DataCard>
+              <DataCard
+                title={'Last 24 Hours'}
+                value={coinDetails.market_data.price_change_percentage_24h_in_currency.usd}
+                format={'percent'}
+              />
 
-              <DataCard title={'Last 7 Days'}>
-                <PrettyPercent
-                  value={coinDetails.market_data.price_change_percentage_7d_in_currency.usd}
-                />
-              </DataCard>
+              <DataCard
+                title={'Last 7 Days'}
+                value={coinDetails.market_data.price_change_percentage_7d_in_currency.usd}
+                format={'percent'}
+              />
 
-              <DataCard title={'Last 30 Days'}>
-                <PrettyPercent
-                  value={coinDetails.market_data.price_change_percentage_30d_in_currency.usd}
-                />
-              </DataCard>
+              <DataCard
+                title={'Last 30 Days'}
+                value={coinDetails.market_data.price_change_percentage_30d_in_currency.usd}
+                format={'percent'}
+              />
             </div>
 
             <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-              <DataCard title={'All Time High'}>
-                {formatUSD(coinDetails.market_data.ath.usd)}
-              </DataCard>
-              <DataCard title={'Popularity'}>#{coinDetails.market_cap_rank}</DataCard>
-              <DataCard title={'Market Cap'}>
-                {formatUSD(coinDetails.market_data.market_cap.usd, true)}
-              </DataCard>
-              <DataCard title={'Volume'}>
-                {formatUSD(coinDetails.market_data.total_volume.usd, true)}
-              </DataCard>
-              <DataCard title={'Circulating Supply'}>
-                {formatInt(coinDetails.market_data.circulating_supply)}
-              </DataCard>
+              <DataCard
+                title={'All Time High'}
+                value={coinDetails.market_data.ath.usd}
+                format={'usd'}
+              />
+
+              <DataCard title={'Popularity'} value={`#${coinDetails.market_cap_rank}`} />
+
+              <DataCard
+                title={'Market Cap'}
+                value={coinDetails.market_data.market_cap.usd}
+                format={'usdNoCents'}
+              />
+
+              <DataCard
+                title={'Volume'}
+                value={coinDetails.market_data.total_volume.usd}
+                format={'usdNoCents'}
+              />
+
+              <DataCard
+                title={'Circulating Supply'}
+                value={coinDetails.market_data.circulating_supply}
+                format={'int'}
+              />
             </div>
           </section>
 
@@ -247,33 +258,35 @@ const Details: NextPage = () => {
             <>
               <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Wallet</h2>
               <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                  <DataCard title={'Current Balance'}>
-                    {formatFloat(holding?.amount ?? 0, 16)} {coinDetails.symbol.toUpperCase()}
-                  </DataCard>
-                  <DataCard title={'Total Profit/Loss'}>
-                    {formatUSD(
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
+                  <DataCard
+                    title={'Current Balance'}
+                    value={`${formatFloat(
+                      holding?.amount ?? 0,
+                      16
+                    )} ${coinDetails.symbol.toUpperCase()}`}
+                    className="col-span-2"
+                  />
+
+                  <DataCard
+                    title={'Total Profit/Loss ($)'}
+                    value={
                       (holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
-                        (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)
-                    )}{' '}
-                    {Math.abs(
-                      (holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
-                        (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)
-                    ).toFixed(2) !== '0.00' && (
-                      <>
-                        (
-                        <PrettyPercent
-                          value={
-                            (((holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
-                              (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)) /
-                              ((holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0))) *
-                            100
-                          }
-                        />
-                        )
-                      </>
-                    )}
-                  </DataCard>
+                      (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)
+                    }
+                    format={'usd'}
+                  />
+
+                  <DataCard
+                    title={'Total Profit/Loss (%)'}
+                    value={
+                      (((holding?.amount ?? 0) * coinDetails.market_data.current_price.usd -
+                        (holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0)) /
+                        ((holding?.amount ?? 0) * (holding?.avgBuyCost ?? 0))) *
+                      100
+                    }
+                    format={'percent'}
+                  />
                 </div>
               </section>
               <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Transactions</h2>
