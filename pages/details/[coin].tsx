@@ -2,7 +2,6 @@ import { NextPage } from 'next'
 import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
 import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
@@ -10,7 +9,6 @@ import { useAccountContext } from '../../hooks/useAccount'
 import Image from 'next/image'
 import { PrettyPercent } from '../../components/common/PrettyPercent'
 import { Transaction } from '../../db/transactions'
-import { DateRangePicker, DateRangeValue } from '../../components/common/DateRangePicker'
 import { usePriceHistory } from '../../hooks/usePriceHistory'
 import { useCoinDetails } from '../../hooks/useCoinDetails'
 import { toast } from 'react-toastify'
@@ -18,6 +16,7 @@ import { useRouter } from 'next/router'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import Head from 'next/head'
 import { Holding } from '../../db/portfolios'
+import { Chart } from '../../components/common/Chart'
 
 const Details: NextPage = () => {
   // TODO: show some loading spinner or skeleton if loading
@@ -25,9 +24,9 @@ const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')
   const [coinInvalid, setCoinInvalid] = useState<boolean>(false)
   const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(coin)
-  const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   // TODO: show some loading spinner or skeleton if loading
-  const { priceHistory, priceHistoryLoading, priceHistoryError } = usePriceHistory(coin, chartRange)
+  const { priceHistory, priceHistoryLoading, priceHistoryError, setDateRange } =
+    usePriceHistory(coin)
   const { accountInfo } = useAccountContext()
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
@@ -142,67 +141,17 @@ const Details: NextPage = () => {
               <h2 className="text-5xl text-black font-semibold m-2 mb-5">
                 {formatUSD(coinDetails.market_data.current_price.usd)}
               </h2>
-              <div className="rounded pt-3 shadow-lg">
-                <DateRangePicker selectedDays={chartRange} onSelectionChange={setChartRange} />
-                <div className="px-2">
-                  {priceHistoryLoading && (
-                    // TODO: nicer loading indicator
-                    <div style={{ height: 400, width: '100%' }} className="flex text-xl">
-                      <div className="m-auto">Loading...</div>
-                    </div>
-                  )}
-                  {priceHistory && (
-                    <ResponsiveContainer width="100%" height={400}>
-                      <LineChart
-                        data={priceHistory?.prices}
-                        margin={{
-                          top: 10,
-                          right: 10,
-                          bottom: 10,
-                          left: 10,
-                        }}
-                      >
-                        <XAxis
-                          dataKey="0"
-                          tickFormatter={(t) =>
-                            chartRange !== '1'
-                              ? dayjs.unix(t / 1000).format('MMM D, YYYY')
-                              : dayjs(t).format('hh:mm A')
-                          }
-                          type="number"
-                          domain={['dataMin', 'dataMax']}
-                          scale="time"
-                          minTickGap={15}
-                          tickMargin={10}
-                        />
-                        <YAxis
-                          domain={[
-                            (dataMin: number) => dataMin * 0.9,
-                            (dataMax: number) => dataMax * 1.1,
-                          ]}
-                          hide
-                        />
-                        <Tooltip
-                          formatter={(value: number) => formatUSD(value)}
-                          labelFormatter={(t) =>
-                            dayjs.unix(t / 1000).format('MMM D, YYYY [at] hh:mm A')
-                          }
-                        />
-                        <Line
-                          type="linear"
-                          dataKey="1"
-                          stroke={'#00008B'}
-                          dot={false}
-                          isAnimationActive={true}
-                          animationDuration={500}
-                          name={'Price'}
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </div>
+
+              <Chart
+                isLoading={priceHistoryLoading}
+                data={priceHistory?.prices || []}
+                onDateRangeOptionChange={setDateRange}
+                dateDataKey={'0'}
+                dateIsUnixtime={true}
+                valueDataKey={'1'}
+                valueLabel={'Price'}
+              />
+
               <div className="grid grid-cols-2 md:grid-cols-4 my-5">
                 <DataCard title={'Last Hour'}>
                   <PrettyPercent
