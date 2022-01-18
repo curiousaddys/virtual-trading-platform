@@ -2,7 +2,12 @@ import { DateRangePicker, DateRangeValue } from './DateRangePicker'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
 import { formatUSD } from '../../utils/format'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+
+const formatUnixTimestampSingleDay = (t: number) => dayjs.unix(t / 1000).format('hh:mm A')
+const formatUnixTimestamp = (t: number) => dayjs.unix(t / 1000).format('MMM D, YYYY')
+const formatDateTimestampSingleDay = (t: number) => dayjs(t).format('hh:mm A')
+const formatDateTimestamp = (t: number) => dayjs(t).format('MMM D, YYYY')
 
 interface ChartProps {
   data: any[] // TODO: use more specific type?
@@ -10,15 +15,14 @@ interface ChartProps {
   dateIsUnixtime?: boolean
   valueDataKey: number | string
   valueLabel: string
-  isLoading: boolean
   firstAvailableDate?: Date
   onDateRangeOptionChange: (days: DateRangeValue) => void
   showHourOption?: boolean
+  placeholder: string // Displayed when there is no data.
 }
 
 export const Chart: React.VFC<ChartProps> = ({
   data,
-  isLoading,
   onDateRangeOptionChange,
   dateDataKey,
   dateIsUnixtime,
@@ -26,6 +30,7 @@ export const Chart: React.VFC<ChartProps> = ({
   firstAvailableDate,
   valueLabel,
   showHourOption,
+  placeholder,
 }) => {
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
 
@@ -33,19 +38,12 @@ export const Chart: React.VFC<ChartProps> = ({
     onDateRangeOptionChange(chartRange)
   }, [chartRange, onDateRangeOptionChange])
 
-  const tickFormatter = useCallback(
-    (t: any) => {
-      if (dateIsUnixtime) {
-        return chartRange === DateRangeValue.Day
-          ? dayjs.unix(t / 1000).format('hh:mm A')
-          : dayjs.unix(t / 1000).format('MMM D, YYYY')
-      }
-      return chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
-        ? dayjs(t).format('hh:mm A')
-        : dayjs(t).format('MMM D, YYYY')
-    },
-    [chartRange, dateIsUnixtime]
-  )
+  const tickFormatter = useMemo(() => {
+    if (chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day) {
+      return dateIsUnixtime ? formatUnixTimestampSingleDay : formatDateTimestampSingleDay
+    }
+    return dateIsUnixtime ? formatUnixTimestamp : formatDateTimestamp
+  }, [chartRange, dateIsUnixtime])
 
   return (
     <div className="rounded pt-3 shadow-lg bg-white">
@@ -56,13 +54,12 @@ export const Chart: React.VFC<ChartProps> = ({
         showHourOption={showHourOption}
       />
       <div className="px-2">
-        {isLoading ? (
-          // TODO: add nicer loading indicator
-          <div className="flex text-xl h-96 w-full">
-            <div className="m-auto">Loading...</div>
+        {!data.length ? (
+          <div className="flex text-xl w-full h-[400px]">
+            <div className="m-auto">{placeholder}</div>
           </div>
         ) : data.length ? (
-          <ResponsiveContainer width="100%" height={384}>
+          <ResponsiveContainer width="100%" height={400}>
             <LineChart
               data={data}
               margin={{
