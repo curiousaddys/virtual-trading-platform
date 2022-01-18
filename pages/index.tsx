@@ -101,6 +101,7 @@ const Home: NextPage = () => {
                     isLoading={!chartData}
                     data={chartData}
                     firstAvailableDate={accountInfo.portfolio.created}
+                    showHourOption={true}
                     onDateRangeOptionChange={setChartRange}
                     dateDataKey={'timestamp'}
                     valueDataKey={'balanceUSD'}

@@ -40,6 +40,10 @@ export const DateRangePicker: React.VFC<DateRangePickerProps> = ({
         if (value === DateRangeValue.Hour && !showHourOption) {
           return
         }
+        console.log(`---- text: ${text} ----`)
+        console.log(`min date: ${minDate}`)
+        console.log(`min data date days ago: ${minDataDaysAgo}`)
+        console.log(`days required to show: ${daysRequiredToShow}`)
         return !minDate || minDataDaysAgo >= daysRequiredToShow ? (
           <div
             className={`flex justify-center items-center uppercase bg-gray-300 rounded py-1 px-3 cursor-pointer disabled:cursor-auto select-none text-center text-sm ${

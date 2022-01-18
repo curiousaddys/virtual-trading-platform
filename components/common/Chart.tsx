@@ -13,6 +13,7 @@ interface ChartProps {
   isLoading: boolean
   firstAvailableDate?: Date
   onDateRangeOptionChange: (days: DateRangeValue) => void
+  showHourOption?: boolean
 }
 
 export const Chart: React.VFC<ChartProps> = ({
@@ -24,6 +25,7 @@ export const Chart: React.VFC<ChartProps> = ({
   valueDataKey,
   firstAvailableDate,
   valueLabel,
+  showHourOption,
 }) => {
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
 
@@ -37,6 +39,7 @@ export const Chart: React.VFC<ChartProps> = ({
         selectedDays={chartRange}
         onSelectionChange={setChartRange}
         minDate={firstAvailableDate}
+        showHourOption={showHourOption}
       />
       <div className="px-2">
         {isLoading ? (
