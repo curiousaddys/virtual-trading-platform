@@ -2,7 +2,7 @@ import { DateRangePicker, DateRangeValue } from './DateRangePicker'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
 import { formatUSD } from '../../utils/format'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 interface ChartProps {
   data: any[] // TODO: use more specific type?
@@ -33,6 +33,20 @@ export const Chart: React.VFC<ChartProps> = ({
     onDateRangeOptionChange(chartRange)
   }, [chartRange, onDateRangeOptionChange])
 
+  const tickFormatter = useCallback(
+    (t: any) => {
+      if (dateIsUnixtime) {
+        return chartRange === DateRangeValue.Day
+          ? dayjs.unix(t / 1000).format('hh:mm A')
+          : dayjs.unix(t / 1000).format('MMM D, YYYY')
+      }
+      return chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
+        ? dayjs(t).format('hh:mm A')
+        : dayjs(t).format('MMM D, YYYY')
+    },
+    [chartRange, dateIsUnixtime]
+  )
+
   return (
     <div className="rounded pt-3 shadow-lg bg-white">
       <DateRangePicker
@@ -44,11 +58,11 @@ export const Chart: React.VFC<ChartProps> = ({
       <div className="px-2">
         {isLoading ? (
           // TODO: add nicer loading indicator
-          <div style={{ height: 400, width: '100%' }} className="flex text-xl">
+          <div className="flex text-xl h-96 w-full">
             <div className="m-auto">Loading...</div>
           </div>
         ) : data.length ? (
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={384}>
             <LineChart
               data={data}
               margin={{
@@ -60,16 +74,7 @@ export const Chart: React.VFC<ChartProps> = ({
             >
               <XAxis
                 dataKey={dateDataKey}
-                tickFormatter={(t) => {
-                  if (dateIsUnixtime) {
-                    return chartRange === DateRangeValue.Day
-                      ? dayjs.unix(t / 1000).format('hh:mm A')
-                      : dayjs.unix(t / 1000).format('MMM D, YYYY')
-                  }
-                  return chartRange === DateRangeValue.Hour || chartRange === DateRangeValue.Day
-                    ? dayjs(t).format('hh:mm A')
-                    : dayjs(t).format('MMM D, YYYY')
-                }}
+                tickFormatter={tickFormatter}
                 type="category"
                 domain={['dataMin', 'dataMax']}
                 minTickGap={15}

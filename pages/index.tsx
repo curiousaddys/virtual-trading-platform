@@ -96,7 +96,7 @@ const Home: NextPage = () => {
                 <p className="text-gray-500">{accountInfo?.address}</p>
               </section>
               <section>
-                {chartData && (
+                {chartData ? (
                   <Chart
                     isLoading={!chartData}
                     data={chartData}
@@ -107,7 +107,7 @@ const Home: NextPage = () => {
                     valueDataKey={'balanceUSD'}
                     valueLabel={'Balance'}
                   />
-                )}
+                ) : null}
               </section>
             </>
           ) : null}
