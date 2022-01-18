@@ -94,7 +94,7 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
       renderRow={renderTableRow}
       limitPerPage={15}
       filterOn={['name', 'symbol']}
-      sortBy="current_price"
+      sortBy="total_volume"
     />
   )
 }

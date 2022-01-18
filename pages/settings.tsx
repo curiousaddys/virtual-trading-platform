@@ -132,143 +132,143 @@ const Settings: NextPage = () => {
                   setNewNickname(e.target.value)
                 }}
               />
-                {/*TODO: refactor this into its own component*/}
-                {!isCreatingPortfolio && !isRenamingPortfolio ? (
-                  <>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="active-portfolio"
-                    >
-                      Active Portfolio
-                    </label>
-                    <div className="flex">
-                      <div className="block relative mb-3 w-full">
-                        <select
-                          id="active-portfolio"
-                          value={defaultPortfolioID}
-                          onChange={(e) => {
-                            setDefaultPortfolioID(e.target.value)
-                            setPortfolioName(e.target.options[e.target.selectedIndex].text)
-                          }}
-                          className="block shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        >
-                          {portfolios.map((portfolio) => (
-                            <option key={portfolio._id.toString()} value={portfolio._id.toString()}>
-                              {portfolio.name}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                          <svg
-                            className="fill-current h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <button
-                          type="button"
-                          className="text-sm px-2 py-2 ml-2 border rounded"
-                          onClick={() => {
-                            setPortfolioName(defaultPortfolio?.name ?? '')
-                            setIsRenamingPortfolio(true)
-                          }}
-                        >
-                          Rename
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm px-2 py-2 ml-2 border rounded"
-                          disabled={isSubmitting}
-                          onClick={() => {
-                            setPortfolioName('')
-                            setIsCreatingPortfolio(true)
-                          }}
-                        >
-                          + New
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : isCreatingPortfolio ? (
-                  <>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="new-portfolio-name"
-                    >
-                      New Portfolio Name
-                    </label>
-                    <div className="flex">
-                      <input
-                        id="new-portfolio-name"
-                        autoFocus
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
-                        type="text"
-                        aria-label="portfolio name"
-                        value={portfolioName}
+              {/*TODO: refactor this into its own component*/}
+              {!isCreatingPortfolio && !isRenamingPortfolio ? (
+                <>
+                  <label
+                    className="block text-gray-700 text-sm font-bold mb-2"
+                    htmlFor="active-portfolio"
+                  >
+                    Active Portfolio
+                  </label>
+                  <div className="flex">
+                    <div className="block relative mb-3 w-full">
+                      <select
+                        id="active-portfolio"
+                        value={defaultPortfolioID}
                         onChange={(e) => {
-                          setPortfolioName(e.target.value)
+                          setDefaultPortfolioID(e.target.value)
+                          setPortfolioName(e.target.options[e.target.selectedIndex].text)
                         }}
-                        onKeyUp={(e) => {
-                          e.preventDefault()
-                          if (e.key === 'Enter') {
-                            submitCreatePortfolio()
-                          }
-                        }}
-                      />
-                      <div className="flex-shrink-0">
-                        <button
-                          type="button"
-                          className="text-sm font-bold px-2 py-2 ml-2 border rounded bg-blue-600 hover:bg-blue-800 text-white disabled:opacity-50"
-                          disabled={isSubmitting}
-                          onClick={submitCreatePortfolio}
+                        className="block shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      >
+                        {portfolios.map((portfolio) => (
+                          <option key={portfolio._id.toString()} value={portfolio._id.toString()}>
+                            {portfolio.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg
+                          className="fill-current h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
                         >
-                          Create
-                        </button>
+                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
                       </div>
                     </div>
-                  </>
-                ) : isRenamingPortfolio ? (
-                  <>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="rename-portfolio-name"
-                    >
-                      Portfolio Name
-                    </label>
-                    <div className="flex">
-                      <input
-                        id="rename-portfolio-name"
-                        autoFocus
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
-                        type="text"
-                        aria-label="portfolio name"
-                        value={portfolioName}
-                        onChange={(e) => {
-                          setPortfolioName(e.target.value)
+                    <div className="flex-shrink-0">
+                      <button
+                        type="button"
+                        className="text-sm px-2 py-2 ml-2 border rounded"
+                        onClick={() => {
+                          setPortfolioName(defaultPortfolio?.name ?? '')
+                          setIsRenamingPortfolio(true)
                         }}
-                        onKeyUp={(e) => {
-                          e.preventDefault()
-                          if (e.key === 'Enter') {
-                            submitRenamePortfolio()
-                          }
+                      >
+                        Rename
+                      </button>
+                      <button
+                        type="button"
+                        className="text-sm px-2 py-2 ml-2 border rounded"
+                        disabled={isSubmitting}
+                        onClick={() => {
+                          setPortfolioName('')
+                          setIsCreatingPortfolio(true)
                         }}
-                      />
-                      <div className="flex-shrink-0">
-                        <button
-                          type="button"
-                          className="text-sm font-bold px-2 py-2 ml-2 border rounded bg-blue-600 hover:bg-blue-800 text-white disabled:opacity-50"
-                          onClick={submitRenamePortfolio}
-                        >
-                          Save Name
-                        </button>
-                      </div>
+                      >
+                        + New
+                      </button>
                     </div>
-                  </>
-                ) : null}
+                  </div>
+                </>
+              ) : isCreatingPortfolio ? (
+                <>
+                  <label
+                    className="block text-gray-700 text-sm font-bold mb-2"
+                    htmlFor="new-portfolio-name"
+                  >
+                    New Portfolio Name
+                  </label>
+                  <div className="flex">
+                    <input
+                      id="new-portfolio-name"
+                      autoFocus
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
+                      type="text"
+                      aria-label="portfolio name"
+                      value={portfolioName}
+                      onChange={(e) => {
+                        setPortfolioName(e.target.value)
+                      }}
+                      onKeyUp={(e) => {
+                        e.preventDefault()
+                        if (e.key === 'Enter') {
+                          submitCreatePortfolio()
+                        }
+                      }}
+                    />
+                    <div className="flex-shrink-0">
+                      <button
+                        type="button"
+                        className="text-sm font-bold px-2 py-2 ml-2 border rounded bg-blue-600 hover:bg-blue-800 text-white disabled:opacity-50"
+                        disabled={isSubmitting}
+                        onClick={submitCreatePortfolio}
+                      >
+                        Create
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : isRenamingPortfolio ? (
+                <>
+                  <label
+                    className="block text-gray-700 text-sm font-bold mb-2"
+                    htmlFor="rename-portfolio-name"
+                  >
+                    Portfolio Name
+                  </label>
+                  <div className="flex">
+                    <input
+                      id="rename-portfolio-name"
+                      autoFocus
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-3"
+                      type="text"
+                      aria-label="portfolio name"
+                      value={portfolioName}
+                      onChange={(e) => {
+                        setPortfolioName(e.target.value)
+                      }}
+                      onKeyUp={(e) => {
+                        e.preventDefault()
+                        if (e.key === 'Enter') {
+                          submitRenamePortfolio()
+                        }
+                      }}
+                    />
+                    <div className="flex-shrink-0">
+                      <button
+                        type="button"
+                        className="text-sm font-bold px-2 py-2 ml-2 border rounded bg-blue-600 hover:bg-blue-800 text-white disabled:opacity-50"
+                        onClick={submitRenamePortfolio}
+                      >
+                        Save Name
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : null}
 
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
                 Join Date
@@ -281,19 +281,19 @@ const Settings: NextPage = () => {
                 disabled
               />
 
-             <button
-                  className="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-                  type="submit"
-                  disabled={
-                    !isLoaded ||
-                    !portfolios.length ||
-                    isSubmitting ||
-                    isRenamingPortfolio ||
-                    isCreatingPortfolio
-                  }
-                >
-                  Save
-                </button>
+              <button
+                className="mt-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                type="submit"
+                disabled={
+                  !isLoaded ||
+                  !portfolios.length ||
+                  isSubmitting ||
+                  isRenamingPortfolio ||
+                  isCreatingPortfolio
+                }
+              >
+                Save
+              </button>
             </form>
           </section>
         </>
