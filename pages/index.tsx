@@ -17,6 +17,7 @@ const Home: NextPage = () => {
   const { accountInfo, accountError } = useAccountContext()
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
+  const [chartDataLoading, setChartDataLoading] = useState<boolean>(false)
   const { prices, pricesLoading, pricesError } = usePricesContext()
   const [modalOpen, setModalOpen] = useState(false)
   const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
@@ -42,6 +43,7 @@ const Home: NextPage = () => {
     if (!totalPortfolioBalanceUSD) {
       return
     }
+    setChartDataLoading(true)
     ;(async () => {
       try {
         const data = await ky
@@ -58,6 +60,8 @@ const Home: NextPage = () => {
       } catch (err) {
         console.error(err)
         toast('Error getting portfolio balance history!', { type: 'error' })
+      } finally {
+        setChartDataLoading(false)
       }
     })()
   }, [totalPortfolioBalanceUSD, chartRange])
@@ -96,9 +100,8 @@ const Home: NextPage = () => {
                 <p className="text-gray-500">{accountInfo?.address}</p>
               </section>
               <section>
-                {chartData && (
+                {chartData ? (
                   <Chart
-                    isLoading={!chartData}
                     data={chartData}
                     firstAvailableDate={accountInfo.portfolio.created}
                     showHourOption={true}
@@ -106,8 +109,9 @@ const Home: NextPage = () => {
                     dateDataKey={'timestamp'}
                     valueDataKey={'balanceUSD'}
                     valueLabel={'Balance'}
+                    placeholder={chartDataLoading ? 'Loading...' : 'No data'}
                   />
-                )}
+                ) : null}
               </section>
             </>
           ) : null}

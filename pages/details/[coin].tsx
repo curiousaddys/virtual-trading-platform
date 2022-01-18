@@ -24,7 +24,6 @@ const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')
   const [coinInvalid, setCoinInvalid] = useState<boolean>(false)
   const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(coin)
-  // TODO: show some loading spinner or skeleton if loading
   const { priceHistory, priceHistoryLoading, priceHistoryError, setDateRange } =
     usePriceHistory(coin)
   const { accountInfo } = useAccountContext()
@@ -139,13 +138,13 @@ const Details: NextPage = () => {
             </h2>
 
             <Chart
-              isLoading={priceHistoryLoading}
               data={priceHistory?.prices || []}
               onDateRangeOptionChange={setDateRange}
               dateDataKey={'0'}
               dateIsUnixtime={true}
               valueDataKey={'1'}
               valueLabel={'Price'}
+              placeholder={priceHistoryLoading ? 'Loading...' : 'No data to display.'}
             />
 
             <div className="grid grid-cols-2 md:grid-cols-4 my-5">
