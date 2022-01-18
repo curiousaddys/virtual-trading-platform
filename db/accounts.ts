@@ -1,24 +1,26 @@
 import { getMongoDB } from './client'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
+
+export const ACCOUNT_COLLECTION = 'accounts'
 
 export interface Account {
-  _id: ObjectID
+  _id: ObjectId
   address: string
   nickname: string
   joined: Date
   lastLogin: Date
-  defaultPortfolioID: ObjectID
+  defaultPortfolioID: ObjectId
 }
 
 const getAccountsCollection = async () => {
-  const { client, db } = await getMongoDB()
-  const collection = db.collection<Account>('accounts')
+  const { db } = await getMongoDB()
+  const collection = db.collection<Account>(ACCOUNT_COLLECTION)
   await collection.createIndex({ address: 1 })
-  return { client, collection }
+  return collection
 }
 
 export const findOrInsertAccount = async (address: string) => {
-  const { collection } = await getAccountsCollection()
+  const collection = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {
@@ -27,7 +29,7 @@ export const findOrInsertAccount = async (address: string) => {
         address,
         nickname: 'Anonymous User',
         joined: new Date(),
-        defaultPortfolioID: new ObjectID(),
+        defaultPortfolioID: new ObjectId(), // really more of an "active" portfolio ID
       },
       $set: {
         lastLogin: new Date(),
@@ -42,7 +44,7 @@ export const findOrInsertAccount = async (address: string) => {
 }
 
 export const updateAccount = async (address: string, account: Partial<Account>) => {
-  const { collection } = await getAccountsCollection()
+  const collection = await getAccountsCollection()
   const result = await collection.findOneAndUpdate(
     { address },
     {

@@ -1,19 +1,26 @@
 import { getMongoDB } from './client'
 import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
-import { ObjectID } from 'bson'
+import { ObjectId } from 'mongodb'
 import { Collection } from 'mongodb'
 import dayjs from 'dayjs'
 import { DateRangeValue } from '../components/common/DateRangePicker'
+import { ACCOUNT_COLLECTION } from './accounts'
+import { PORTFOLIOS_COLLECTION } from './portfolios'
+
+export const PORTFOLIO_HISTORY_MINUTELY_COLLECTION = 'portfolioHistory_minutely'
+export const PORTFOLIO_HISTORY_EVERY_FIVE_MIN_COLLECTION = 'portfolioHistory_everyFiveMin'
+export const PORTFOLIO_HISTORY_HOURLY_COLLECTION = 'portfolioHistory_hourly'
+export const PORTFOLIO_HISTORY_DAILY_COLLECTION = 'portfolioHistory_daily'
 
 export interface PortfolioBalance {
   timestamp: Date
-  portfolioID: ObjectID
+  portfolioID: ObjectId
   balanceUSD: number
 }
 
 export const getPortfolioHistoryMinutelyCollection = async () => {
-  const { client, db } = await getMongoDB()
-  const collection = await db.collection<PortfolioBalance>('portfolioHistory_minutely')
+  const { db } = await getMongoDB()
+  const collection = await db.collection<PortfolioBalance>(PORTFOLIO_HISTORY_MINUTELY_COLLECTION)
   await collection.createIndex(
     { timestamp: -1 },
     {
@@ -21,12 +28,14 @@ export const getPortfolioHistoryMinutelyCollection = async () => {
     }
   )
   await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
-  return { client, collection }
+  return collection
 }
 
 export const getPortfolioHistoryEveryFiveMinCollection = async () => {
   const { db } = await getMongoDB()
-  const collection = await db.collection<PortfolioBalance>('portfolioHistory_everyFiveMin')
+  const collection = await db.collection<PortfolioBalance>(
+    PORTFOLIO_HISTORY_EVERY_FIVE_MIN_COLLECTION
+  )
   await collection.createIndex(
     { timestamp: -1 },
     {
@@ -34,12 +43,12 @@ export const getPortfolioHistoryEveryFiveMinCollection = async () => {
     }
   )
   await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
-  return { collection }
+  return collection
 }
 
 export const getPortfolioHistoryHourlyCollection = async () => {
   const { db } = await getMongoDB()
-  const collection = await db.collection<PortfolioBalance>('portfolioHistory_hourly')
+  const collection = await db.collection<PortfolioBalance>(PORTFOLIO_HISTORY_HOURLY_COLLECTION)
   await collection.createIndex(
     { timestamp: -1 },
     {
@@ -47,23 +56,24 @@ export const getPortfolioHistoryHourlyCollection = async () => {
     }
   )
   await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
-  return { collection }
+  return collection
 }
 
 export const getPortfolioHistoryDailyCollection = async () => {
   const { db } = await getMongoDB()
-  const collection = await db.collection<PortfolioBalance>('portfolioHistory_daily')
+  const collection = await db.collection<PortfolioBalance>(PORTFOLIO_HISTORY_DAILY_COLLECTION)
   await collection.createIndex({ timestamp: -1 })
   await collection.createIndex({ portfolioID: 1, timestamp: -1 }, { unique: true })
-  return { collection }
+  return collection
 }
 
 // Returns the number of records inserted.
 export const insertMinutelyPortfolioHistory = async (
   history: PortfolioBalance[]
 ): Promise<number> => {
-  const { client, collection } = await getPortfolioHistoryMinutelyCollection()
-  const session = await client.startSession()
+  const { client, db } = await getMongoDB()
+  const collection = await db.collection<PortfolioBalance>(PORTFOLIO_HISTORY_MINUTELY_COLLECTION)
+  const session = client.startSession()
   try {
     const result = await collection.insertMany(history, {
       ordered: false,
@@ -72,6 +82,7 @@ export const insertMinutelyPortfolioHistory = async (
     await session.endSession()
     return result.insertedCount
   } catch (err: any) {
+    await session.endSession()
     // Ignore duplicate key errors since that just means we tried to insert the same data twice.
     if (err.code === 11000) {
       return err.result.nInserted
@@ -85,7 +96,7 @@ export const persistPortfolioBalances = async (
   targetCollection: Collection<PortfolioBalance>,
   timestamp: Date
 ) => {
-  const { collection } = await getPortfolioHistoryMinutelyCollection()
+  const collection = await getPortfolioHistoryMinutelyCollection()
   return await collection
     .aggregate([
       // sort by timestamp desc
@@ -140,8 +151,8 @@ const getPortfolioHistoryCollectionForDays = {
   [DateRangeValue.Max]: getPortfolioHistoryDailyCollection,
 }
 
-export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: DateRangeValue) => {
-  const { collection } = await getPortfolioHistoryCollectionForDays[days]()
+export const getPortfolioBalanceHistory = async (portfolioID: ObjectId, days: DateRangeValue) => {
+  const collection = await getPortfolioHistoryCollectionForDays[days]()
   const startDate = (
     days === 'max' ? dayjs('1970-01-01') : dayjs().subtract(parseInt(days), 'day')
   ).toDate()
@@ -151,21 +162,16 @@ export const getPortfolioBalanceHistory = async (portfolioID: ObjectID, days: Da
 }
 
 export interface TopPortfolio {
-  _id: ObjectID
+  _id: ObjectId
   balanceUSD: number
   accountNickname: string
+  portfolioName: string
 }
 
 export const getTopPortfolios = async (limit: number) => {
-  const { collection } = await getPortfolioHistoryMinutelyCollection()
+  const collection = await getPortfolioHistoryMinutelyCollection()
   const results = await collection.aggregate<TopPortfolio>([
-    // Sort by timestamp desc.
-    {
-      $sort: {
-        timestamp: -1,
-      },
-    },
-    // Group by portfolio ID to get latest balance for each portfolio.
+    // Group by portfolio ID to get the latest balance for each portfolio.
     {
       $group: {
         _id: '$portfolioID',
@@ -174,14 +180,20 @@ export const getTopPortfolios = async (limit: number) => {
         },
       },
     },
-    // Limit to top 10 now so we have much less data to work with.
+    // Sort by balance to find the top portfolios
     {
-      $limit: 10,
+      $sort: {
+        balanceUSD: -1,
+      },
+    },
+    // Limit to top 10 now so that we have less data to work with.
+    {
+      $limit: limit,
     },
     // Lookup (join) full portfolio data for the top 10.
     {
       $lookup: {
-        from: 'portfolios',
+        from: PORTFOLIOS_COLLECTION,
         localField: '_id',
         foreignField: '_id',
         as: 'portfolio',
@@ -194,12 +206,13 @@ export const getTopPortfolios = async (limit: number) => {
         _id: 1,
         balanceUSD: 1,
         accountID: '$portfolio.accountID',
+        portfolioName: '$portfolio.name',
       },
     },
     // Lookup (join) full account data.
     {
       $lookup: {
-        from: 'accounts',
+        from: ACCOUNT_COLLECTION,
         localField: 'accountID',
         foreignField: '_id',
         as: 'account',
@@ -212,6 +225,7 @@ export const getTopPortfolios = async (limit: number) => {
         _id: 1,
         balanceUSD: 1,
         accountNickname: '$account.nickname',
+        portfolioName: '$portfolioName',
       },
     },
     { $sort: { balanceUSD: -1 } },

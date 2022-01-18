@@ -3,17 +3,21 @@ import { auth } from '../../utils/auth'
 import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { z } from 'zod'
 import { SUPPORTED_COINS } from '../../utils/constants'
-import { ObjectID } from 'bson'
-import { deleteTransaction, insertTransaction } from '../../db/transactions'
+import { ObjectId } from 'mongodb'
+import { insertTransaction } from '../../db/transactions'
 import got from 'got'
 import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { sessionOptions } from '../../utils/config'
-import { findPortfolioByID, Portfolio, updatePortfolio } from '../../db/portfolios'
+import { findPortfolioByID, Portfolio, updatePortfolioBalance } from '../../db/portfolios'
+import { getMongoDB } from '../../db/client'
 
 const QuerySchema = z.object({
-  portfolioID: z.string(),
+  portfolioID: z
+    .string()
+    .nonempty()
+    .transform((val) => new ObjectId(val)),
   coin: z.enum(SUPPORTED_COINS),
   transactInUSD: z.preprocess((a) => a === 'true', z.boolean()),
   amountUSD: z.preprocess((a) => parseFloat(z.string().parse(a)), z.number()),
@@ -41,7 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
     const calculatedAmountCoin = transactInUSD ? amountUSD / exchangeRate : amountCoin
     const calculatedAmountUSD = transactInUSD ? amountUSD : exchangeRate * amountCoin
 
-    const portfolio = await findPortfolioByID(_id, new ObjectID(portfolioID))
+    const portfolio = await findPortfolioByID(_id, portfolioID)
 
     if (action === BuySellAction.Buy) {
       const balanceUSD =
@@ -59,35 +63,39 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       }
     }
 
-    // TODO: maybe create a db transaction here, if mongo supports it, so it's easier to rollback?
-    const transactionID = await insertTransaction({
-      _id: new ObjectID(),
-      accountID: new ObjectID(_id.toString()),
-      action,
-      currency: coin,
-      exchangeRateUSD: exchangeRate,
-      portfolioID: portfolio._id,
-      timestamp: new Date(),
-      amountUSD: calculatedAmountUSD,
-      amountCoin: calculatedAmountCoin,
-    })
+    // Start a session for a db transaction.
+    const { client } = await getMongoDB()
+    const session = client.startSession()
 
-    await updatePortfolio(
-      // TODO: make interface to hold params to make this easier to read
-      _id,
-      portfolio,
-      coin,
-      action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,
-      action === BuySellAction.Buy ? calculatedAmountUSD : -calculatedAmountUSD
-    )
-      .then((newPortfolioInfo) => {
-        res.status(200).json(newPortfolioInfo)
-      })
-      .catch(async (err) => {
-        console.error(err)
-        await deleteTransaction(transactionID)
-        return res.status(500).json({ error: 'failure to update portfolio (database error)' })
-      })
+    await session.withTransaction(async () => {
+      await insertTransaction(
+        {
+          _id: new ObjectId(),
+          accountID: _id,
+          action,
+          currency: coin,
+          exchangeRateUSD: exchangeRate,
+          portfolioID: portfolio._id,
+          timestamp: new Date(),
+          amountUSD: calculatedAmountUSD,
+          amountCoin: calculatedAmountCoin,
+        },
+        session
+      )
+      const updatedPortfolio = await updatePortfolioBalance(
+        {
+          accountID: _id,
+          portfolio,
+          currency: coin,
+          amount: action === BuySellAction.Buy ? calculatedAmountCoin : -calculatedAmountCoin,
+          costUSD: action === BuySellAction.Buy ? calculatedAmountUSD : -calculatedAmountUSD,
+        },
+        session
+      )
+      // TODO: Double check that doing this inside of the transaction won't lead to any issues.
+      res.status(200).json(updatedPortfolio)
+    })
+    await session.endSession()
   } catch (err: any) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })

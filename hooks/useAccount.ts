@@ -3,7 +3,6 @@ import ky from 'ky'
 import { AccountWithPortfolio } from '../pages/api/account'
 
 export const useAccount = () => {
-  // TODO: consider separating account & portfolio in state
   const [accountInfo, setAccountInfo] = useState<AccountWithPortfolio | null>(null)
   const [accountError, setAccountError] = useState<any>(null)
   const [isLoaded, setIsLoaded] = useState<boolean>(false)
