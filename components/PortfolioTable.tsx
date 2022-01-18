@@ -6,6 +6,8 @@ import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
 import { BuySellAction } from './BuySellModal'
 import { useAccountContext } from '../hooks/useAccount'
+import { Holding } from '../db/portfolios'
+import { Price } from '../pages/api/prices'
 
 interface PortfolioTableRow {
   id: string
@@ -28,6 +30,29 @@ const portfolioTableHeaders: TableHeader[] = [
   {},
 ]
 
+const calculateTableData = (
+  holdings: Holding[],
+  prices: Price[],
+  totalBalance: number
+): PortfolioTableRow[] =>
+  holdings.flatMap((h) => {
+    const coin = prices.find((price) => price.id === h.currency)
+    if (!coin || !h.amount) return []
+    return {
+      id: coin.id,
+      name: coin.name,
+      symbol: coin.symbol.toUpperCase(),
+      image: coin.image,
+      balanceAmount: h.amount,
+      balanceValue: coin.current_price * h.amount,
+      profitAmt: h.amount * coin.current_price - h.amount * h.avgBuyCost,
+      profitPct:
+        ((h.amount * coin.current_price - h.amount * h.avgBuyCost) / (h.amount * h.avgBuyCost)) *
+        100,
+      allocation: ((coin.current_price * h.amount) / totalBalance) * 100,
+    }
+  })
+
 interface PortfolioTableProps {
   totalPortfolioBalanceUSD: number
   // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
@@ -42,24 +67,11 @@ export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
     (): PortfolioTableRow[] =>
       !accountInfo
         ? []
-        : accountInfo.portfolio.holdings.flatMap((h) => {
-            const coin = prices.find((price) => price.id === h.currency)
-            if (!coin || !h.amount) return []
-            return {
-              id: coin.id,
-              name: coin.name,
-              symbol: coin.symbol.toUpperCase(),
-              image: coin.image,
-              balanceAmount: h.amount,
-              balanceValue: coin.current_price * h.amount,
-              profitAmt: h.amount * coin.current_price - h.amount * h.avgBuyCost,
-              profitPct:
-                ((h.amount * coin.current_price - h.amount * h.avgBuyCost) /
-                  (h.amount * h.avgBuyCost)) *
-                100,
-              allocation: ((coin.current_price * h.amount) / props.totalPortfolioBalanceUSD) * 100,
-            }
-          }),
+        : calculateTableData(
+            accountInfo.portfolio.holdings,
+            prices,
+            props.totalPortfolioBalanceUSD
+          ),
     [accountInfo, prices, props.totalPortfolioBalanceUSD]
   )
 
