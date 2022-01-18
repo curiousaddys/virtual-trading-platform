@@ -7,11 +7,11 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
-import { GeckoPrices } from '../api/CoinGecko/markets'
 import { Portfolio } from '../db/portfolios'
 import { usePricesContext } from '../hooks/usePrices'
 import { ErrResp } from '../utils/errors'
 import { FloatInput } from './common/FloatInput'
+import { Price } from '../pages/api/prices'
 
 export interface BuySellModalProps {
   onClose: () => void
@@ -45,7 +45,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   const [amountUSD, setAmountUSD] = useState(0)
   const [amountCoin, setAmountCoin] = useState(0)
   const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
-  const [coinPriceData, setCoinPriceData] = useState<GeckoPrices | null>(null)
+  const [coinPriceData, setCoinPriceData] = useState<Price | null>(null)
   const { prices } = usePricesContext()
   const { accountInfo, setAccountInfo } = useAccountContext()
   const [availableToSpend, setAvailableToSpend] = useState<number>(0)
