@@ -7,6 +7,7 @@ import ky from 'ky'
 import { PageWrapper } from '../components/common/PageWrapper'
 import { AccountWithPortfolio } from './api/account'
 import { usePortfolios } from '../hooks/usePortfolios'
+import { ErrResp } from '../utils/errors'
 
 const Settings: NextPage = () => {
   const { accountInfo, setAccountInfo, accountError, isLoaded } = useAccountContext()
@@ -55,18 +56,11 @@ const Settings: NextPage = () => {
         setAccountInfo(data)
         toast('Account updated!', { type: 'success' })
       })
-      .catch((err) => {
-        err.response
-          .json()
-          .then((error: { error: string }) => {
-            console.error(error.error)
-            toast(`Error updating account: ${error.error}.`, { type: 'error' })
-          })
-          .catch((error: any) => {
-            console.error(error)
-            toast(`Error updating account: unknown error.`, { type: 'error' })
-          })
-      })
+      .catch((err) =>
+        err.response.json().then((error: ErrResp) => {
+          toast(`Error updating account: ${error.error}`, { type: 'error' })
+        })
+      )
       .finally(() => setIsSubmitting(false))
   }
 
@@ -74,15 +68,12 @@ const Settings: NextPage = () => {
     setIsSubmitting(true)
     try {
       const newPortfolio = await createPortfolio(portfolioName)
-      if (!newPortfolio) {
-        toast('Failed to create new portfolio!', { type: 'error' })
-        return
-      }
       toast('New portfolio created!', { type: 'success' })
       setIsCreatingPortfolio(false)
       setDefaultPortfolioID(newPortfolio._id.toString())
     } catch (err) {
       console.error(err)
+      toast(`Error creating portfolio: ${err}`, { type: 'error' })
     } finally {
       setIsSubmitting(false)
     }
@@ -92,15 +83,12 @@ const Settings: NextPage = () => {
     setIsSubmitting(true)
     try {
       const updatedPortfolio = await updatePortfolio(defaultPortfolioID, portfolioName)
-      if (!updatedPortfolio) {
-        toast('Failed to rename portfolio!', { type: 'error' })
-        return
-      }
       toast('Portfolio renamed successfully!', { type: 'success' })
       setIsRenamingPortfolio(false)
       setDefaultPortfolioID(updatedPortfolio._id.toString())
     } catch (err) {
       console.error(err)
+      toast(`Error renaming portfolio: ${err}`, { type: 'error' })
     } finally {
       setIsSubmitting(false)
     }
