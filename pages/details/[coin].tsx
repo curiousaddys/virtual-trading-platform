@@ -1,7 +1,7 @@
 import { NextPage } from 'next'
 import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
-import { formatFloat, formatInt, formatUSD, stripHtmlTags } from '../../utils/format'
+import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
@@ -133,23 +133,23 @@ const Details: NextPage = () => {
             )}
           </section>
 
-            <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-9 mb-6">
-              <h2 className="text-5xl text-black font-semibold m-2 mb-5">
-                {formatUSD(coinDetails.market_data.current_price.usd)}
-              </h2>
+          <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-9 mb-6">
+            <h2 className="text-5xl text-black font-semibold m-2 mb-5">
+              {formatUSD(coinDetails.market_data.current_price.usd)}
+            </h2>
 
-              <Chart
-                isLoading={priceHistoryLoading}
-                data={priceHistory?.prices || []}
-                onDateRangeOptionChange={setDateRange}
-                dateDataKey={'0'}
-                dateIsUnixtime={true}
-                valueDataKey={'1'}
-                valueLabel={'Price'}
-              />
+            <Chart
+              isLoading={priceHistoryLoading}
+              data={priceHistory?.prices || []}
+              onDateRangeOptionChange={setDateRange}
+              dateDataKey={'0'}
+              dateIsUnixtime={true}
+              valueDataKey={'1'}
+              valueLabel={'Price'}
+            />
 
-              <div className="grid grid-cols-2 md:grid-cols-4 my-5">
-                <DataCard
+            <div className="grid grid-cols-2 md:grid-cols-4 my-5">
+              <DataCard
                 title={'Last Hour'}
                 value={coinDetails.market_data.price_change_percentage_1h_in_currency.usd}
                 format={'percent'}
