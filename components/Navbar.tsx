@@ -14,7 +14,7 @@ export const Navbar: React.VFC = () => {
         <div className="flex justify-between">
           <div className="flex space-x-7">
             <div>
-              <div className="flex items-center py-4 px-2">
+              <div className="flex items-center py-4 px-2 gap-2">
                 <span className="font-semibold text-gray-500 text-lg">
                   <Link href="/">Virtual Trading Platform</Link>
                 </span>
