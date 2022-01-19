@@ -33,7 +33,6 @@ specifiers:
   prop-types: ^15.8.1
   react: 17.0.2
   react-cookie: ^4.1.1
-  react-device-detect: ^2.1.2
   react-dom: 17.0.2
   react-paginate: ^8.1.0
   react-select: ^5.2.1
@@ -63,7 +62,6 @@ dependencies:
   next: 12.0.7_dfc0b93d99fba272c9564d3139a2581a
   react: 17.0.2
   react-cookie: 4.1.1_react@17.0.2
-  react-device-detect: 2.1.2_react-dom@17.0.2+react@17.0.2
   react-dom: 17.0.2_react@17.0.2
   react-paginate: 8.1.0_react@17.0.2
   react-select: 5.2.1_7bbce684fccbc97e1ca1dd7122153c55
@@ -3990,17 +3988,6 @@ packages:
       universal-cookie: 4.0.4
     dev: false
 
-  /react-device-detect/2.1.2_react-dom@17.0.2+react@17.0.2:
-    resolution: {integrity: sha512-N42xttwez3ECgu4KpOL2ICesdfoz8NCBfmc1rH9FRYSjH7NmMyANPSrQ3EvAtJyj/6TzJNhrANSO38iXjCB2Ug==}
-    peerDependencies:
-      react: '>= 0.14.0 < 18.0.0'
-      react-dom: '>= 0.14.0 < 18.0.0'
-    dependencies:
-      react: 17.0.2
-      react-dom: 17.0.2_react@17.0.2
-      ua-parser-js: 0.7.31
-    dev: false
-
   /react-dom/17.0.2_react@17.0.2:
     resolution: {integrity: sha512-s4h96KtLDUQlsENhMn1ar8t2bEa+q/YAtj8pPPdIjPDGBDIVNsrD9aXNWqspUe6AzKCIG0C1HZZLqLV7qpOBGA==}
     peerDependencies:
@@ -4694,10 +4681,6 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
-
-  /ua-parser-js/0.7.31:
-    resolution: {integrity: sha512-qLK/Xe9E2uzmYI3qLeOmI0tEOt+TBBQyUIAh4aAgU05FVYzeZrKUdkAZfBNVGRaHVgV0TDkdEngJSw/SyQchkQ==}
-    dev: false
 
   /unbox-primitive/1.0.1:
     resolution: {integrity: sha512-tZU/3NqK3dA5gpE1KtyiJUrEB0lxnGkMFHptJ7q6ewdZ8s12QrODwNbhIJStmJkd1QDXa1NRA8aF2A1zk/Ypyw==}
