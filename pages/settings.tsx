@@ -57,16 +57,15 @@ const Settings: NextPage = () => {
       .then((data) => {
         setAccountInfo(data)
         toast('Account updated!', { type: 'success' })
+        goHome()
       })
       .catch((err) =>
         err.response.json().then((error: ErrResp) => {
           toast(`Error updating account: ${error.error}`, { type: 'error' })
         })
       )
-
       .finally(() => {
         setIsSubmitting(false)
-        goHome()
       })
   }
 
