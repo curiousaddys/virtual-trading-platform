@@ -8,8 +8,10 @@ import { PageWrapper } from '../components/common/PageWrapper'
 import { AccountWithPortfolio } from './api/account'
 import { usePortfolios } from '../hooks/usePortfolios'
 import { ErrResp } from '../utils/errors'
+import { useRouter } from 'next/router'
 
 const Settings: NextPage = () => {
+  const router = useRouter()
   const { accountInfo, setAccountInfo, accountError, isLoaded } = useAccountContext()
   const [newNickname, setNewNickname] = useState<string | undefined>(undefined)
   const [defaultPortfolioID, setDefaultPortfolioID] = useState<string>('')
@@ -61,7 +63,11 @@ const Settings: NextPage = () => {
           toast(`Error updating account: ${error.error}`, { type: 'error' })
         })
       )
-      .finally(() => setIsSubmitting(false))
+
+      .finally(() => {
+        setIsSubmitting(false)
+        goHome()
+      })
   }
 
   const submitCreatePortfolio = useCallback(async () => {
@@ -93,6 +99,10 @@ const Settings: NextPage = () => {
       setIsSubmitting(false)
     }
   }, [updatePortfolio, portfolioName, defaultPortfolioID])
+
+  const goHome = () => {
+    router.push('/')
+  }
 
   return (
     <PageWrapper title="User Settings">
@@ -281,6 +291,14 @@ const Settings: NextPage = () => {
                 }
               >
                 Save
+              </button>
+              <button
+                className="mt-5 bg-gray-400 hover:bg-gray-700 text-white font-bold py-2 px-4 mx-3 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                type="button"
+                onClick={goHome}
+                disabled={isSubmitting || isRenamingPortfolio || isCreatingPortfolio}
+              >
+                Cancel
               </button>
             </form>
           </section>
