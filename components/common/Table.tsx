@@ -26,11 +26,12 @@ export const Table: React.VFC<TableProps> = (props) => {
   useEffect(() => {
     setAllItems(
       props.data
-        .filter((item) =>
-          props.filterOn?.some((filter) =>
+        .filter((item) => {
+          if (!props.filterOn?.length) return true
+          return props.filterOn?.some((filter) =>
             item[filter].toLowerCase().startsWith(filterQuery.toLowerCase())
           )
-        )
+        })
         .sort((a, b) => {
           if (typeof a[sortField] === 'string') {
             return sortDesc
@@ -56,7 +57,7 @@ export const Table: React.VFC<TableProps> = (props) => {
     <>
       <div className="flex flex-row justify-between">
         {/*Title*/}
-        <h2 className="text-lg text-black font-semibold mt-10">{props.title}</h2>
+        <h2 className="text-lg text-black font-semibold">{props.title}</h2>
         {/*Search field*/}
         {!props.filterOn ? null : (
           <div className="flex flex-col justify-end">
@@ -74,39 +75,41 @@ export const Table: React.VFC<TableProps> = (props) => {
           </div>
         )}
       </div>
-      <div className="shadow border mt-2 bg-white">
-        <table className="table-auto w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              {props.headers.map((header, i) => (
-                <HeaderCell
-                  key={i}
-                  isSortedAsc={!sortDesc && sortField === header.accessor}
-                  isSortedDesc={sortDesc && sortField === header.accessor}
-                  {...header}
-                  onClick={handleHeaderClick}
-                />
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white">{currentItems.map(props.renderRow)}</tbody>
-        </table>
+      <div className="mb-10">
+        <div className="shadow border mt-2 bg-white">
+          <table className="table-auto w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                {props.headers.map((header, i) => (
+                  <HeaderCell
+                    key={i}
+                    isSortedAsc={!sortDesc && sortField === header.accessor}
+                    isSortedDesc={sortDesc && sortField === header.accessor}
+                    {...header}
+                    onClick={handleHeaderClick}
+                  />
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white">{currentItems.map(props.renderRow)}</tbody>
+          </table>
+        </div>
+        {props.limitPerPage ? (
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={handlePageClick}
+            pageRangeDisplayed={5}
+            pageCount={pageCount}
+            previousLabel="< previous"
+            // TODO: improve styling
+            className="flex flex-row justify-between mx-10 mt-3 text-gray-500"
+            activeClassName="font-bold text-blue-500"
+            marginPagesDisplayed={1}
+            renderOnZeroPageCount={() => null}
+          />
+        ) : null}
       </div>
-      {props.limitPerPage ? (
-        <ReactPaginate
-          breakLabel="..."
-          nextLabel="next >"
-          onPageChange={handlePageClick}
-          pageRangeDisplayed={5}
-          pageCount={pageCount}
-          previousLabel="< previous"
-          // TODO: improve styling
-          className="flex flex-row justify-between mx-10 mt-3 text-gray-500"
-          activeClassName="font-bold text-blue-500"
-          marginPagesDisplayed={1}
-          renderOnZeroPageCount={() => null}
-        />
-      ) : null}
     </>
   )
 }

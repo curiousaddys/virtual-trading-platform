@@ -1,5 +1,10 @@
 import { getMongoDB } from './client'
-import { ONE_DAY_SEC, ONE_HOUR_SEC, THIRTY_DAYS_SEC } from '../utils/constants'
+import {
+  INITIAL_PORTFOLIO_FUND_AMOUNT,
+  ONE_DAY_SEC,
+  ONE_HOUR_SEC,
+  THIRTY_DAYS_SEC,
+} from '../utils/constants'
 import { ObjectId } from 'mongodb'
 import { Collection } from 'mongodb'
 import dayjs from 'dayjs'
@@ -166,6 +171,7 @@ export interface TopPortfolio {
   balanceUSD: number
   accountNickname: string
   portfolioName: string
+  rowNumber: number
 }
 
 export const getTopPortfolios = async (limit: number) => {
@@ -178,6 +184,15 @@ export const getTopPortfolios = async (limit: number) => {
         balanceUSD: {
           $first: '$balanceUSD',
         },
+      },
+    },
+    // TODO: It's possible that this will exclude some people who have already made the trades,
+    // but the margin for that happening seems pretty low. In the future, it may be
+    // better to store the total amount of transactions made in each portfolio in the history
+    // so that we can filter by that instead.
+    {
+      $match: {
+        balanceUSD: { $ne: INITIAL_PORTFOLIO_FUND_AMOUNT },
       },
     },
     // Sort by balance to find the top portfolios
@@ -228,7 +243,13 @@ export const getTopPortfolios = async (limit: number) => {
         portfolioName: '$portfolioName',
       },
     },
-    { $sort: { balanceUSD: -1 } },
+    {
+      $setWindowFields: {
+        sortBy: { balanceUSD: -1 },
+        output: { rowNumber: { $documentNumber: {} } },
+      },
+    },
+    // { $sort: { balanceUSD: -1 } },
   ])
   return await results.toArray()
 }

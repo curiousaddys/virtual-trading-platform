@@ -58,7 +58,7 @@ export default async function handler(
       timestamp: timestamp,
       portfolioID: portfolio._id,
       balanceUSD: portfolio.holdings.reduce(
-        (prev: number, cur: Holding) => prev + cur.amount * currentPrices[cur.currency],
+        (prev: number, cur: Holding) => prev + cur.amount * (currentPrices[cur.currency] ?? 0),
         0
       ),
     }))

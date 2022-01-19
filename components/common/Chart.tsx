@@ -34,7 +34,7 @@ export const Chart: React.VFC<ChartProps> = ({
   }, [chartRange, onDateRangeOptionChange])
 
   return (
-    <div className="rounded pt-3 shadow-lg bg-white">
+    <div className="rounded pt-3 shadow-lg bg-white mb-10">
       <DateRangePicker
         selectedDays={chartRange}
         onSelectionChange={setChartRange}
