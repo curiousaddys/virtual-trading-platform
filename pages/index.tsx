@@ -1,9 +1,8 @@
 import type { NextPage } from 'next'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
 import { useAccountContext } from '../hooks/useAccount'
 import { formatUSD } from '../utils/format'
-import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
 import { DateRangeValue } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 import { toast } from 'react-toastify'
@@ -12,16 +11,17 @@ import { Chart } from '../components/common/Chart'
 import { PortfolioTable } from '../components/PortfolioTable'
 import { AllPricesTable } from '../components/AllPricesTable'
 import { PageWrapper } from '../components/common/PageWrapper'
+import dayjs from 'dayjs'
+import { WelcomeModal } from '../components/WelcomeModal'
 
 const Home: NextPage = () => {
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState<boolean>(false)
+  const [welcomeModelSeen, setWelcomeModelSeen] = useState<boolean>(false)
   const { accountInfo, accountError } = useAccountContext()
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
   const [chartDataLoading, setChartDataLoading] = useState<boolean>(false)
   const { prices, pricesLoading, pricesError } = usePricesContext()
-  const [modalOpen, setModalOpen] = useState(false)
-  const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
-  const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
   const totalPortfolioBalanceUSD = useMemo(() => {
     if (!prices || !accountInfo?.portfolio.holdings) return 0
@@ -31,12 +31,6 @@ const Home: NextPage = () => {
       0
     )
   }, [prices, accountInfo])
-
-  const openBuySellModal = useCallback((value: string, label: string, action: BuySellAction) => {
-    setBuySellCurrency({ value, label })
-    setBuySellAction(action)
-    setModalOpen(true)
-  }, [])
 
   // Get fresh data for portfolio price history graph whenever balance changes.
   useEffect(() => {
@@ -78,19 +72,22 @@ const Home: NextPage = () => {
     }
   }, [accountError, pricesError])
 
+  // Show the welcome model if the account is less than 1 min old & they haven't set a nickname
+  // or dismissed the model since the page loaded.
+  useEffect(() => {
+    if (!accountInfo?.joined || accountInfo.nickname || welcomeModelSeen) return
+    const joinDateSecAgo = dayjs().diff(accountInfo.joined, 'seconds')
+    if (joinDateSecAgo < 10) {
+      setWelcomeModalOpen(true)
+    }
+  }, [accountInfo?.joined, accountInfo?.nickname, welcomeModelSeen])
+
   return (
     <PageWrapper>
       {pricesLoading ? (
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          {modalOpen ? (
-            <BuySellModal
-              currency={buySellCurrency}
-              onClose={() => setModalOpen(false)}
-              action={buySellAction}
-            />
-          ) : null}
           {prices && accountInfo ? (
             <>
               <section className="mb-2">
@@ -116,15 +113,19 @@ const Home: NextPage = () => {
             </>
           ) : null}
           {accountInfo ? (
-            <PortfolioTable
-              totalPortfolioBalanceUSD={totalPortfolioBalanceUSD}
-              // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
-              onSellButtonClick={openBuySellModal}
-            />
+            <PortfolioTable totalPortfolioBalanceUSD={totalPortfolioBalanceUSD} />
           ) : null}
-          <AllPricesTable onBuyButtonClick={openBuySellModal} />
+          <AllPricesTable />
         </>
       )}
+      {welcomeModalOpen ? (
+        <WelcomeModal
+          onClose={() => {
+            setWelcomeModelSeen(true)
+            setWelcomeModalOpen(false)
+          }}
+        />
+      ) : null}
     </PageWrapper>
   )
 }

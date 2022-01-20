@@ -1,10 +1,6 @@
 import { NextPage } from 'next'
 import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
-import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
-import dayjs from 'dayjs'
-import Link from 'next/link'
-import { BuySellAction, BuySellModal } from '../../components/BuySellModal'
 import { useAccountContext } from '../../hooks/useAccount'
 import Image from 'next/image'
 import { Transaction } from '../../db/transactions'
@@ -14,12 +10,15 @@ import { toast } from 'react-toastify'
 import { useRouter } from 'next/router'
 import { SUPPORTED_COINS } from '../../utils/constants'
 import { Holding } from '../../db/portfolios'
+import { PageWrapper } from '../../components/common/PageWrapper'
+import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
 import { Chart } from '../../components/common/Chart'
 import { DataCard } from '../../components/common/DataCard'
-import { PageWrapper } from '../../components/common/PageWrapper'
+import Link from 'next/link'
+import dayjs from 'dayjs'
+import { useBuySellModalContext } from '../../hooks/useBuySellModal'
 
 const Details: NextPage = () => {
-  // TODO: show some loading spinner or skeleton if loading
   const router = useRouter()
   const [coin, setCoin] = useState<string>('')
   const [coinInvalid, setCoinInvalid] = useState<boolean>(false)
@@ -29,8 +28,7 @@ const Details: NextPage = () => {
   const { accountInfo } = useAccountContext()
   const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
+  const { openBuyModal, openSellModal } = useBuySellModalContext()
 
   const holding = useMemo<Holding | undefined>(() => {
     if (!accountInfo) return
@@ -46,12 +44,6 @@ const Details: NextPage = () => {
     }
     setCoin(coinQuery)
   }, [router.query])
-
-  const openBuySellModal = (action: BuySellAction) => {
-    if (!coinDetails) return
-    setBuySellAction(action)
-    setModalOpen(true)
-  }
 
   // Fetch transaction data if user is logged in & whenever account data changes.
   useEffect(() => {
@@ -90,17 +82,12 @@ const Details: NextPage = () => {
 
   return (
     <PageWrapper title={coinDetails?.name}>
-      {coinDetailsLoading && !coinInvalid && <div className="text-center">Loading...</div>}
-      {coinInvalid && <div className="text-center">Invalid coin</div>}
-      {coinDetails && (
+      {coinInvalid ? (
+        <div className="text-center">Invalid coin</div>
+      ) : coinDetailsLoading ? (
+        <div className="text-center">Loading...</div>
+      ) : coinDetails ? (
         <>
-          {modalOpen && (
-            <BuySellModal
-              currency={{ value: coinDetails.id, label: coinDetails.name }}
-              onClose={() => setModalOpen(false)}
-              action={buySellAction}
-            />
-          )}
           <section className="my-5 flex items-center justify-between">
             <div className="flex items-center justify-between">
               <Image
@@ -113,23 +100,27 @@ const Details: NextPage = () => {
                 {coinDetails.name} ({coinDetails.symbol.toUpperCase()})
               </h1>
             </div>
-            {accountInfo && (
+            {accountInfo ? (
               <button
-                className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                onClick={() => openBuySellModal(BuySellAction.Buy)}
+                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2 w-[75px]`}
+                onClick={() => {
+                  openBuyModal({ value: coinDetails.id, label: coinDetails.name })
+                }}
               >
                 Buy
               </button>
-            )}
+            ) : null}
             {!!accountInfo?.portfolio.holdings.find((holding) => holding.currency === coin)
-              ?.amount && (
+              ?.amount ? (
               <button
-                className="grow max-w-xs px-4 py-2 mx-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                onClick={() => openBuySellModal(BuySellAction.Sell)}
+                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2  w-[75px]`}
+                onClick={() => {
+                  openSellModal({ value: coinDetails.id, label: coinDetails.name })
+                }}
               >
                 Sell
               </button>
-            )}
+            ) : null}
           </section>
 
           <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-9 mb-6">
@@ -215,6 +206,7 @@ const Details: NextPage = () => {
                     )} ${coinDetails.symbol.toUpperCase()}`}
                     className="col-span-2"
                   />
+                  {/*TODO: show current balance USD as well*/}
 
                   <DataCard
                     title={'Total Profit/Loss ($)'}
@@ -292,7 +284,7 @@ const Details: NextPage = () => {
             )}
           </section>
         </>
-      )}
+      ) : null}
     </PageWrapper>
   )
 }

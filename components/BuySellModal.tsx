@@ -1,4 +1,4 @@
-import { FormEventHandler, useEffect, useState, MouseEvent, FormEvent } from 'react'
+import { FormEventHandler, useEffect, useState, FormEvent } from 'react'
 import Select, { SingleValue } from 'react-select'
 import { formatFloat, formatUSD } from '../utils/format'
 import { useAccountContext } from '../hooks/useAccount'
@@ -12,22 +12,8 @@ import { usePricesContext } from '../hooks/usePrices'
 import { ErrResp } from '../utils/errors'
 import { FloatInput } from './common/FloatInput'
 import { Price } from '../pages/api/prices'
-
-export interface BuySellModalProps {
-  onClose: () => void
-  currency?: { value: string; label: string }
-  action: BuySellAction
-}
-
-export interface SelectedOption {
-  value: string
-  label: string
-}
-
-const DEFAULT_CURRENCY_VALUE = {
-  value: 'bitcoin',
-  label: 'Bitcoin',
-} as SelectedOption
+import { Modal } from './common/Modal'
+import { CurrencyOption, useBuySellModalContext } from '../hooks/useBuySellModal'
 
 enum TransactionState {
   Pending = 'pending',
@@ -40,11 +26,11 @@ export enum BuySellAction {
   Sell = 'sell',
 }
 
-export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
+export const BuySellModal: React.VFC = () => {
+  const { isOpen, hideModal, action, currency, setCurrency } = useBuySellModalContext()
   const [transactInUSD, setTransactInUSD] = useState<boolean>(true)
   const [amountUSD, setAmountUSD] = useState(0)
   const [amountCoin, setAmountCoin] = useState(0)
-  const [currency, setCurrency] = useState<SingleValue<SelectedOption>>(DEFAULT_CURRENCY_VALUE)
   const [coinPriceData, setCoinPriceData] = useState<Price | null>(null)
   const { prices } = usePricesContext()
   const { accountInfo, setAccountInfo } = useAccountContext()
@@ -52,17 +38,9 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
   const [availableToSell, setAvailableToSell] = useState<number>(0)
   const [transactionStatus, setTransactionStatus] = useState<null | TransactionState>(null)
 
-  const handleCurrencySelectionChange = (
-    selectedOption: SingleValue<{ value: string; label: string }>
-  ) => {
-    setCurrency(selectedOption)
-  }
-
-  // Close modal if click event happened on the background overlay itself.
-  const handleClickOutsideModal = (e: MouseEvent<HTMLElement>) => {
-    if (e.target === e.currentTarget) {
-      props.onClose()
-    }
+  const handleCurrencySelectionChange = (selectedOption: SingleValue<CurrencyOption>) => {
+    if (!selectedOption) return
+    setCurrency({ ...selectedOption })
   }
 
   const flipDenominations = (e: FormEvent) => {
@@ -88,23 +66,6 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
     }
   }, [coinPriceData, transactInUSD, amountUSD, amountCoin])
 
-  // Listen for esc key to close modal.
-  useEffect(() => {
-    const closeIfEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        props.onClose()
-      }
-    }
-    window.addEventListener('keydown', closeIfEsc)
-    return () => window.removeEventListener('keydown', closeIfEsc)
-  }, [props])
-
-  // Set selected currency whenever prop is passed in.
-  useEffect(() => {
-    if (!props.currency) return
-    setCurrency(props.currency)
-  }, [props.currency])
-
   // Get current coin data whenever selected currency changes or prices update.
   useEffect(() => {
     if (!prices || !currency) return
@@ -123,6 +84,16 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
     )
   }, [accountInfo, coinPriceData])
 
+  // // Reset values when modal is closed.
+  useEffect(() => {
+    if (!isOpen) {
+      setTransactionStatus(null)
+      setAmountCoin(0)
+      setAmountUSD(0)
+      setTransactInUSD(true)
+    }
+  }, [isOpen, currency])
+
   const handleSubmit: FormEventHandler = async (event) => {
     if (!coinPriceData || !accountInfo || !currency) return
     event.preventDefault()
@@ -135,7 +106,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
           transactInUSD,
           amountUSD,
           amountCoin,
-          action: props.action,
+          action,
         },
       })
       .json<Portfolio>()
@@ -152,74 +123,58 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
       })
   }
 
-  // TODO: show loading spinner while preparing the form so that it doesn't look jumpy
+  return isOpen ? (
+    <Modal onClose={hideModal}>
+      <div className="mt-3 text-center">
+        {transactionStatus === 'success' ? (
+          <div className="grid place-items-center gap-5">
+            <FontAwesomeIcon icon={faCheckCircle} color="green" className="w-24" />
+            Transaction successful.
+            <button
+              autoFocus
+              onClick={hideModal}
+              className="mt-3 px-4 py-2 bg-green-700 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            >
+              OK
+            </button>
+          </div>
+        ) : (
+          <>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 capitalize">{action}</h3>
+            <div className="mt-2 px-7 py-3">
+              <form className="w-full max-w-sm" onSubmit={handleSubmit}>
+                <div className="w-full text-left py-2 text-sm">
+                  {action === BuySellAction.Buy ? (
+                    <span>
+                      <span className="font-bold">Available to spend:</span>
+                      <br />
+                      {formatUSD(availableToSpend)}{' '}
+                      {coinPriceData ? (
+                        <>
+                          (~{availableToSpend / coinPriceData.current_price}{' '}
+                          {coinPriceData.symbol.toUpperCase()})
+                        </>
+                      ) : null}
+                    </span>
+                  ) : coinPriceData ? (
+                    <div className="w-full text-left py-2">
+                      <span className="font-bold">Available to sell:</span>
+                      <br />
+                      {formatFloat(availableToSell, 16)} {coinPriceData.symbol.toUpperCase()} (~
+                      {formatUSD(availableToSell * coinPriceData.current_price)})
+                    </div>
+                  ) : null}
+                </div>
 
-  return (
-    <div
-      className={`z-50 fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full`}
-      onClick={handleClickOutsideModal}
-    >
-      <div
-        className="relative top-20 mx-auto p-5 border shadow-lg rounded-md bg-white"
-        style={{ width: 440, maxWidth: '100%' }}
-      >
-        <div className="mt-3 text-center">
-          {transactionStatus === 'success' && (
-            <div className="grid place-items-center gap-5">
-              <FontAwesomeIcon icon={faCheckCircle} color="green" className="w-24" />
-              Transaction successful.
-              <button
-                autoFocus
-                onClick={(event) => {
-                  event.preventDefault()
-                  props.onClose()
-                }}
-                className="mt-3 px-4 py-2 bg-green-700 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
-              >
-                OK
-              </button>
-            </div>
-          )}
-
-          {transactionStatus !== 'success' && (
-            <>
-              <h3 className="text-lg leading-6 font-medium text-gray-900 capitalize">
-                {props.action}
-              </h3>
-              <div className="mt-2 px-7 py-3">
-                <form className="w-full max-w-sm" onSubmit={handleSubmit}>
-                  <div className="w-full text-left py-2 text-sm">
-                    {props.action === BuySellAction.Buy && (
-                      <span>
-                        <span className="font-bold">Available to spend:</span>
-                        <br />
-                        {formatUSD(availableToSpend)}{' '}
-                        {coinPriceData && (
-                          <>
-                            (~{availableToSpend / coinPriceData.current_price}{' '}
-                            {coinPriceData.symbol.toUpperCase()})
-                          </>
-                        )}
-                      </span>
-                    )}
-                    {props.action === 'sell' && coinPriceData && (
-                      <div className="w-full text-left py-2">
-                        <span className="font-bold">Available to sell:</span>
-                        <br />
-                        {formatFloat(availableToSell, 16)} {coinPriceData.symbol.toUpperCase()} (~
-                        {formatUSD(availableToSell * coinPriceData.current_price)})
-                      </div>
-                    )}
-                  </div>
-
-                  {/*Editable USD amount*/}
-                  {transactInUSD && (
+                {transactInUSD ? (
+                  <>
+                    {/*Editable USD amount*/}
                     <div className="flex items-center border-b border-teal-500 py-2">
                       <span className="text-gray-700 text-5xl text-center">$</span>
                       <FloatInput
                         className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-5xl text-center ${
-                          (props.action === BuySellAction.Buy && amountUSD > availableToSpend) ||
-                          (props.action === BuySellAction.Sell &&
+                          (action === BuySellAction.Buy && amountUSD > availableToSpend) ||
+                          (action === BuySellAction.Sell &&
                             coinPriceData &&
                             amountUSD > availableToSell * coinPriceData.current_price)
                             ? 'text-red-500'
@@ -235,15 +190,27 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                         autoFocus
                       />
                     </div>
-                  )}
-
-                  {/*Editable coin amount*/}
-                  {!transactInUSD && (
+                    {/*Non-editable coin amount*/}
+                    <div className="flex items-center py-2">
+                      <span className="text-gray-500 text-xl text-center">≈</span>
+                      <div
+                        className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-xl text-center text-gray-500`}
+                      >
+                        {amountCoin ? amountCoin : 0}
+                      </div>
+                      <span className="text-gray-500 text-xl text-center">
+                        {coinPriceData?.symbol.toUpperCase()}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/*Editable coin amount*/}
                     <div className="flex items-center border-b border-teal-500 py-2">
                       <FloatInput
                         className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-2xl text-center ${
-                          (props.action === BuySellAction.Buy && amountUSD > availableToSpend) ||
-                          (props.action === BuySellAction.Sell &&
+                          (action === BuySellAction.Buy && amountUSD > availableToSpend) ||
+                          (action === BuySellAction.Sell &&
                             coinPriceData &&
                             amountUSD > availableToSell * coinPriceData.current_price)
                             ? 'text-red-500'
@@ -263,10 +230,7 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                         {coinPriceData?.symbol.toUpperCase()}
                       </span>
                     </div>
-                  )}
-
-                  {/*Non-editable USD amount*/}
-                  {!transactInUSD && (
+                    {/*Non-editable USD amount*/}
                     <div className="flex items-center py-2">
                       <span className="text-gray-500 text-xl text-center">≈</span>
                       <div
@@ -275,89 +239,67 @@ export const BuySellModal: React.VFC<BuySellModalProps> = (props) => {
                         {formatUSD(amountUSD ? amountUSD : 0)}
                       </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {/*Non-editable coin amount*/}
-                  {transactInUSD && (
-                    <div className="flex items-center py-2">
-                      <span className="text-gray-500 text-xl text-center">≈</span>
-                      <div
-                        className={`appearance-none bg-transparent border-none w-full mr-3 py-1 px-2 leading-tight focus:outline-none text-xl text-center text-gray-500`}
-                      >
-                        {amountCoin ? amountCoin : 0}
-                      </div>
-                      <span className="text-gray-500 text-xl text-center">
-                        {coinPriceData?.symbol.toUpperCase()}
-                      </span>
+                <div className="w-full flex py-2 text-left gap-2">
+                  <Select
+                    options={prices?.map((price) => ({
+                      value: price.id,
+                      label: price.name,
+                    }))}
+                    onChange={handleCurrencySelectionChange}
+                    value={currency}
+                    className="flex-grow"
+                  />
+                  <button
+                    onClick={flipDenominations}
+                    type="button"
+                    className="bg-white hover:bg-gray-100 px-4 border border-gray-400 rounded shadow"
+                  >
+                    <FontAwesomeIcon icon={faExchangeAlt} className="rotate-90 w-[18px]" />
+                  </button>
+                </div>
+
+                <div className="items-center px-4 py-1 pt-7">
+                  <button
+                    className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 uppercase"
+                    disabled={
+                      !coinPriceData ||
+                      (action === BuySellAction.Buy && amountUSD > availableToSpend) ||
+                      (action === BuySellAction.Sell &&
+                        amountUSD > availableToSell * coinPriceData.current_price) ||
+                      amountUSD < 1 ||
+                      transactionStatus === 'pending'
+                    }
+                    type="submit"
+                  >
+                    {action.toUpperCase()} now
+                  </button>
+                  <button
+                    onClick={hideModal}
+                    className="mt-3 px-4 py-2 bg-gray-400 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 uppercase"
+                  >
+                    Cancel
+                  </button>
+                  {/*Error messages*/}
+                  {transactionStatus === 'failed' ? (
+                    <div className="text-red-400 mt-5 font-bold">
+                      Transaction failed.
+                      <br />
+                      Please try again.
                     </div>
-                  )}
-
-                  <div className="w-full flex py-2 text-left gap-2">
-                    <Select
-                      options={prices?.map((price) => ({
-                        value: price.id,
-                        label: price.name,
-                      }))}
-                      onChange={handleCurrencySelectionChange}
-                      value={currency}
-                      className="flex-grow"
-                    />
-                    <button
-                      onClick={flipDenominations}
-                      type="button"
-                      className="bg-white hover:bg-gray-100 px-4 border border-gray-400 rounded shadow"
-                    >
-                      <FontAwesomeIcon
-                        icon={faExchangeAlt}
-                        className="rotate-90"
-                        style={{ width: 18 }}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="items-center px-4 py-1 pt-7">
-                    <button
-                      className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 uppercase"
-                      disabled={
-                        !coinPriceData ||
-                        (props.action === BuySellAction.Buy && amountUSD > availableToSpend) ||
-                        (props.action === BuySellAction.Sell &&
-                          amountUSD > availableToSell * coinPriceData.current_price) ||
-                        amountUSD < 1 ||
-                        transactionStatus === 'pending'
-                      }
-                      type="submit"
-                    >
-                      {props.action.toUpperCase()} now
-                    </button>
-                    <button
-                      onClick={(event) => {
-                        event.preventDefault()
-                        props.onClose()
-                      }}
-                      className="mt-3 px-4 py-2 bg-gray-400 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 uppercase"
-                    >
-                      Cancel
-                    </button>
-                    {amountUSD > 0 && amountUSD < 1 && (
-                      <div className="text-red-400 mt-5 font-bold">
-                        Transaction must be at least $1.
-                      </div>
-                    )}
-                    {transactionStatus === 'failed' && (
-                      <div className="text-red-400 mt-5 font-bold">
-                        Transaction failed.
-                        <br />
-                        Please try again.
-                      </div>
-                    )}
-                  </div>
-                </form>
-              </div>
-            </>
-          )}
-        </div>
+                  ) : amountUSD > 0 && amountUSD < 1 ? (
+                    <div className="text-red-400 mt-5 font-bold">
+                      Transaction must be at least $1.
+                    </div>
+                  ) : null}
+                </div>
+              </form>
+            </div>
+          </>
+        )}
       </div>
-    </div>
-  )
+    </Modal>
+  ) : null
 }

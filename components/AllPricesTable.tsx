@@ -5,8 +5,8 @@ import { usePricesContext } from '../hooks/usePrices'
 import Image from 'next/image'
 import { formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
-import { BuySellAction } from './BuySellModal'
 import { Price } from '../pages/api/prices'
+import { useBuySellModalContext } from '../hooks/useBuySellModal'
 
 const allPricesTableHeaders: TableHeader[] = [
   { label: 'Name', accessor: 'name' },
@@ -22,17 +22,13 @@ const allPricesTableHeaders: TableHeader[] = [
   {},
 ]
 
-interface AllPricesTableProps {
-  // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
-  onBuyButtonClick: (coinID: string, coinName: string, action: BuySellAction) => void
-}
-
-export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
+export const AllPricesTable: React.VFC = () => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
+  const { openBuyModal } = useBuySellModalContext()
 
   const renderTableRow = useCallback(
-    (coin: Price) =>
+    (coin: Price, userIsLoggedIn: boolean) =>
       coin.id === 'USD' ? null : (
         <Row key={coin.id}>
           {/*Image*/}
@@ -71,11 +67,12 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
           {/*BuySellModal Button*/}
 
           <Cell alignRight narrow>
-            {accountInfo ? (
+            {userIsLoggedIn ? (
               <button
-                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
-                style={{ width: 75 }}
-                onClick={() => props.onBuyButtonClick(coin.id, coin.name, BuySellAction.Buy)}
+                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 w-[75px]`}
+                onClick={() => {
+                  openBuyModal({ value: coin.id, label: coin.name })
+                }}
               >
                 Buy
               </button>
@@ -83,7 +80,7 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
           </Cell>
         </Row>
       ),
-    [accountInfo, props]
+    [openBuyModal]
   )
 
   return (
@@ -91,7 +88,7 @@ export const AllPricesTable: React.VFC<AllPricesTableProps> = (props) => {
       title="All Prices"
       headers={allPricesTableHeaders}
       data={prices}
-      renderRow={renderTableRow}
+      renderRow={(data) => renderTableRow(data, !!accountInfo)}
       limitPerPage={15}
       filterOn={['name', 'symbol']}
       sortBy="total_volume"

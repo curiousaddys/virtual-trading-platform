@@ -49,7 +49,7 @@ const Settings: NextPage = () => {
     setIsSubmitting(true)
     ky.post('/api/account', {
       searchParams: {
-        nickname: newNickname ?? accountInfo.nickname,
+        nickname: newNickname ?? accountInfo.nickname ?? '',
         defaultPortfolioID,
       },
     })
@@ -105,7 +105,7 @@ const Settings: NextPage = () => {
 
   return (
     <PageWrapper title="User Settings">
-      {!isLoaded ? (
+      {!isLoaded || !portfolios.length ? (
         <div className="mb-3">Loading...</div>
       ) : !accountInfo ? (
         <div className="mb-3">

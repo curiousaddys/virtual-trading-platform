@@ -13,11 +13,10 @@ const badWordsFilter = new BadWordsFilter()
 
 export const nonProfaneString = z
   .string()
-  .nonempty()
   .refine((word) => !badWordsFilter.isProfane(word), 'no profanities allowed')
 
 const PostQuerySchema = z.object({
-  nickname: nonProfaneString,
+  nickname: nonProfaneString.optional(),
   defaultPortfolioID: z
     .string()
     .nonempty()
@@ -43,7 +42,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
         return res.status(200).json(account)
       case 'POST':
         const { nickname, defaultPortfolioID } = PostQuerySchema.parse(req.query)
-        console.log(nickname, defaultPortfolioID) // TODO: remove after testing
         const updatedAccount = (await updateAccount(address, {
           nickname,
           defaultPortfolioID,
