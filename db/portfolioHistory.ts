@@ -169,7 +169,7 @@ export const getPortfolioBalanceHistory = async (portfolioID: ObjectId, days: Da
 export interface TopPortfolio {
   _id: ObjectId
   balanceUSD: number
-  accountNickname: string
+  accountNickname?: string
   portfolioName: string
   rowNumber: number
 }
@@ -249,7 +249,6 @@ export const getTopPortfolios = async (limit: number) => {
         output: { rowNumber: { $documentNumber: {} } },
       },
     },
-    // { $sort: { balanceUSD: -1 } },
   ])
   return await results.toArray()
 }

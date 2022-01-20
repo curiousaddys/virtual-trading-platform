@@ -6,7 +6,7 @@ export const ACCOUNT_COLLECTION = 'accounts'
 export interface Account {
   _id: ObjectId
   address: string
-  nickname: string
+  nickname?: string
   joined: Date
   lastLogin: Date
   defaultPortfolioID: ObjectId
@@ -27,7 +27,6 @@ export const findOrInsertAccount = async (address: string) => {
       // Create user in database and fund initial portfolio.
       $setOnInsert: {
         address,
-        nickname: 'Anonymous User',
         joined: new Date(),
         defaultPortfolioID: new ObjectId(), // really more of an "active" portfolio ID
       },

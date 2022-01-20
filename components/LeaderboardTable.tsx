@@ -16,7 +16,7 @@ const renderTableRow = (portfolio: TopPortfolio) => (
   <Row key={portfolio._id.toString()}>
     <Cell narrow>{portfolio.rowNumber}</Cell>
     <Cell>
-      <span className="font-bold">{portfolio.accountNickname}</span>
+      <span className="font-bold">{portfolio.accountNickname ?? 'Anonymous User'}</span>
     </Cell>
     <Cell hideOnMobile>{portfolio.portfolioName}</Cell>
     <Cell alignRight={true}>{formatUSD(portfolio.balanceUSD)}</Cell>

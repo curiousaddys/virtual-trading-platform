@@ -75,8 +75,7 @@ const Home: NextPage = () => {
   // Show the welcome model if the account is less than 1 min old & they haven't set a nickname
   // or dismissed the model since the page loaded.
   useEffect(() => {
-    if (!accountInfo?.joined || accountInfo.nickname !== 'Anonymous User' || welcomeModelSeen)
-      return
+    if (!accountInfo?.joined || accountInfo.nickname || welcomeModelSeen) return
     const joinDateSecAgo = dayjs().diff(accountInfo.joined, 'seconds')
     if (joinDateSecAgo < 60) {
       setWelcomeModalOpen(true)

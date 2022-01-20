@@ -20,7 +20,7 @@ export const WelcomeModal: React.VFC<ModalProps> = (props) => {
     setIsSubmitting(true)
     ky.post('/api/account', {
       searchParams: {
-        nickname: newNickname ?? accountInfo.nickname,
+        nickname: newNickname ?? accountInfo?.nickname ?? '',
         defaultPortfolioID: accountInfo.defaultPortfolioID.toString(),
       },
     })

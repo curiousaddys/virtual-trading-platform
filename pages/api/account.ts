@@ -13,11 +13,10 @@ const badWordsFilter = new BadWordsFilter()
 
 export const nonProfaneString = z
   .string()
-  .nonempty()
   .refine((word) => !badWordsFilter.isProfane(word), 'no profanities allowed')
 
 const PostQuerySchema = z.object({
-  nickname: nonProfaneString,
+  nickname: nonProfaneString.optional(),
   defaultPortfolioID: z
     .string()
     .nonempty()

@@ -49,7 +49,7 @@ const Settings: NextPage = () => {
     setIsSubmitting(true)
     ky.post('/api/account', {
       searchParams: {
-        nickname: newNickname ?? accountInfo.nickname,
+        nickname: newNickname ?? accountInfo.nickname ?? '',
         defaultPortfolioID,
       },
     })
