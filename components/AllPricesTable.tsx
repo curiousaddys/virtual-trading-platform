@@ -22,11 +22,7 @@ const allPricesTableHeaders: TableHeader[] = [
   {},
 ]
 
-interface AllPricesTableProps {
-  // TODO: delete this once sure you don't need to pass any props
-}
-
-export const AllPricesTable: React.VFC<AllPricesTableProps> = () => {
+export const AllPricesTable: React.VFC = () => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
   const { openBuyModal } = useBuySellModalContext()
