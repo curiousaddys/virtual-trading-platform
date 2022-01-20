@@ -77,7 +77,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (!accountInfo?.joined || accountInfo.nickname || welcomeModelSeen) return
     const joinDateSecAgo = dayjs().diff(accountInfo.joined, 'seconds')
-    if (joinDateSecAgo < 60) {
+    if (joinDateSecAgo < 10) {
       setWelcomeModalOpen(true)
     }
   }, [accountInfo?.joined, accountInfo?.nickname, welcomeModelSeen])
