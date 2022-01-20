@@ -3,17 +3,16 @@ import { InjectedConnector } from '@web3-react/injected-connector'
 import React, { useEffect, useState } from 'react'
 import { SIGNATURE_TEXT } from '../utils/constants'
 import { useAccountContext } from '../hooks/useAccount'
-import { isBrowserCompatible, isEthereumObjectOnWindow } from '../utils/browser'
 
+// TODO: Add connector for WalletConnect instead of only allowing MetaMask.
 const injected = new InjectedConnector({})
 
-type MetaMaskBrowserStatusState = null | 'supported' | 'unsupported' | 'ready'
+export const isEthereumObjectOnWindow = (): boolean => !!(window as any)?.ethereum
 
 export const WalletConnector: React.VFC = () => {
   const { account, library, activate, deactivate } = useWeb3React()
   const { login, logout, accountInfo, isLoaded } = useAccountContext()
-  const [metaMaskBrowserStatus, setMetaMaskBrowserStatus] =
-    useState<MetaMaskBrowserStatusState>(null)
+  const [ethObjectExists, setEthObjectExists] = useState<boolean>(false)
 
   // Whenever web3 account is set, ask the user to sign.
   useEffect(() => {
@@ -21,7 +20,6 @@ export const WalletConnector: React.VFC = () => {
       ;(async () => {
         const signer = await library.getSigner(account)
         const signature = await signer.signMessage(SIGNATURE_TEXT + account)
-        // TODO: submit signature to backend to verify (using UserContext)
         await login(account, signature)
       })()
     }
@@ -48,58 +46,33 @@ export const WalletConnector: React.VFC = () => {
 
   // Check browser on first client-side render to avoid next.js hydration errors.
   useEffect(() => {
-    if (!isBrowserCompatible()) {
-      return setMetaMaskBrowserStatus('unsupported')
+    if (isEthereumObjectOnWindow()) {
+      setEthObjectExists(true)
     }
-    if (!isEthereumObjectOnWindow()) {
-      return setMetaMaskBrowserStatus('supported')
-    }
-    setMetaMaskBrowserStatus('ready')
   }, [])
 
-  if (!isLoaded) {
-    return <></>
-  }
-
-  return (
-    <>
-      {accountInfo && (
-        <button
-          onClick={deactivateWallet}
-          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-        >
-          Logout
-        </button>
-      )}
-      {!accountInfo && metaMaskBrowserStatus === 'ready' && (
-        <button
-          onClick={activateWallet}
-          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-        >
-          Login with MetaMask
-        </button>
-      )}
-      {!accountInfo && metaMaskBrowserStatus === 'supported' && (
-        <button
-          onClick={() => window.open('https://metamask.io/download.html', '_blank')}
-          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-        >
-          Install MetaMask to Login
-        </button>
-      )}
-      {metaMaskBrowserStatus === 'unsupported' && (
-        <button
-          className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
-          onClick={() => {
-            if (window)
-              window.alert(
-                'Sorry, your browser does not support MetaMask, which is required to login. Please use Chrome, Firefox, Brave, or Edge.'
-              )
-          }}
-        >
-          Browser unsupported
-        </button>
-      )}
-    </>
+  return !isLoaded ? (
+    <></>
+  ) : accountInfo ? (
+    <button
+      onClick={deactivateWallet}
+      className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+    >
+      Logout
+    </button>
+  ) : ethObjectExists ? (
+    <button
+      onClick={activateWallet}
+      className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+    >
+      Login with MetaMask
+    </button>
+  ) : (
+    <button
+      onClick={() => window.open('https://metamask.io/download.html', '_blank')}
+      className="py-2 px-4 m-1 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+    >
+      Get MetaMask to Login
+    </button>
   )
 }
