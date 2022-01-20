@@ -21,7 +21,8 @@ const PostQuerySchema = z.object({
   defaultPortfolioID: z
     .string()
     .nonempty()
-    .transform((val) => new ObjectId(val)),
+    .transform((val) => new ObjectId(val))
+    .optional(),
 })
 
 export interface AccountWithPortfolio extends Account {
@@ -43,7 +44,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<AccountWithPort
         return res.status(200).json(account)
       case 'POST':
         const { nickname, defaultPortfolioID } = PostQuerySchema.parse(req.query)
-        console.log(nickname, defaultPortfolioID) // TODO: remove after testing
         const updatedAccount = (await updateAccount(address, {
           nickname,
           defaultPortfolioID,

@@ -11,8 +11,13 @@ import { Chart } from '../components/common/Chart'
 import { PortfolioTable } from '../components/PortfolioTable'
 import { AllPricesTable } from '../components/AllPricesTable'
 import { PageWrapper } from '../components/common/PageWrapper'
+import dayjs from 'dayjs'
+import { useBool } from '../hooks/useBool'
+import { WelcomeModal } from '../components/WelcomeModal'
 
 const Home: NextPage = () => {
+  const [welcomeModalOpen, openWelcomeModal, closeWelcomeModal] = useBool()
+  const [welcomeModelSeen, setWelcomeModelSeen] = useState<boolean>(false)
   const { accountInfo, accountError } = useAccountContext()
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
@@ -68,6 +73,17 @@ const Home: NextPage = () => {
     }
   }, [accountError, pricesError])
 
+  // Show the welcome model if the account is less than 1 min old & they haven't set a nickname
+  // or dismissed the model since the page loaded.
+  useEffect(() => {
+    if (!accountInfo?.joined || accountInfo.nickname !== 'Anonymous User' || welcomeModelSeen)
+      return
+    const joinDateSecAgo = dayjs(dayjs()).diff(accountInfo.joined, 'seconds')
+    if (joinDateSecAgo < 60) {
+      openWelcomeModal()
+    }
+  }, [accountInfo?.joined, accountInfo?.nickname, openWelcomeModal, welcomeModelSeen])
+
   return (
     <PageWrapper>
       {pricesLoading ? (
@@ -104,6 +120,14 @@ const Home: NextPage = () => {
           <AllPricesTable />
         </>
       )}
+      {welcomeModalOpen ? (
+        <WelcomeModal
+          onClose={() => {
+            setWelcomeModelSeen(true)
+            closeWelcomeModal()
+          }}
+        />
+      ) : null}
     </PageWrapper>
   )
 }
