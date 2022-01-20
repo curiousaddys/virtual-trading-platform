@@ -24,7 +24,6 @@ export const Table: React.VFC<TableProps> = (props) => {
   const [sortDesc, setSortDesc] = useState<boolean>(true)
   // Sort & filter.
   useEffect(() => {
-    console.log('Running')
     setPageNumber(0)
     setAllItems(
       props.data
