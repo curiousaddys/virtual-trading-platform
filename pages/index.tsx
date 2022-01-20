@@ -12,11 +12,10 @@ import { PortfolioTable } from '../components/PortfolioTable'
 import { AllPricesTable } from '../components/AllPricesTable'
 import { PageWrapper } from '../components/common/PageWrapper'
 import dayjs from 'dayjs'
-import { useBool } from '../hooks/useBool'
 import { WelcomeModal } from '../components/WelcomeModal'
 
 const Home: NextPage = () => {
-  const [welcomeModalOpen, openWelcomeModal, closeWelcomeModal] = useBool()
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState<boolean>(false)
   const [welcomeModelSeen, setWelcomeModelSeen] = useState<boolean>(false)
   const { accountInfo, accountError } = useAccountContext()
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
@@ -78,11 +77,11 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (!accountInfo?.joined || accountInfo.nickname !== 'Anonymous User' || welcomeModelSeen)
       return
-    const joinDateSecAgo = dayjs(dayjs()).diff(accountInfo.joined, 'seconds')
+    const joinDateSecAgo = dayjs().diff(accountInfo.joined, 'seconds')
     if (joinDateSecAgo < 60) {
-      openWelcomeModal()
+      setWelcomeModalOpen(true)
     }
-  }, [accountInfo?.joined, accountInfo?.nickname, openWelcomeModal, welcomeModelSeen])
+  }, [accountInfo?.joined, accountInfo?.nickname, welcomeModelSeen])
 
   return (
     <PageWrapper>
@@ -124,7 +123,7 @@ const Home: NextPage = () => {
         <WelcomeModal
           onClose={() => {
             setWelcomeModelSeen(true)
-            closeWelcomeModal()
+            setWelcomeModalOpen(false)
           }}
         />
       ) : null}

@@ -10,7 +10,7 @@ export const Modal: React.FC<ModalProps> = ({ children, onClose }) => (
     onClick={(e) => e.target === e.currentTarget && onClose()}
     onKeyUp={(e) => e.key === 'Escape' && onClose()}
   >
-    <div className="relative top-20 mx-auto p-5 border shadow-lg rounded-md bg-white w-[440px]">
+    <div className="relative top-20 mx-auto p-5 border shadow-lg rounded-md bg-white full max-w-md">
       {children}
     </div>
   </div>

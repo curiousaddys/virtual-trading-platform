@@ -13,12 +13,7 @@ import { ErrResp } from '../utils/errors'
 import { FloatInput } from './common/FloatInput'
 import { Price } from '../pages/api/prices'
 import { Modal } from './common/Modal'
-import { useBuySellModalContext } from '../hooks/useBuySellModal'
-
-export interface SelectedOption {
-  value: string
-  label: string
-}
+import { CurrencyOption, useBuySellModalContext } from '../hooks/useBuySellModal'
 
 enum TransactionState {
   Pending = 'pending',
@@ -43,7 +38,7 @@ export const BuySellModal: React.VFC = () => {
   const [availableToSell, setAvailableToSell] = useState<number>(0)
   const [transactionStatus, setTransactionStatus] = useState<null | TransactionState>(null)
 
-  const handleCurrencySelectionChange = (selectedOption: SingleValue<SelectedOption>) => {
+  const handleCurrencySelectionChange = (selectedOption: SingleValue<CurrencyOption>) => {
     if (!selectedOption) return
     setCurrency({ ...selectedOption })
   }
