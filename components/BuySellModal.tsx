@@ -262,11 +262,7 @@ export const BuySellModal: React.VFC = () => {
                     type="button"
                     className="bg-white hover:bg-gray-100 px-4 border border-gray-400 rounded shadow"
                   >
-                    <FontAwesomeIcon
-                      icon={faExchangeAlt}
-                      className="rotate-90"
-                      style={{ width: 18 }}
-                    />
+                    <FontAwesomeIcon icon={faExchangeAlt} className="rotate-90 w-[18px]" />
                   </button>
                 </div>
 

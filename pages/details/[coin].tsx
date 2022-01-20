@@ -102,8 +102,7 @@ const Details: NextPage = () => {
             </div>
             {accountInfo ? (
               <button
-                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2`}
-                style={{ width: 75 }}
+                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2 w-[75px]`}
                 onClick={() => {
                   openBuyModal({ value: coinDetails.id, label: coinDetails.name })
                 }}
@@ -114,8 +113,7 @@ const Details: NextPage = () => {
             {!!accountInfo?.portfolio.holdings.find((holding) => holding.currency === coin)
               ?.amount ? (
               <button
-                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2`}
-                style={{ width: 75 }}
+                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2  w-[75px]`}
                 onClick={() => {
                   openSellModal({ value: coinDetails.id, label: coinDetails.name })
                 }}
