@@ -1,9 +1,8 @@
 import type { NextPage } from 'next'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ky from 'ky'
 import { useAccountContext } from '../hooks/useAccount'
 import { formatUSD } from '../utils/format'
-import { BuySellAction, BuySellModal, SelectedOption } from '../components/BuySellModal'
 import { DateRangeValue } from '../components/common/DateRangePicker'
 import { PortfolioBalanceHistoryResp } from './api/balance_history'
 import { toast } from 'react-toastify'
@@ -19,9 +18,6 @@ const Home: NextPage = () => {
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
   const [chartDataLoading, setChartDataLoading] = useState<boolean>(false)
   const { prices, pricesLoading, pricesError } = usePricesContext()
-  const [modalOpen, setModalOpen] = useState(false)
-  const [buySellCurrency, setBuySellCurrency] = useState<SelectedOption>()
-  const [buySellAction, setBuySellAction] = useState<BuySellAction>(BuySellAction.Buy)
 
   const totalPortfolioBalanceUSD = useMemo(() => {
     if (!prices || !accountInfo?.portfolio.holdings) return 0
@@ -31,12 +27,6 @@ const Home: NextPage = () => {
       0
     )
   }, [prices, accountInfo])
-
-  const openBuySellModal = useCallback((value: string, label: string, action: BuySellAction) => {
-    setBuySellCurrency({ value, label })
-    setBuySellAction(action)
-    setModalOpen(true)
-  }, [])
 
   // Get fresh data for portfolio price history graph whenever balance changes.
   useEffect(() => {
@@ -84,13 +74,6 @@ const Home: NextPage = () => {
         <div className="text-center">Loading...</div>
       ) : (
         <>
-          {modalOpen ? (
-            <BuySellModal
-              currency={buySellCurrency}
-              onClose={() => setModalOpen(false)}
-              action={buySellAction}
-            />
-          ) : null}
           {prices && accountInfo ? (
             <>
               <section className="mb-2">
@@ -116,13 +99,9 @@ const Home: NextPage = () => {
             </>
           ) : null}
           {accountInfo ? (
-            <PortfolioTable
-              totalPortfolioBalanceUSD={totalPortfolioBalanceUSD}
-              // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
-              onSellButtonClick={openBuySellModal}
-            />
+            <PortfolioTable totalPortfolioBalanceUSD={totalPortfolioBalanceUSD} />
           ) : null}
-          <AllPricesTable onBuyButtonClick={openBuySellModal} />
+          <AllPricesTable />
         </>
       )}
     </PageWrapper>

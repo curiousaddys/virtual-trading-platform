@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo } from 'react'
 import { usePricesContext } from '../hooks/usePrices'
-import { Table, Cell, Row, TableHeader } from './common/Table'
+import { Cell, Row, Table, TableHeader } from './common/Table'
 import Image from 'next/image'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
-import { BuySellAction } from './BuySellModal'
 import { useAccountContext } from '../hooks/useAccount'
 import { Holding } from '../db/portfolios'
 import { Price } from '../pages/api/prices'
+import { useBuySellModalContext } from '../hooks/useBuySellModal'
 
 interface PortfolioTableRow {
   id: string
@@ -55,13 +55,12 @@ const calculateTableData = (
 
 interface PortfolioTableProps {
   totalPortfolioBalanceUSD: number
-  // TODO: move BuySellModal up to top of app & use Context so we don't have to pass things like this around
-  onSellButtonClick: (coinID: string, coinName: string, action: BuySellAction) => void
 }
 
 export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
+  const { openSellModal } = useBuySellModalContext()
 
   const tableData = useMemo(
     (): PortfolioTableRow[] =>
@@ -119,10 +118,13 @@ export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
         {/*BuySellModal Button*/}
         <Cell alignRight>
           {data.id !== 'USD' ? (
+            // <BuySellModal currency={{ value: data.id, label: data.name }} action={BuySellAction.Sell} />
             <button
-              className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+              className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300`}
               style={{ width: 75 }}
-              onClick={() => props.onSellButtonClick(data.id, data.name, BuySellAction.Sell)}
+              onClick={() => {
+                openSellModal({ value: data.id, label: data.name })
+              }}
             >
               Sell
             </button>
@@ -130,7 +132,7 @@ export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
         </Cell>
       </Row>
     ),
-    [props]
+    [openSellModal]
   )
 
   return !accountInfo || !tableData ? null : (
