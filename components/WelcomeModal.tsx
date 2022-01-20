@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import ky from 'ky'
 import { AccountWithPortfolio } from '../pages/api/account'
 import { ErrResp } from '../utils/errors'
+import Image from 'next/image'
 
 export const WelcomeModal: React.VFC<ModalProps> = (props) => {
   const { accountInfo, setAccountInfo } = useAccountContext()
@@ -42,8 +43,12 @@ export const WelcomeModal: React.VFC<ModalProps> = (props) => {
 
   return (
     <Modal {...props}>
-      {/*TODO: add an addy image to the left of the text*/}
-      <h1 className="text-lg mb-3">Welcome to Curious Addys&apos; Virtual Trading Platform!</h1>
+      <div className="flex flex-row items-center gap-5 mb-6">
+        <Image src={'/addy.jpg'} height={100} width={100} alt={'Addy'} className="rounded-full" />
+        <h1 className="text-lg font-black text-center">
+          Welcome to Curious Addys&apos; Virtual Trading Platform!
+        </h1>
+      </div>
       <div>
         <form className="w-full max-w-sm" onSubmit={handleSubmit}>
           <label className="block text-gray-700 text-sm font-bold" htmlFor="username">

@@ -105,7 +105,7 @@ const Settings: NextPage = () => {
 
   return (
     <PageWrapper title="User Settings">
-      {!isLoaded ? (
+      {!isLoaded || (isLoaded && !portfolios.length) ? (
         <div className="mb-3">Loading...</div>
       ) : !accountInfo ? (
         <div className="mb-3">
