@@ -21,8 +21,7 @@ const PostQuerySchema = z.object({
   defaultPortfolioID: z
     .string()
     .nonempty()
-    .transform((val) => new ObjectId(val))
-    .optional(),
+    .transform((val) => new ObjectId(val)),
 })
 
 export interface AccountWithPortfolio extends Account {
