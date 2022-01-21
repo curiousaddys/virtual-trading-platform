@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Cell, Row, Table, TableHeader } from './common/Table'
 import { useAccountContext } from '../hooks/useAccount'
 import { usePricesContext } from '../hooks/usePrices'
@@ -7,28 +7,45 @@ import { formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
 import { Price } from '../pages/api/prices'
 import { useBuySellModalContext } from '../hooks/useBuySellModal'
+import { DateRangePicker, DateRangeValue } from './common/DateRangePicker'
 
-const allPricesTableHeaders: TableHeader[] = [
-  { label: 'Name', accessor: 'name' },
-  {},
-  { label: 'Price', accessor: 'current_price', alignRight: true },
-  {
-    label: 'Change (24h)',
-    accessor: 'price_change_percentage_24h',
-    alignRight: true,
-    hideOnMobile: true,
+const PeriodAccessors = {
+  [DateRangeValue.Hour]: { accessor: 'price_change_percentage_1h_in_currency', label: '1 h' },
+  [DateRangeValue.Day]: { accessor: 'price_change_percentage_24h_in_currency', label: '24 hr' },
+  [DateRangeValue.SevenDays]: { accessor: 'price_change_percentage_7d_in_currency', label: '7 d' },
+  [DateRangeValue.ThirtyDays]: {
+    accessor: 'price_change_percentage_30d_in_currency',
+    label: '30 d',
   },
-  { label: 'Volume (24h)', accessor: 'total_volume', alignRight: true, hideOnMobile: true },
-  {},
-]
+  [DateRangeValue.Year]: { accessor: 'price_change_percentage_1y_in_currency', label: '1 yr' },
+  [DateRangeValue.Max]: { accessor: 'price_change_percentage_1y_in_currency', label: 'max' },
+} as const
 
 export const AllPricesTable: React.VFC = () => {
   const { accountInfo } = useAccountContext()
   const { prices } = usePricesContext()
   const { openBuyModal } = useBuySellModalContext()
+  const [period, setPeriod] = useState<DateRangeValue>(DateRangeValue.Day)
+
+  const allPricesTableHeaders: TableHeader[] = useMemo(
+    () => [
+      { label: 'Name', accessor: 'name' },
+      {},
+      { label: 'Price', accessor: 'current_price', alignRight: true },
+      {
+        label: `Change (${PeriodAccessors[period].label})`,
+        accessor: PeriodAccessors[period].accessor,
+        alignRight: true,
+        hideOnMobile: true,
+      },
+      { label: 'Volume (24 hr)', accessor: 'total_volume', alignRight: true, hideOnMobile: true },
+      {},
+    ],
+    [period]
+  )
 
   const renderTableRow = useCallback(
-    (coin: Price, userIsLoggedIn: boolean) =>
+    (coin: Price, period: DateRangeValue, userIsLoggedIn: boolean) =>
       coin.id === 'USD' ? null : (
         <Row key={coin.id}>
           {/*Image*/}
@@ -53,12 +70,12 @@ export const AllPricesTable: React.VFC = () => {
           <Cell alignRight>
             {formatUSD(coin.current_price)}
             <div className="md:hidden w-100">
-              <PrettyPercent value={coin.price_change_percentage_24h} />
+              <PrettyPercent value={coin[PeriodAccessors[period].accessor]} />
             </div>
           </Cell>
           {/*% change*/}
           <Cell alignRight hideOnMobile>
-            <PrettyPercent value={coin.price_change_percentage_24h} />
+            <PrettyPercent value={coin[PeriodAccessors[period].accessor]} />
           </Cell>
           {/*Volume*/}
           <Cell alignRight hideOnMobile>
@@ -84,14 +101,24 @@ export const AllPricesTable: React.VFC = () => {
   )
 
   return (
-    <Table
-      title="All Prices"
-      headers={allPricesTableHeaders}
-      data={prices}
-      renderRow={(data) => renderTableRow(data, !!accountInfo)}
-      limitPerPage={15}
-      filterOn={['name', 'symbol']}
-      sortBy="total_volume"
-    />
+    <>
+      <div className="mb-2">
+        <DateRangePicker
+          selectedDays={period}
+          onSelectionChange={setPeriod}
+          showHourOption={true}
+          hideMaxOption={true}
+        />
+      </div>
+      <Table
+        title="All Prices"
+        headers={allPricesTableHeaders}
+        data={prices}
+        renderRow={(data) => renderTableRow(data, period, !!accountInfo)}
+        limitPerPage={15}
+        filterOn={['name', 'symbol']}
+        sortBy="total_volume"
+      />
+    </>
   )
 }

@@ -47,12 +47,14 @@ export const Chart: React.VFC<ChartProps> = ({
 
   return (
     <div className="rounded pt-3 shadow-lg bg-white mb-10">
-      <DateRangePicker
-        selectedDays={chartRange}
-        onSelectionChange={setChartRange}
-        minDate={firstAvailableDate}
-        showHourOption={showHourOption}
-      />
+      <div className="pr-3">
+        <DateRangePicker
+          selectedDays={chartRange}
+          onSelectionChange={setChartRange}
+          minDate={firstAvailableDate}
+          showHourOption={showHourOption}
+        />
+      </div>
       <div className="px-2">
         {!data.length ? (
           <div className="flex text-xl w-full h-[400px]">

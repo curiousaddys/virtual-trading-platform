@@ -8,7 +8,11 @@ export type Price = Pick<
   | 'symbol'
   | 'name'
   | 'current_price'
-  | 'price_change_percentage_24h'
+  | 'price_change_percentage_1h_in_currency'
+  | 'price_change_percentage_24h_in_currency'
+  | 'price_change_percentage_7d_in_currency'
+  | 'price_change_percentage_30d_in_currency'
+  | 'price_change_percentage_1y_in_currency'
   | 'image'
   | 'total_volume'
 >
@@ -21,7 +25,11 @@ const filterPrices = (data: GeckoPrices[]): Price[] => {
       symbol,
       name,
       current_price,
-      price_change_percentage_24h,
+      price_change_percentage_1h_in_currency,
+      price_change_percentage_24h_in_currency,
+      price_change_percentage_7d_in_currency,
+      price_change_percentage_30d_in_currency,
+      price_change_percentage_1y_in_currency,
       image,
       total_volume,
       ...other
@@ -31,7 +39,11 @@ const filterPrices = (data: GeckoPrices[]): Price[] => {
       symbol,
       name,
       current_price,
-      price_change_percentage_24h,
+      price_change_percentage_1h_in_currency,
+      price_change_percentage_24h_in_currency,
+      price_change_percentage_7d_in_currency,
+      price_change_percentage_30d_in_currency,
+      price_change_percentage_1y_in_currency,
       image,
       total_volume,
     }
@@ -43,7 +55,11 @@ const USDollars = {
   symbol: 'USD',
   name: 'US Dollars',
   current_price: 1,
-  price_change_percentage_24h: 0,
+  price_change_percentage_1h_in_currency: 0,
+  price_change_percentage_24h_in_currency: 0,
+  price_change_percentage_7d_in_currency: 0,
+  price_change_percentage_30d_in_currency: 0,
+  price_change_percentage_1y_in_currency: 0,
   image: '/usd.jpg',
   total_volume: 0,
 }
