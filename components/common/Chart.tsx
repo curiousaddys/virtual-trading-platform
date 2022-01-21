@@ -19,6 +19,7 @@ interface ChartProps {
   onDateRangeOptionChange: (days: DateRangeValue) => void
   showHourOption?: boolean
   placeholder: string // Displayed when there is no data.
+  minValue?: number
 }
 
 export const Chart: React.VFC<ChartProps> = ({
@@ -31,6 +32,7 @@ export const Chart: React.VFC<ChartProps> = ({
   valueLabel,
   showHourOption,
   placeholder,
+  minValue,
 }) => {
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
 
@@ -80,7 +82,10 @@ export const Chart: React.VFC<ChartProps> = ({
                 tickMargin={10}
               />
               <YAxis
-                domain={[(dataMin: number) => dataMin * 0.9, (dataMax: number) => dataMax * 1.1]}
+                domain={[
+                  (dataMin: number) => minValue ?? dataMin * 0.9,
+                  (dataMax: number) => dataMax * 1.1,
+                ]}
                 hide
               />
               <Tooltip

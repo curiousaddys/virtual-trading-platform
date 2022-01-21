@@ -17,6 +17,7 @@ import { DataCard } from '../../components/common/DataCard'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import { useBuySellModalContext } from '../../hooks/useBuySellModal'
+import { BuySellAction } from '../../components/BuySellModal'
 
 const Details: NextPage = () => {
   const router = useRouter()
@@ -26,7 +27,6 @@ const Details: NextPage = () => {
   const { priceHistory, priceHistoryLoading, priceHistoryError, setDateRange } =
     usePriceHistory(coin)
   const { accountInfo } = useAccountContext()
-  const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
   const [showAllTransactions, setShowAllTransactions] = useState<boolean>(false)
   const { openBuyModal, openSellModal } = useBuySellModalContext()
 
@@ -34,6 +34,36 @@ const Details: NextPage = () => {
     if (!accountInfo) return
     return accountInfo.portfolio.holdings.find((h) => h.currency === coin)
   }, [accountInfo, coin])
+  const currentBalanceUSD = useMemo(
+    () => (holding?.amount ?? 0) * (coinDetails?.market_data.current_price.usd ?? 0),
+    [coinDetails?.market_data.current_price.usd, holding?.amount]
+  )
+
+  const [transactionHistory, setTransactionHistory] = useState<Transaction[] | null>(null)
+  const priceHistoryForTransactionHistory = usePriceHistory(coin) // SWR hook uses cache, so this doesn't actually double the API calls.
+
+  const transactionHistoryChartData = useMemo(() => {
+    if (
+      !priceHistoryForTransactionHistory.priceHistory ||
+      !transactionHistory?.length ||
+      !coinDetails
+    )
+      return []
+    const txnHistoryAsc = transactionHistory.slice().reverse()
+    let [runningBalance, txnNum, txnDate] = [0, 0, new Date(txnHistoryAsc[0].timestamp).getTime()]
+    return priceHistoryForTransactionHistory.priceHistory.prices.map((price) => {
+      if (txnDate <= price[0] && txnNum < txnHistoryAsc.length) {
+        runningBalance +=
+          txnHistoryAsc[txnNum].action === BuySellAction.Buy
+            ? txnHistoryAsc[txnNum].amountCoin
+            : -txnHistoryAsc[txnNum].amountCoin
+        txnNum++
+        if (txnNum < txnHistoryAsc.length)
+          txnDate = new Date(txnHistoryAsc[txnNum].timestamp).getTime()
+      }
+      return [price[0], runningBalance * price[1]]
+    })
+  }, [priceHistoryForTransactionHistory.priceHistory, transactionHistory, coinDetails])
 
   useEffect(() => {
     const coinQuery = router.query.coin as string
@@ -110,8 +140,7 @@ const Details: NextPage = () => {
                 Buy
               </button>
             ) : null}
-            {!!accountInfo?.portfolio.holdings.find((holding) => holding.currency === coin)
-              ?.amount ? (
+            {holding?.amount ? (
               <button
                 className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2  w-[75px]`}
                 onClick={() => {
@@ -197,16 +226,29 @@ const Details: NextPage = () => {
             <>
               <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Wallet</h2>
               <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
+                <Chart
+                  data={transactionHistoryChartData}
+                  dateDataKey={'0'}
+                  valueDataKey={'1'}
+                  valueLabel={'Value'}
+                  onDateRangeOptionChange={priceHistoryForTransactionHistory.setDateRange}
+                  placeholder={
+                    priceHistoryForTransactionHistory.priceHistoryLoading
+                      ? 'Loading...'
+                      : 'No data to display.'
+                  }
+                  minValue={0}
+                />
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                   <DataCard
                     title={'Current Balance'}
                     value={`${formatFloat(
                       holding?.amount ?? 0,
                       16
                     )} ${coinDetails.symbol.toUpperCase()}`}
-                    className="col-span-2"
                   />
-                  {/*TODO: show current balance USD as well*/}
+
+                  <DataCard title={'Current Value'} value={currentBalanceUSD} format={'usd'} />
 
                   <DataCard
                     title={'Total Profit/Loss ($)'}
@@ -229,30 +271,30 @@ const Details: NextPage = () => {
                   />
                 </div>
               </section>
+
               <h2 className="text-2xl text-gray-800 font-semibold ml-1">Your Transactions</h2>
               <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3 mb-6">
-                {transactionHistory.map((transaction, i) => (
-                  <div
-                    key={transaction._id.toString()}
-                    className={`grid grid-cols-2 py-3 ${i > 4 && !showAllTransactions && 'hidden'}`}
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                      <div className="text-gray-800">
-                        {dayjs(transaction.timestamp).format('MMM D, YYYY h:mm A')}
+                {transactionHistory.map((transaction, i) =>
+                  i > 4 && !showAllTransactions ? null : (
+                    <div key={transaction._id.toString()} className={`grid grid-cols-2 py-3`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2">
+                        <div className="text-gray-800">
+                          {dayjs(transaction.timestamp).format('MMM D, YYYY h:mm A')}
+                        </div>
+                        <div className="font-medium capitalize text-left md:text-center">
+                          {transaction.action}
+                        </div>
                       </div>
-                      <div className="font-medium capitalize text-left md:text-center">
-                        {transaction.action}
+                      <div className="grid grid-cols-1 md:grid-cols-2 text-right">
+                        <div className="text-gray-800 font-medium">
+                          {formatFloat(transaction.amountUSD / transaction.exchangeRateUSD)}{' '}
+                          {coinDetails?.symbol.toUpperCase()}
+                        </div>
+                        <div className="text-gray-700">{formatUSD(transaction.amountUSD)}</div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 text-right">
-                      <div className="text-gray-800 font-medium">
-                        {formatFloat(transaction.amountUSD / transaction.exchangeRateUSD)}{' '}
-                        {coinDetails?.symbol.toUpperCase()}
-                      </div>
-                      <div className="text-gray-700">{formatUSD(transaction.amountUSD)}</div>
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
                 {transactionHistory.length > 5 && (
                   <div className="text-center">
                     <button

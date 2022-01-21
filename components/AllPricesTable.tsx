@@ -10,7 +10,7 @@ import { useBuySellModalContext } from '../hooks/useBuySellModal'
 import { DateRangePicker, DateRangeValue } from './common/DateRangePicker'
 
 const PeriodAccessors = {
-  [DateRangeValue.Hour]: { accessor: 'price_change_percentage_1h_in_currency', label: '1 h' },
+  [DateRangeValue.Hour]: { accessor: 'price_change_percentage_1h_in_currency', label: '1 hr' },
   [DateRangeValue.Day]: { accessor: 'price_change_percentage_24h_in_currency', label: '24 hr' },
   [DateRangeValue.SevenDays]: { accessor: 'price_change_percentage_7d_in_currency', label: '7 d' },
   [DateRangeValue.ThirtyDays]: {
