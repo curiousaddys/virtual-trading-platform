@@ -26,7 +26,6 @@ export interface DateRangePickerProps {
   showHourOption?: boolean
   hideMaxOption?: boolean
   minDate?: Date
-  // size: 'sm' | 'lg'
 }
 
 export const DateRangePicker: React.VFC<DateRangePickerProps> = ({
