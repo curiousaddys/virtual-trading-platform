@@ -60,10 +60,9 @@ export const Table: React.VFC<TableProps> = (props) => {
         <h2 className="text-lg text-black font-semibold">{props.title}</h2>
         {/*Search field*/}
         {!props.filterOn ? null : (
-          <div className="flex flex-col justify-end">
+          <div className="flex flex-col justify-end w-full max-w-xs">
             <input
-              className="shadow appearance-none border rounded-3xl py-2 px-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              style={{ minWidth: 275 }}
+              className="shadow appearance-none border rounded-3xl py-2 px-6 text-gray-700 focus:outline-none focus:shadow-outline"
               type="text"
               aria-label="filter"
               value={filterQuery}
