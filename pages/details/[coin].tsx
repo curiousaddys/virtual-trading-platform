@@ -65,8 +65,6 @@ const Details: NextPage = () => {
           }
           return [price[0], runningBalance * price[1]]
         })
-        // If the wallet has transaction history before
-        .slice(1)
     )
   }, [priceHistoryForTransactionHistory.priceHistory, transactionHistory, coinDetails])
 
