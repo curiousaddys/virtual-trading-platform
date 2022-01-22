@@ -14,7 +14,7 @@ export interface TableProps {
 }
 
 export const Table: React.VFC<TableProps> = (props) => {
-  const { setAllItems, currentItems, pageCount, handlePageClick } = usePagination(
+  const { setAllItems, currentItems, pageCount, pageNumber, setPageNumber } = usePagination(
     props.limitPerPage ?? props.data.length
   )
 
@@ -24,6 +24,7 @@ export const Table: React.VFC<TableProps> = (props) => {
   const [sortDesc, setSortDesc] = useState<boolean>(true)
   // Sort & filter.
   useEffect(() => {
+    setPageNumber(0)
     setAllItems(
       props.data
         .filter((item) => {
@@ -41,7 +42,7 @@ export const Table: React.VFC<TableProps> = (props) => {
           return sortDesc ? b[sortField] - a[sortField] : a[sortField] - b[sortField]
         })
     )
-  }, [props.filterOn, props.data, filterQuery, sortField, sortDesc, setAllItems])
+  }, [props.filterOn, props.data, filterQuery, sortField, sortDesc, setAllItems, setPageNumber])
 
   const handleHeaderClick = useCallback(
     (accessor: string) => {
@@ -90,14 +91,22 @@ export const Table: React.VFC<TableProps> = (props) => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white">{currentItems.map(props.renderRow)}</tbody>
+            <tbody className="bg-white">
+              {currentItems.length ? (
+                currentItems.map(props.renderRow)
+              ) : filterQuery ? (
+                <Row>
+                  <Cell>No results found.</Cell>
+                </Row>
+              ) : null}
+            </tbody>
           </table>
         </div>
         {props.limitPerPage ? (
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"
-            onPageChange={handlePageClick}
+            onPageChange={(e) => setPageNumber(e.selected)}
             pageRangeDisplayed={5}
             pageCount={pageCount}
             previousLabel="< previous"
@@ -106,6 +115,7 @@ export const Table: React.VFC<TableProps> = (props) => {
             activeClassName="font-bold text-blue-500"
             marginPagesDisplayed={1}
             renderOnZeroPageCount={() => null}
+            forcePage={pageNumber}
           />
         ) : null}
       </div>
