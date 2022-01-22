@@ -51,21 +51,18 @@ const Details: NextPage = () => {
       return []
     const txnHistoryAsc = transactionHistory.slice().reverse()
     let [runningBalance, txnNum, txnDate] = [0, 0, new Date(txnHistoryAsc[0].timestamp).getTime()]
-    return (
-      priceHistoryForTransactionHistory.priceHistory.prices
-        .map((price) => {
-          while (txnDate <= price[0] && txnNum < txnHistoryAsc.length) {
-            runningBalance +=
-              txnHistoryAsc[txnNum].action === BuySellAction.Buy
-                ? txnHistoryAsc[txnNum].amountCoin
-                : -txnHistoryAsc[txnNum].amountCoin
-            txnNum++
-            if (txnNum < txnHistoryAsc.length)
-              txnDate = new Date(txnHistoryAsc[txnNum].timestamp).getTime()
-          }
-          return [price[0], runningBalance * price[1]]
-        })
-    )
+    return priceHistoryForTransactionHistory.priceHistory.prices.map((price) => {
+      while (txnDate <= price[0] && txnNum < txnHistoryAsc.length) {
+        runningBalance +=
+          txnHistoryAsc[txnNum].action === BuySellAction.Buy
+            ? txnHistoryAsc[txnNum].amountCoin
+            : -txnHistoryAsc[txnNum].amountCoin
+        txnNum++
+        if (txnNum < txnHistoryAsc.length)
+          txnDate = new Date(txnHistoryAsc[txnNum].timestamp).getTime()
+      }
+      return [price[0], runningBalance * price[1]]
+    })
   }, [priceHistoryForTransactionHistory.priceHistory, transactionHistory, coinDetails])
 
   useEffect(() => {
