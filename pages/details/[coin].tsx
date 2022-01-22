@@ -52,7 +52,7 @@ const Details: NextPage = () => {
     const txnHistoryAsc = transactionHistory.slice().reverse()
     let [runningBalance, txnNum, txnDate] = [0, 0, new Date(txnHistoryAsc[0].timestamp).getTime()]
     return priceHistoryForTransactionHistory.priceHistory.prices.map((price) => {
-      if (txnDate <= price[0] && txnNum < txnHistoryAsc.length) {
+      while (txnDate <= price[0] && txnNum < txnHistoryAsc.length) {
         runningBalance +=
           txnHistoryAsc[txnNum].action === BuySellAction.Buy
             ? txnHistoryAsc[txnNum].amountCoin
