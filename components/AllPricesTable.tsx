@@ -70,12 +70,20 @@ export const AllPricesTable: React.VFC = () => {
           <Cell alignRight>
             {formatUSD(coin.current_price)}
             <div className="md:hidden w-100">
-              <PrettyPercent value={coin[PeriodAccessors[period].accessor]} />
+              {coin[PeriodAccessors[period].accessor] ? (
+                <PrettyPercent value={coin[PeriodAccessors[period].accessor]!} />
+              ) : (
+                'N/A'
+              )}
             </div>
           </Cell>
           {/*% change*/}
           <Cell alignRight hideOnMobile>
-            <PrettyPercent value={coin[PeriodAccessors[period].accessor]} />
+            {coin[PeriodAccessors[period].accessor] ? (
+              <PrettyPercent value={coin[PeriodAccessors[period].accessor]!} />
+            ) : (
+              'N/A'
+            )}
           </Cell>
           {/*Volume*/}
           <Cell alignRight hideOnMobile>
