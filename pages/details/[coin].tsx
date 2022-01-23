@@ -18,6 +18,7 @@ import Link from 'next/link'
 import dayjs from 'dayjs'
 import { useBuySellModalContext } from '../../hooks/useBuySellModal'
 import { BuySellAction } from '../../components/BuySellModal'
+import { TailSpin } from 'react-loader-spinner'
 
 const Details: NextPage = () => {
   const router = useRouter()
@@ -115,7 +116,9 @@ const Details: NextPage = () => {
       {coinInvalid ? (
         <div className="text-center">Invalid coin</div>
       ) : coinDetailsLoading ? (
-        <div className="text-center">Loading...</div>
+        <div className="flex flex-row justify-center">
+          <TailSpin height="100" width="100" color="grey" ariaLabel="loading" />
+        </div>
       ) : coinDetails ? (
         <>
           <section className="my-5 flex items-center justify-between">
@@ -164,7 +167,13 @@ const Details: NextPage = () => {
               dateIsUnixtime={true}
               valueDataKey={'1'}
               valueLabel={'Price'}
-              placeholder={priceHistoryLoading ? 'Loading...' : 'No data to display.'}
+              placeholder={
+                priceHistoryLoading ? (
+                  <TailSpin height="50" width="50" color="grey" ariaLabel="loading" />
+                ) : (
+                  'No data to display.'
+                )
+              }
             />
 
             <div className="grid grid-cols-2 md:grid-cols-4 my-5">
@@ -233,9 +242,11 @@ const Details: NextPage = () => {
                   valueLabel={'Value'}
                   onDateRangeOptionChange={priceHistoryForTransactionHistory.setDateRange}
                   placeholder={
-                    priceHistoryForTransactionHistory.priceHistoryLoading
-                      ? 'Loading...'
-                      : 'No data to display.'
+                    priceHistoryForTransactionHistory.priceHistoryLoading ? (
+                      <TailSpin height="50" width="50" color="grey" ariaLabel="loading" />
+                    ) : (
+                      'No data to display.'
+                    )
                   }
                   minValue={0}
                 />
