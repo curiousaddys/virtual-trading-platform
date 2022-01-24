@@ -4,6 +4,7 @@ import { useTopPortfolios } from '../hooks/useTopPortfolios'
 import { TopPortfolio } from '../db/portfolioHistory'
 import { formatUSD } from '../utils/format'
 import { toast } from 'react-toastify'
+import { TailSpin } from 'react-loader-spinner'
 
 const leaderboardHeaders: TableHeader[] = [
   { label: 'Rank', accessor: 'rowNumber' }, // TODO: return rank # from backend
@@ -24,7 +25,7 @@ const renderTableRow = (portfolio: TopPortfolio) => (
 )
 
 export const LeaderboardTable = () => {
-  const { topPortfolios, topPortfoliosError } = useTopPortfolios()
+  const { topPortfolios, topPortfoliosLoading, topPortfoliosError } = useTopPortfolios()
 
   useEffect(() => {
     if (!topPortfoliosError) return
@@ -32,7 +33,11 @@ export const LeaderboardTable = () => {
     toast('Error loading top portfolio info!', { type: 'error' })
   }, [topPortfoliosError])
 
-  return (
+  return topPortfoliosLoading ? (
+    <div className="flex flex-row justify-center">
+      <TailSpin height="100" width="100" color="grey" ariaLabel="loading" />
+    </div>
+  ) : (
     <Table
       title={`Top Portfolios`}
       headers={leaderboardHeaders}

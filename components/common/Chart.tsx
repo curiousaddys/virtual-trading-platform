@@ -18,7 +18,7 @@ interface ChartProps {
   firstAvailableDate?: Date
   onDateRangeOptionChange: (days: DateRangeValue) => void
   showHourOption?: boolean
-  placeholder: string // Displayed when there is no data.
+  placeholder: React.ReactFragment // Displayed when there is no data.
   minValue?: number
 }
 

@@ -13,6 +13,7 @@ import { TEN_SEC_MS } from '../utils/constants'
 import { PricesContext, usePrices } from '../hooks/usePrices'
 import { BuySellModalContext, useBuySellModal } from '../hooks/useBuySellModal'
 import { BuySellModal } from '../components/BuySellModal'
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
 
 function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
   return new ethers.providers.Web3Provider(provider)

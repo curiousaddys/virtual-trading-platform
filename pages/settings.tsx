@@ -9,6 +9,7 @@ import { AccountWithPortfolio } from './api/account'
 import { usePortfolios } from '../hooks/usePortfolios'
 import { ErrResp } from '../utils/errors'
 import { useRouter } from 'next/router'
+import { TailSpin } from 'react-loader-spinner'
 
 const Settings: NextPage = () => {
   const router = useRouter()
@@ -106,7 +107,9 @@ const Settings: NextPage = () => {
   return (
     <PageWrapper title="User Settings">
       {!isLoaded || !portfolios.length ? (
-        <div className="mb-3">Loading...</div>
+        <div className="flex flex-row justify-center">
+          <TailSpin height="100" width="100" color="grey" ariaLabel="loading" />
+        </div>
       ) : !accountInfo ? (
         <div className="mb-3">
           You must connect your MetaMask wallet in order to access this page.

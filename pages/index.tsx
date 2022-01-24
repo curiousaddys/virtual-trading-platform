@@ -13,11 +13,12 @@ import { AllPricesTable } from '../components/AllPricesTable'
 import { PageWrapper } from '../components/common/PageWrapper'
 import dayjs from 'dayjs'
 import { WelcomeModal } from '../components/WelcomeModal'
+import { TailSpin } from 'react-loader-spinner'
 
 const Home: NextPage = () => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState<boolean>(false)
   const [welcomeModelSeen, setWelcomeModelSeen] = useState<boolean>(false)
-  const { accountInfo, accountError } = useAccountContext()
+  const { isLoaded, accountInfo, accountError } = useAccountContext()
   const [chartRange, setChartRange] = useState<DateRangeValue>(DateRangeValue.SevenDays)
   const [chartData, setChartData] = useState<PortfolioBalanceHistoryResp | null>(null)
   const [chartDataLoading, setChartDataLoading] = useState<boolean>(false)
@@ -84,8 +85,10 @@ const Home: NextPage = () => {
 
   return (
     <PageWrapper>
-      {pricesLoading ? (
-        <div className="text-center">Loading...</div>
+      {!isLoaded || pricesLoading ? (
+        <div className="flex flex-row justify-center">
+          <TailSpin height="100" width="100" color="grey" ariaLabel="loading" />
+        </div>
       ) : (
         <>
           {prices && accountInfo ? (
@@ -97,23 +100,25 @@ const Home: NextPage = () => {
                 <p className="text-gray-500">{accountInfo?.address}</p>
               </section>
               <section>
-                {chartData ? (
-                  <Chart
-                    data={chartData}
-                    firstAvailableDate={accountInfo.portfolio.created}
-                    showHourOption={true}
-                    onDateRangeOptionChange={setChartRange}
-                    dateDataKey={'timestamp'}
-                    valueDataKey={'balanceUSD'}
-                    valueLabel={'Balance'}
-                    placeholder={chartDataLoading ? 'Loading...' : 'No data'}
-                  />
-                ) : null}
+                <Chart
+                  data={chartData ?? []}
+                  firstAvailableDate={accountInfo.portfolio.created}
+                  showHourOption={true}
+                  onDateRangeOptionChange={setChartRange}
+                  dateDataKey={'timestamp'}
+                  valueDataKey={'balanceUSD'}
+                  valueLabel={'Balance'}
+                  placeholder={
+                    chartDataLoading ? (
+                      <TailSpin height="50" width="50" color="grey" ariaLabel="loading" />
+                    ) : (
+                      'No data to display.'
+                    )
+                  }
+                />
               </section>
+              <PortfolioTable totalPortfolioBalanceUSD={totalPortfolioBalanceUSD} />
             </>
-          ) : null}
-          {accountInfo ? (
-            <PortfolioTable totalPortfolioBalanceUSD={totalPortfolioBalanceUSD} />
           ) : null}
           <AllPricesTable />
         </>

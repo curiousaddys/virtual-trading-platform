@@ -34,6 +34,7 @@ specifiers:
   react: 17.0.2
   react-cookie: ^4.1.1
   react-dom: 17.0.2
+  react-loader-spinner: ^5.0.10
   react-paginate: ^8.1.0
   react-select: ^5.2.1
   react-toastify: ^8.1.0
@@ -63,6 +64,7 @@ dependencies:
   react: 17.0.2
   react-cookie: 4.1.1_react@17.0.2
   react-dom: 17.0.2_react@17.0.2
+  react-loader-spinner: 5.0.10_react-dom@17.0.2+react@17.0.2
   react-paginate: 8.1.0_react@17.0.2
   react-select: 5.2.1_7bbce684fccbc97e1ca1dd7122153c55
   react-toastify: 8.1.0_react-dom@17.0.2+react@17.0.2
@@ -4008,6 +4010,16 @@ packages:
 
   /react-lifecycles-compat/3.0.4:
     resolution: {integrity: sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==}
+    dev: false
+
+  /react-loader-spinner/5.0.10_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-wYYs3/8NQFHOFGvvcpaPJCHxjDCuk1pAEG3ziuNoQwH6hxBbIZiQLrfkXlrLKNtnu9vBeeDZp8PljMAduGT5Mg==}
+    peerDependencies:
+      react: ^16.0.0 || ^17.0.0
+      react-dom: ^16.0.0 || ^17.0.0
+    dependencies:
+      react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
     dev: false
 
   /react-paginate/8.1.0_react@17.0.2:
