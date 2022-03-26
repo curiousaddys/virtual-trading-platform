@@ -14,6 +14,7 @@ import { PricesContext, usePrices } from '../hooks/usePrices'
 import { BuySellModalContext, useBuySellModal } from '../hooks/useBuySellModal'
 import { BuySellModal } from '../components/BuySellModal'
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
+import { Partytown } from '@builder.io/partytown/react'
 
 function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {
   return new ethers.providers.Web3Provider(provider)
@@ -32,6 +33,22 @@ function MyApp({ Component, pageProps }: AppProps) {
               <title>Virtual Trading Platform</title>
               <meta name="description" content="Curious Addys' Trading Club" />
               <link rel="icon" href="/favicon.ico" />
+              <Partytown
+                debug={process.env.NODE_ENV !== 'production'}
+                forward={['dataLayer.push']}
+              />
+              {/* eslint-disable-next-line @next/next/next-script-for-ga */}
+              <script
+                id="google-tag-manager"
+                type="text/partytown"
+                dangerouslySetInnerHTML={{
+                  __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                  })(window,document,'script','dataLayer','GTM-WP2MZ89');`,
+                }}
+              />
             </Head>
             <Navbar />
             <Component {...pageProps} />
