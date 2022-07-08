@@ -10,7 +10,7 @@ export const Navbar: React.VFC = () => {
 
   return (
     <nav className="bg-white shadow-lg">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-screen-lg mx-auto px-4">
         <div className="flex">
           <Link href="/" passHref>
             <a className="py-4 px-2 mr-auto font-semibold text-gray-500 text-lg">

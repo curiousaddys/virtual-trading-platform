@@ -2,6 +2,8 @@
 
 > A virtual trading platform where you can explore the world of Cryptocurrency with no risk -- just log in with your wallet and get $100k free virtual USD to trade with!
 
+[![Powered by Vercel](https://www.datocms-assets.com/31049/1618983297-powered-by-vercel.svg)](https://vercel.com/?utm_source=curious-addys-trading-club&utm_campaign=oss)
+
 ## [Try it now!](https://trade.curiousaddys.com)
 
 ## setup

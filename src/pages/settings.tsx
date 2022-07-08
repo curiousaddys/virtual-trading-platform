@@ -6,7 +6,7 @@ import type { FormEventHandler } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TailSpin } from 'react-loader-spinner'
 import { toast } from 'react-toastify'
-import { PageWrapper } from '../components/common/PageWrapper'
+import { PageLayout } from '../components/common/PageLayout'
 import { useAccountContext } from '../hooks/useAccount'
 import { usePortfolios } from '../hooks/usePortfolios'
 import type { ErrResp } from '../utils/errors'
@@ -106,7 +106,7 @@ const Settings: NextPage = () => {
   }
 
   return (
-    <PageWrapper title="User Settings">
+    <PageLayout title="User Settings">
       {!isLoaded || !portfolios.length ? (
         <div className="flex flex-row justify-center">
           <TailSpin height="100" width="100" color="grey" ariaLabel="loading" />
@@ -312,7 +312,7 @@ const Settings: NextPage = () => {
           </section>
         </>
       )}
-    </PageWrapper>
+    </PageLayout>
   )
 }
 

@@ -9,7 +9,7 @@ import { TailSpin } from 'react-loader-spinner'
 import { toast } from 'react-toastify'
 import { Chart } from '../../components/common/Chart'
 import { DataCard } from '../../components/common/DataCard'
-import { PageWrapper } from '../../components/common/PageWrapper'
+import { PageLayout } from '../../components/common/PageLayout'
 import type { Holding } from '../../db/portfolios'
 import type { Transaction } from '../../db/transactions'
 import { useAccountContext } from '../../hooks/useAccount'
@@ -116,7 +116,7 @@ const Details: NextPage = () => {
   }, [coinDetailsError, priceHistoryError])
 
   return (
-    <PageWrapper title={coinDetails?.name}>
+    <PageLayout title={coinDetails?.name}>
       {coinInvalid ? (
         <div className="text-center">Invalid coin</div>
       ) : coinDetailsLoading ? (
@@ -340,7 +340,7 @@ const Details: NextPage = () => {
           </section>
         </>
       ) : null}
-    </PageWrapper>
+    </PageLayout>
   )
 }
 

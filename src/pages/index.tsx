@@ -1,19 +1,19 @@
-import type { NextPage } from 'next'
-import React, { useEffect, useMemo, useState } from 'react'
-import ky from 'ky'
-import { useAccountContext } from '../hooks/useAccount'
-import { formatUSD } from '../utils/format'
-import { DateRangeValue } from '../components/common/DateRangePicker'
-import type { PortfolioBalanceHistoryResp } from './api/balance_history'
-import { toast } from 'react-toastify'
-import { usePricesContext } from '../hooks/usePrices'
-import { Chart } from '../components/common/Chart'
-import { PortfolioTable } from '../components/PortfolioTable'
-import { AllPricesTable } from '../components/AllPricesTable'
-import { PageWrapper } from '../components/common/PageWrapper'
 import dayjs from 'dayjs'
-import { WelcomeModal } from '../components/WelcomeModal'
+import ky from 'ky'
+import type { NextPage } from 'next'
+import { useEffect, useMemo, useState } from 'react'
 import { TailSpin } from 'react-loader-spinner'
+import { toast } from 'react-toastify'
+import { AllPricesTable } from '../components/AllPricesTable'
+import { Chart } from '../components/common/Chart'
+import { DateRangeValue } from '../components/common/DateRangePicker'
+import { PageLayout } from '../components/common/PageLayout'
+import { PortfolioTable } from '../components/PortfolioTable'
+import { WelcomeModal } from '../components/WelcomeModal'
+import { useAccountContext } from '../hooks/useAccount'
+import { usePricesContext } from '../hooks/usePrices'
+import { formatUSD } from '../utils/format'
+import type { PortfolioBalanceHistoryResp } from './api/balance_history'
 
 const Home: NextPage = () => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState<boolean>(false)
@@ -84,7 +84,7 @@ const Home: NextPage = () => {
   }, [accountInfo?.joined, accountInfo?.nickname, welcomeModelSeen])
 
   return (
-    <PageWrapper>
+    <PageLayout>
       {!isLoaded || pricesLoading ? (
         <div className="flex flex-row justify-center">
           <TailSpin height="100" width="100" color="grey" ariaLabel="loading" />
@@ -131,7 +131,7 @@ const Home: NextPage = () => {
           }}
         />
       ) : null}
-    </PageWrapper>
+    </PageLayout>
   )
 }
 

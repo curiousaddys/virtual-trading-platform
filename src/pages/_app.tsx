@@ -11,7 +11,6 @@ import '../../styles/globals.css'
 
 import { BuySellModal } from '../components/BuySellModal'
 import { MetaTags } from '../components/MetaTags'
-import { Navbar } from '../components/Navbar'
 import { AccountContext, useAccount } from '../hooks/useAccount'
 import { BuySellModalContext, useBuySellModal } from '../hooks/useBuySellModal'
 import { PricesContext, usePrices } from '../hooks/usePrices'
@@ -44,7 +43,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       </Script>
       <MetaTags />
 
-      <Navbar />
       <Component {...pageProps} />
 
       <BuySellModal />
