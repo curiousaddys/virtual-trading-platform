@@ -1,7 +1,7 @@
 import ky from 'ky'
 import useSWR from 'swr'
 import { ONE_MINUTE_MS } from '../utils/constants'
-import { GeckoDetails } from '../api/CoinGecko/coin'
+import type { GeckoDetails } from '../api/CoinGecko/coin'
 
 const fetchCoinDetails = async (path: string): Promise<GeckoDetails> => {
   return await ky.get(path).json<GeckoDetails>()

@@ -1,30 +1,34 @@
-import { NextPage } from 'next'
-import React, { useEffect, useMemo, useState } from 'react'
+import dayjs from 'dayjs'
 import ky from 'ky'
-import { useAccountContext } from '../../hooks/useAccount'
+import type { NextPage } from 'next'
 import Image from 'next/image'
-import { Transaction } from '../../db/transactions'
-import { usePriceHistory } from '../../hooks/usePriceHistory'
-import { useCoinDetails } from '../../hooks/useCoinDetails'
-import { toast } from 'react-toastify'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { SUPPORTED_COINS } from '../../utils/constants'
-import { Holding } from '../../db/portfolios'
-import { PageWrapper } from '../../components/common/PageWrapper'
-import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
+import { useEffect, useMemo, useState } from 'react'
+import { TailSpin } from 'react-loader-spinner'
+import { toast } from 'react-toastify'
+import { BuySellAction } from '../../components/BuySellModal'
 import { Chart } from '../../components/common/Chart'
 import { DataCard } from '../../components/common/DataCard'
-import Link from 'next/link'
-import dayjs from 'dayjs'
+import { PageWrapper } from '../../components/common/PageWrapper'
+import type { Holding } from '../../db/portfolios'
+import type { Transaction } from '../../db/transactions'
+import { useAccountContext } from '../../hooks/useAccount'
 import { useBuySellModalContext } from '../../hooks/useBuySellModal'
-import { BuySellAction } from '../../components/BuySellModal'
-import { TailSpin } from 'react-loader-spinner'
+import { useCoinDetails } from '../../hooks/useCoinDetails'
+import { usePriceHistory } from '../../hooks/usePriceHistory'
+import { SUPPORTED_COINS } from '../../utils/constants'
+import { formatFloat, formatUSD, stripHtmlTags } from '../../utils/format'
 
 const Details: NextPage = () => {
   const router = useRouter()
   const [coin, setCoin] = useState<string>('')
   const [coinInvalid, setCoinInvalid] = useState<boolean>(false)
   const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(coin)
+  const coinHomepage = useMemo(
+    () => coinDetails?.links.homepage?.[0],
+    [coinDetails?.links.homepage]
+  )
   const { priceHistory, priceHistoryLoading, priceHistoryError, setDateRange } =
     usePriceHistory(coin)
   const { accountInfo } = useAccountContext()
@@ -51,16 +55,17 @@ const Details: NextPage = () => {
     )
       return []
     const txnHistoryAsc = transactionHistory.slice().reverse()
-    let [runningBalance, txnNum, txnDate] = [0, 0, new Date(txnHistoryAsc[0].timestamp).getTime()]
+    let [runningBalance, txnNum, txnDate] = [
+      0,
+      0,
+      new Date(txnHistoryAsc[0]?.timestamp ?? 0).getTime(),
+    ]
     return priceHistoryForTransactionHistory.priceHistory.prices.map((price) => {
       while (txnDate <= price[0] && txnNum < txnHistoryAsc.length) {
-        runningBalance +=
-          txnHistoryAsc[txnNum].action === BuySellAction.Buy
-            ? txnHistoryAsc[txnNum].amountCoin
-            : -txnHistoryAsc[txnNum].amountCoin
-        txnNum++
-        if (txnNum < txnHistoryAsc.length)
-          txnDate = new Date(txnHistoryAsc[txnNum].timestamp).getTime()
+        const txn = txnHistoryAsc[txnNum++]
+        if (!txn) continue
+        runningBalance += txn.action === BuySellAction.Buy ? txn.amountCoin : -txn.amountCoin
+        if (txnNum < txnHistoryAsc.length) txnDate = new Date(txn.timestamp).getTime()
       }
       return [price[0], runningBalance * price[1]]
     })
@@ -135,7 +140,7 @@ const Details: NextPage = () => {
             </div>
             {accountInfo ? (
               <button
-                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2 w-[75px]`}
+                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2 w-[75px]"
                 onClick={() => {
                   openBuyModal({ value: coinDetails.id, label: coinDetails.name })
                 }}
@@ -145,7 +150,7 @@ const Details: NextPage = () => {
             ) : null}
             {holding?.amount ? (
               <button
-                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2  w-[75px]`}
+                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 grow max-w-xs mx-2  w-[75px]"
                 onClick={() => {
                   openSellModal({ value: coinDetails.id, label: coinDetails.name })
                 }}
@@ -326,14 +331,12 @@ const Details: NextPage = () => {
                 __html: stripHtmlTags(coinDetails.description.en),
               }}
             />
-            {coinDetails.links?.homepage?.length && (
-              <p className="mt-5">
-                <Link href={coinDetails.links.homepage[0]} passHref>
-                  <a className="text-blue-500" target="_blank" rel="noreferrer">
-                    Official Website
-                  </a>
-                </Link>
-              </p>
+            {coinHomepage && (
+              <Link href={coinHomepage} passHref>
+                <a className="text-blue-500 mt-5" target="_blank" rel="noreferrer">
+                  Official Website
+                </a>
+              </Link>
             )}
           </section>
         </>

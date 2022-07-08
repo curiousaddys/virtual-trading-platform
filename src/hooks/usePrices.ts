@@ -1,8 +1,9 @@
 import ky from 'ky'
-import useSWR from 'swr'
-import { ONE_MINUTE_MS } from '../utils/constants'
 import React, { useContext } from 'react'
-import { Price } from '../pages/api/prices'
+import useSWR from 'swr'
+
+import type { Price } from '../pages/api/prices'
+import { ONE_MINUTE_MS } from '../utils/constants'
 
 const fetchPrices = async (): Promise<Price[]> => {
   return await ky.get('/api/prices').json<Price[]>()
@@ -20,11 +21,7 @@ export const usePrices = () => {
   }
 }
 
-export const PricesContext = React.createContext<{
-  prices: Price[]
-  pricesLoading: boolean
-  pricesError: any
-}>({
+export const PricesContext = React.createContext<ReturnType<typeof usePrices>>({
   prices: [] as Price[],
   pricesLoading: false,
   pricesError: null,

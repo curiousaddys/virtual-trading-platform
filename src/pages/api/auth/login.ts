@@ -1,13 +1,14 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { ethers } from 'ethers'
 import { SIGNATURE_TEXT } from '../../../utils/constants'
 import { z } from 'zod'
 import { sessionOptions } from '../../../utils/config'
 import { findOrInsertAccount } from '../../../db/accounts'
-import { ErrResp, getErrorDetails } from '../../../utils/errors'
+import type { ErrResp } from '../../../utils/errors'
+import { getErrorDetails } from '../../../utils/errors'
 import { findOrInsertPortfolio } from '../../../db/portfolios'
-import { AccountWithPortfolio } from '../account'
+import type { AccountWithPortfolio } from '../account'
 
 const QuerySchema = z.object({
   address: z.string().nonempty(),

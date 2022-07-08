@@ -1,10 +1,12 @@
-import { Modal, ModalProps } from './common/Modal'
-import React, { FormEventHandler, useState } from 'react'
+import type { ModalProps } from './common/Modal'
+import { Modal } from './common/Modal'
+import type { FormEventHandler } from 'react'
+import React, { useState } from 'react'
 import { useAccountContext } from '../hooks/useAccount'
 import { toast } from 'react-toastify'
 import ky from 'ky'
-import { AccountWithPortfolio } from '../pages/api/account'
-import { ErrResp } from '../utils/errors'
+import type { AccountWithPortfolio } from '../pages/api/account'
+import type { ErrResp } from '../utils/errors'
 import Image from 'next/image'
 
 export const WelcomeModal: React.VFC<ModalProps> = (props) => {

@@ -1,4 +1,4 @@
-import { NextApiRequest } from 'next'
+import type { NextApiRequest } from 'next'
 import { config } from './config'
 import { ObjectId } from 'mongodb'
 

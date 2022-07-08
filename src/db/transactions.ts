@@ -1,4 +1,4 @@
-import { ClientSession, ObjectId } from 'mongodb'
+import type { ClientSession, ObjectId } from 'mongodb'
 import { getMongoDB } from './client'
 
 export const TRANSACTIONS_COLLECTION = 'transactions'

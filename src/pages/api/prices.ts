@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchMarketData, GeckoPrices } from '../../api/CoinGecko/markets'
-import { ErrResp, getErrorDetails } from '../../utils/errors'
+import type { GeckoPrices } from '../../api/CoinGecko/markets'
+import { fetchMarketData } from '../../api/CoinGecko/markets'
+import type { ErrResp } from '../../utils/errors'
+import { getErrorDetails } from '../../utils/errors'
 
 export type Price = Pick<
   GeckoPrices,
@@ -57,7 +59,7 @@ export default async function handler(
     const filteredData = filterPrices(data).concat(USDollars)
     res.setHeader('Cache-Control', 's-maxage=60')
     res.status(200).json(filteredData)
-  } catch (err: any) {
+  } catch (err) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })
   }

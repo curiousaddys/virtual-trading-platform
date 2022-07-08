@@ -1,9 +1,11 @@
 import { withIronSessionApiRoute } from 'iron-session/next'
-import { sessionOptions } from '../../../utils/config'
-import { NextApiRequest, NextApiResponse } from 'next'
-import { findPortfoliosByAccount, Portfolio } from '../../../db/portfolios'
-import { ErrResp, getErrorDetails } from '../../../utils/errors'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import type { Portfolio } from '../../../db/portfolios'
+import { findPortfoliosByAccount } from '../../../db/portfolios'
 import { auth } from '../../../utils/auth'
+import { sessionOptions } from '../../../utils/config'
+import type { ErrResp } from '../../../utils/errors'
+import { getErrorDetails } from '../../../utils/errors'
 
 export default withIronSessionApiRoute(handler, sessionOptions)
 
@@ -16,7 +18,7 @@ async function handler(
     const { _id } = auth(req)
     const portfolios = await findPortfoliosByAccount(_id)
     return res.status(200).json(portfolios)
-  } catch (err: any) {
+  } catch (err) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })
   }

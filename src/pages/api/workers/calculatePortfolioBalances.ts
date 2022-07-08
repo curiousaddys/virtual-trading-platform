@@ -1,19 +1,20 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import dayjs from 'dayjs'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { z } from 'zod'
 import { fetchMarketData } from '../../../api/CoinGecko/markets'
+import type { PortfolioBalance } from '../../../db/portfolioHistory'
 import {
   getPortfolioHistoryDailyCollection,
   getPortfolioHistoryEveryFiveMinCollection,
   getPortfolioHistoryHourlyCollection,
   insertMinutelyPortfolioHistory,
   persistPortfolioBalances,
-  PortfolioBalance,
 } from '../../../db/portfolioHistory'
-import { getErrorDetails } from '../../../utils/errors'
-import dayjs from 'dayjs'
-import { Timer } from '../../../utils/timer'
-import { z } from 'zod'
+import type { Holding } from '../../../db/portfolios'
+import { findAllPortfolios } from '../../../db/portfolios'
 import { cloudflareWorkerAuth } from '../../../utils/auth'
-import { findAllPortfolios, Holding } from '../../../db/portfolios'
+import { getErrorDetails } from '../../../utils/errors'
+import { Timer } from '../../../utils/timer'
 
 type WorkerAPIResponse = { status: 'ok' } | { status: 'error'; error: string }
 
@@ -94,7 +95,7 @@ export default async function handler(
     }
 
     return res.status(200).json({ status: 'ok' })
-  } catch (err: any) {
+  } catch (err) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ status: 'error', error: message })
   }

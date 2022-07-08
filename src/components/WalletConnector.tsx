@@ -1,13 +1,14 @@
 import { useWeb3React } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import React, { useEffect, useState } from 'react'
-import { SIGNATURE_TEXT } from '../utils/constants'
 import { useAccountContext } from '../hooks/useAccount'
+import { SIGNATURE_TEXT } from '../utils/constants'
 
 // TODO: Add connector for WalletConnect instead of only allowing MetaMask.
 const injected = new InjectedConnector({})
 
-export const isEthereumObjectOnWindow = (): boolean => !!(window as any)?.ethereum
+export const isEthereumObjectOnWindow = (): boolean =>
+  typeof window !== 'undefined' && !!(window as { ethereum?: unknown }).ethereum
 
 export const WalletConnector: React.VFC = () => {
   const { account, library, activate, deactivate } = useWeb3React()

@@ -1,4 +1,4 @@
-import { IronSessionOptions } from 'iron-session'
+import type { IronSessionOptions } from 'iron-session'
 import { IRON_SESSION_COOKIE } from './constants'
 
 // TODO(jh): The error should specify *all* that are missing instead of just the first one.

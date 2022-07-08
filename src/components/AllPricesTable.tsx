@@ -1,13 +1,14 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Cell, Row, Table, TableHeader } from './common/Table'
-import { useAccountContext } from '../hooks/useAccount'
-import { usePricesContext } from '../hooks/usePrices'
 import Image from 'next/image'
-import { formatUSD } from '../utils/format'
-import { PrettyPercent } from './common/PrettyPercent'
-import { Price } from '../pages/api/prices'
+import React, { useCallback, useMemo, useState } from 'react'
+import { useAccountContext } from '../hooks/useAccount'
 import { useBuySellModalContext } from '../hooks/useBuySellModal'
+import { usePricesContext } from '../hooks/usePrices'
+import type { Price } from '../pages/api/prices'
+import { formatUSD } from '../utils/format'
 import { DateRangePicker, DateRangeValue } from './common/DateRangePicker'
+import { PrettyPercent } from './common/PrettyPercent'
+import type { TableHeader } from './common/Table'
+import { Cell, Row, Table } from './common/Table'
 
 const PeriodAccessors = {
   [DateRangeValue.Hour]: { accessor: 'price_change_percentage_1h_in_currency', label: '1 hr' },
@@ -45,8 +46,9 @@ export const AllPricesTable: React.VFC = () => {
   )
 
   const renderTableRow = useCallback(
-    (coin: Price, period: DateRangeValue, userIsLoggedIn: boolean) =>
-      coin.id === 'USD' ? null : (
+    (coin: Price, period: DateRangeValue, userIsLoggedIn: boolean) => {
+      const percentChange = coin[PeriodAccessors[period].accessor]
+      return coin.id === 'USD' ? null : (
         <Row key={coin.id}>
           {/*Image*/}
           <Cell
@@ -70,20 +72,12 @@ export const AllPricesTable: React.VFC = () => {
           <Cell alignRight>
             {formatUSD(coin.current_price)}
             <div className="md:hidden w-100">
-              {coin[PeriodAccessors[period].accessor] ? (
-                <PrettyPercent value={coin[PeriodAccessors[period].accessor]!} />
-              ) : (
-                'N/A'
-              )}
+              {percentChange ? <PrettyPercent value={percentChange} /> : 'N/A'}
             </div>
           </Cell>
           {/*% change*/}
           <Cell alignRight hideOnMobile>
-            {coin[PeriodAccessors[period].accessor] ? (
-              <PrettyPercent value={coin[PeriodAccessors[period].accessor]!} />
-            ) : (
-              'N/A'
-            )}
+            {percentChange ? <PrettyPercent value={percentChange} /> : 'N/A'}
           </Cell>
           {/*Volume*/}
           <Cell alignRight hideOnMobile>
@@ -94,7 +88,7 @@ export const AllPricesTable: React.VFC = () => {
           <Cell alignRight narrow>
             {userIsLoggedIn ? (
               <button
-                className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 w-[75px]`}
+                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 w-[75px]"
                 onClick={() => {
                   openBuyModal({ value: coin.id, label: coin.name })
                 }}
@@ -104,7 +98,8 @@ export const AllPricesTable: React.VFC = () => {
             ) : null}
           </Cell>
         </Row>
-      ),
+      )
+    },
     [openBuyModal]
   )
 

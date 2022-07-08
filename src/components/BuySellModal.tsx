@@ -1,19 +1,21 @@
-import { FormEventHandler, useEffect, useState, FormEvent } from 'react'
-import Select, { SingleValue } from 'react-select'
-import { formatFloat, formatUSD } from '../utils/format'
-import { useAccountContext } from '../hooks/useAccount'
-import ky from 'ky'
-import React from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import ky from 'ky'
+import type { FormEvent, FormEventHandler } from 'react'
+import React, { useEffect, useState } from 'react'
+import type { SingleValue } from 'react-select'
+import Select from 'react-select'
 import { toast } from 'react-toastify'
-import { Portfolio } from '../db/portfolios'
+import type { Portfolio } from '../db/portfolios'
+import { useAccountContext } from '../hooks/useAccount'
+import type { CurrencyOption } from '../hooks/useBuySellModal'
+import { useBuySellModalContext } from '../hooks/useBuySellModal'
 import { usePricesContext } from '../hooks/usePrices'
-import { ErrResp } from '../utils/errors'
+import type { Price } from '../pages/api/prices'
+import type { ErrResp } from '../utils/errors'
+import { formatFloat, formatUSD } from '../utils/format'
 import { FloatInput } from './common/FloatInput'
-import { Price } from '../pages/api/prices'
 import { Modal } from './common/Modal'
-import { CurrencyOption, useBuySellModalContext } from '../hooks/useBuySellModal'
 
 enum TransactionState {
   Pending = 'pending',
@@ -69,7 +71,7 @@ export const BuySellModal: React.VFC = () => {
   // Get current coin data whenever selected currency changes or prices update.
   useEffect(() => {
     if (!prices || !currency) return
-    const coin = prices.find((price) => price.id === currency.value)!
+    const coin = prices.find((price) => price.id === currency.value) ?? null
     setCoinPriceData(coin)
   }, [currency, prices])
 
@@ -112,7 +114,7 @@ export const BuySellModal: React.VFC = () => {
       .json<Portfolio>()
       .then((portfolio) => {
         setTransactionStatus(TransactionState.Success)
-        setAccountInfo((prev) => ({ ...prev!, portfolio }))
+        setAccountInfo((prev) => (prev ? { ...prev, portfolio } : prev))
       })
       .catch((err) => {
         err.response.json().then((errResp: ErrResp) => {

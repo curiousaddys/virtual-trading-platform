@@ -45,22 +45,14 @@ export const useBuySellModal = () => {
   }
 }
 
-export const BuySellModalContext = React.createContext<{
-  isOpen: boolean
-  hideModal: () => void
-  action: string
-  currency: CurrencyOption
-  setCurrency: (currency: CurrencyOption) => void
-  openBuyModal: (currency: CurrencyOption) => void
-  openSellModal: (currency: CurrencyOption) => void
-}>({
+export const BuySellModalContext = React.createContext<ReturnType<typeof useBuySellModal>>({
   isOpen: false,
-  hideModal: () => {},
-  action: '',
+  hideModal: () => void undefined,
+  action: BuySellAction.Buy,
   currency: DEFAULT_CURRENCY_OPTION,
-  setCurrency: (currency) => {},
-  openBuyModal: (currency) => {},
-  openSellModal: (currency) => {},
+  setCurrency: () => void undefined,
+  openBuyModal: () => void undefined,
+  openSellModal: () => void undefined,
 })
 
 export const useBuySellModalContext = () => useContext(BuySellModalContext)

@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction, useMemo } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
+import React, { useMemo } from 'react'
 import dayjs from 'dayjs'
 
 export enum DateRangeValue {

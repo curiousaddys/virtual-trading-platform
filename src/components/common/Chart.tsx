@@ -1,16 +1,20 @@
-import { DateRangePicker, DateRangeValue } from './DateRangePicker'
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import dayjs from 'dayjs'
-import { formatUSD } from '../../utils/format'
 import React, { useEffect, useMemo, useState } from 'react'
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { formatUSD } from '../../utils/format'
+import { DateRangePicker, DateRangeValue } from './DateRangePicker'
 
 const formatUnixTimestampSingleDay = (t: number) => dayjs.unix(t / 1000).format('hh:mm A')
 const formatUnixTimestamp = (t: number) => dayjs.unix(t / 1000).format('MMM D, YYYY')
 const formatDateTimestampSingleDay = (t: number) => dayjs(t).format('hh:mm A')
 const formatDateTimestamp = (t: number) => dayjs(t).format('MMM D, YYYY')
 
+// TODO: use more specific type?
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ChartData = any
+
 interface ChartProps {
-  data: any[] // TODO: use more specific type?
+  data: ChartData[]
   dateDataKey: string
   dateIsUnixtime?: boolean
   valueDataKey: number | string

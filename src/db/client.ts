@@ -1,4 +1,5 @@
-import { Db, MongoClient } from 'mongodb'
+import type { Db } from 'mongodb'
+import { MongoClient } from 'mongodb'
 import { config } from '../utils/config'
 
 let client: MongoClient | null = null

@@ -1,22 +1,27 @@
-import React, { ReactNode, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import type { ReactNode } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ReactPaginate from 'react-paginate'
+
 import { usePagination } from '../../hooks/usePagination'
+
+// TODO: consider using generics
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TableData = any
 
 export interface TableProps {
   title?: string
   headers: TableHeader[]
-  data: any[] // TODO: consider using generics
-  renderRow: (value: any, index: number) => ReactNode
+  data: TableData[]
+  renderRow: (value: TableData, index: number) => ReactNode
   limitPerPage?: number
   filterOn?: string[]
   sortBy?: string
 }
 
-export const Table: React.VFC<TableProps> = (props) => {
-  const { setAllItems, currentItems, pageCount, pageNumber, setPageNumber } = usePagination(
-    props.limitPerPage ?? props.data.length
-  )
+export const Table = (props: TableProps) => {
+  const { setAllItems, currentItems, pageCount, pageNumber, setPageNumber } =
+    usePagination<TableData>(props.limitPerPage ?? props.data.length)
 
   // TODO: consider moving sorting & filtering to a hook
   const [filterQuery, setFilterQuery] = useState<string>('')
@@ -30,7 +35,7 @@ export const Table: React.VFC<TableProps> = (props) => {
         .filter((item) => {
           if (!props.filterOn?.length) return true
           return props.filterOn?.some((filter) =>
-            item[filter].toLowerCase().startsWith(filterQuery.toLowerCase())
+            item[filter]?.toLowerCase().startsWith(filterQuery.toLowerCase())
           )
         })
         .sort((a, b) => {

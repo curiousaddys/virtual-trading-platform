@@ -1,12 +1,13 @@
 import React, { useCallback, useMemo } from 'react'
 import { usePricesContext } from '../hooks/usePrices'
-import { Cell, Row, Table, TableHeader } from './common/Table'
+import type { TableHeader } from './common/Table'
+import { Cell, Row, Table } from './common/Table'
 import Image from 'next/image'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
 import { useAccountContext } from '../hooks/useAccount'
-import { Holding } from '../db/portfolios'
-import { Price } from '../pages/api/prices'
+import type { Holding } from '../db/portfolios'
+import type { Price } from '../pages/api/prices'
 import { useBuySellModalContext } from '../hooks/useBuySellModal'
 
 interface PortfolioTableRow {

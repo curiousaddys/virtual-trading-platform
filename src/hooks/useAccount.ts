@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react'
 import ky from 'ky'
-import { AccountWithPortfolio } from '../pages/api/account'
+import React, { useContext, useEffect, useState } from 'react'
+
+import type { AccountWithPortfolio } from '../pages/api/account'
 
 export const useAccount = () => {
   const [accountInfo, setAccountInfo] = useState<AccountWithPortfolio | null>(null)
-  const [accountError, setAccountError] = useState<any>(null)
+  const [accountError, setAccountError] = useState<unknown>(null)
   const [isLoaded, setIsLoaded] = useState<boolean>(false)
 
   const fetchAccountInfo = async () => {
@@ -53,18 +54,11 @@ export const useAccount = () => {
   }
 }
 
-export const AccountContext = React.createContext<{
-  login: (address: string, signature: string) => Promise<void>
-  logout: () => Promise<void>
-  accountInfo: AccountWithPortfolio | null
-  setAccountInfo: React.Dispatch<React.SetStateAction<AccountWithPortfolio | null>>
-  accountError: any
-  isLoaded: boolean
-}>({
-  login: async () => {},
-  logout: async () => {},
+export const AccountContext = React.createContext<ReturnType<typeof useAccount>>({
+  login: async () => void undefined,
+  logout: async () => void undefined,
   accountInfo: null,
-  setAccountInfo: () => {},
+  setAccountInfo: () => void undefined,
   accountError: null,
   isLoaded: false,
 })

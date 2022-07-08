@@ -1,5 +1,5 @@
 import { getMongoDB } from './client'
-import { ClientSession, ObjectId } from 'mongodb'
+import type { ClientSession, ObjectId } from 'mongodb'
 import { INITIAL_PORTFOLIO_FUND_AMOUNT } from '../utils/constants'
 
 export const PORTFOLIOS_COLLECTION = 'portfolios'
@@ -28,7 +28,7 @@ const getPortfoliosCollection = async () => {
 export const findOrInsertPortfolio = async (
   _id: ObjectId,
   accountID: ObjectId,
-  portfolioName: string = 'Untitled Portfolio'
+  portfolioName = 'Untitled Portfolio'
 ) => {
   const collection = await getPortfoliosCollection()
   const result = await collection.findOneAndUpdate(

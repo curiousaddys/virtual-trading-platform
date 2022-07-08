@@ -1,12 +1,14 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { findOrInsertAccount } from '../../db/accounts'
-import { auth } from '../../utils/auth'
-import { ErrResp, getErrorDetails } from '../../utils/errors'
-import { getPortfolioBalanceHistory, PortfolioBalance } from '../../db/portfolioHistory'
+import { withIronSessionApiRoute } from 'iron-session/next'
+import type { NextApiRequest, NextApiResponse } from 'next'
 import { z } from 'zod'
 import { DateRangeValue } from '../../components/common/DateRangePicker'
-import { withIronSessionApiRoute } from 'iron-session/next'
+import { findOrInsertAccount } from '../../db/accounts'
+import type { PortfolioBalance } from '../../db/portfolioHistory'
+import { getPortfolioBalanceHistory } from '../../db/portfolioHistory'
+import { auth } from '../../utils/auth'
 import { sessionOptions } from '../../utils/config'
+import type { ErrResp } from '../../utils/errors'
+import { getErrorDetails } from '../../utils/errors'
 
 const QuerySchema = z.object({
   days: z.nativeEnum(DateRangeValue).default(DateRangeValue.SevenDays),
@@ -34,7 +36,7 @@ async function handler(
     const account = await findOrInsertAccount(address)
     const results = await getPortfolioBalanceHistory(account.defaultPortfolioID, days)
     res.status(200).json(stripFields(results))
-  } catch (err: any) {
+  } catch (err) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })
   }

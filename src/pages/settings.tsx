@@ -1,15 +1,16 @@
-import { NextPage } from 'next'
-import React, { FormEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
-import { useAccountContext } from '../hooks/useAccount'
-import { toast } from 'react-toastify'
 import dayjs from 'dayjs'
 import ky from 'ky'
-import { PageWrapper } from '../components/common/PageWrapper'
-import { AccountWithPortfolio } from './api/account'
-import { usePortfolios } from '../hooks/usePortfolios'
-import { ErrResp } from '../utils/errors'
+import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
+import type { FormEventHandler } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TailSpin } from 'react-loader-spinner'
+import { toast } from 'react-toastify'
+import { PageWrapper } from '../components/common/PageWrapper'
+import { useAccountContext } from '../hooks/useAccount'
+import { usePortfolios } from '../hooks/usePortfolios'
+import type { ErrResp } from '../utils/errors'
+import type { AccountWithPortfolio } from './api/account'
 
 const Settings: NextPage = () => {
   const router = useRouter()
@@ -147,8 +148,13 @@ const Settings: NextPage = () => {
                         id="active-portfolio"
                         value={defaultPortfolioID}
                         onChange={(e) => {
-                          setDefaultPortfolioID(e.target.value)
-                          setPortfolioName(e.target.options[e.target.selectedIndex].text)
+                          const portfolio = portfolios.find(
+                            (it) => it._id.toString() === e.target.value
+                          )
+                          if (portfolio) {
+                            setDefaultPortfolioID(e.target.value)
+                            setPortfolioName(portfolio.name)
+                          }
                         }}
                         className="block shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       >

@@ -1,12 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { SUPPORTED_COINS } from '../../utils/constants'
-import { z } from 'zod'
-import { ErrResp, getErrorDetails } from '../../utils/errors'
-import { getTransactions, Transaction } from '../../db/transactions'
-import { auth } from '../../utils/auth'
 import { withIronSessionApiRoute } from 'iron-session/next'
-import { sessionOptions } from '../../utils/config'
 import { ObjectId } from 'mongodb'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { z } from 'zod'
+import type { Transaction } from '../../db/transactions'
+import { getTransactions } from '../../db/transactions'
+import { auth } from '../../utils/auth'
+import { sessionOptions } from '../../utils/config'
+import { SUPPORTED_COINS } from '../../utils/constants'
+import type { ErrResp } from '../../utils/errors'
+import { getErrorDetails } from '../../utils/errors'
 
 const QuerySchema = z.object({
   coin: z.enum(SUPPORTED_COINS),
@@ -27,7 +29,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Transaction[] |
 
     // TODO(jh): consider filtering this data (removing redundant information) to improve loading time
     res.status(200).json(data)
-  } catch (err: any) {
+  } catch (err) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })
   }

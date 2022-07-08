@@ -1,15 +1,15 @@
-import { getMongoDB } from './client'
+import dayjs from 'dayjs'
+import type { Collection, ObjectId } from 'mongodb'
+import { MongoBulkWriteError } from 'mongodb'
+import { DateRangeValue } from '../components/common/DateRangePicker'
 import {
   INITIAL_PORTFOLIO_FUND_AMOUNT,
   ONE_DAY_SEC,
   ONE_HOUR_SEC,
   THIRTY_DAYS_SEC,
 } from '../utils/constants'
-import { ObjectId } from 'mongodb'
-import { Collection } from 'mongodb'
-import dayjs from 'dayjs'
-import { DateRangeValue } from '../components/common/DateRangePicker'
 import { ACCOUNT_COLLECTION } from './accounts'
+import { getMongoDB } from './client'
 import { PORTFOLIOS_COLLECTION } from './portfolios'
 
 export const PORTFOLIO_HISTORY_MINUTELY_COLLECTION = 'portfolioHistory_minutely'
@@ -86,10 +86,10 @@ export const insertMinutelyPortfolioHistory = async (
     })
     await session.endSession()
     return result.insertedCount
-  } catch (err: any) {
+  } catch (err) {
     await session.endSession()
     // Ignore duplicate key errors since that just means we tried to insert the same data twice.
-    if (err.code === 11000) {
+    if (err instanceof MongoBulkWriteError && err.code === 11000) {
       return err.result.nInserted
     }
     // Unknown error

@@ -1,17 +1,19 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { auth } from '../../utils/auth'
-import { ErrResp, getErrorDetails } from '../../utils/errors'
-import { z } from 'zod'
-import { SUPPORTED_COINS } from '../../utils/constants'
-import { ObjectId } from 'mongodb'
-import { insertTransaction } from '../../db/transactions'
 import got from 'got'
-import { GeckoDetails } from '../../api/CoinGecko/coin'
 import { withIronSessionApiRoute } from 'iron-session/next'
-import { sessionOptions } from '../../utils/config'
-import { findPortfolioByID, Portfolio, updatePortfolioBalance } from '../../db/portfolios'
-import { getMongoDB } from '../../db/client'
+import { ObjectId } from 'mongodb'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { z } from 'zod'
+import type { GeckoDetails } from '../../api/CoinGecko/coin'
 import { BuySellAction } from '../../components/BuySellModal'
+import { getMongoDB } from '../../db/client'
+import type { Portfolio } from '../../db/portfolios'
+import { findPortfolioByID, updatePortfolioBalance } from '../../db/portfolios'
+import { insertTransaction } from '../../db/transactions'
+import { auth } from '../../utils/auth'
+import { sessionOptions } from '../../utils/config'
+import { SUPPORTED_COINS } from '../../utils/constants'
+import type { ErrResp } from '../../utils/errors'
+import { getErrorDetails } from '../../utils/errors'
 
 const QuerySchema = z.object({
   portfolioID: z
@@ -96,7 +98,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Portfolio | Err
       res.status(200).json(updatedPortfolio)
     })
     await session.endSession()
-  } catch (err: any) {
+  } catch (err) {
     const { status, message } = getErrorDetails(err)
     return res.status(status).json({ error: message })
   }

@@ -1,4 +1,4 @@
-import { ExternalProvider, JsonRpcFetchFunc } from '@ethersproject/providers'
+import type { ExternalProvider, JsonRpcFetchFunc } from '@ethersproject/providers'
 import { Web3ReactProvider } from '@web3-react/core'
 import { ethers } from 'ethers'
 import type { AppProps } from 'next/app'

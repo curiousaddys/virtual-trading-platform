@@ -1,7 +1,7 @@
 import ky from 'ky'
 import useSWR from 'swr'
 import { ONE_MINUTE_MS } from '../utils/constants'
-import { PriceHistory } from '../pages/api/price_history'
+import type { PriceHistory } from '../pages/api/price_history'
 import { DateRangeValue } from '../components/common/DateRangePicker'
 import { useState } from 'react'
 

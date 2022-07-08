@@ -1,4 +1,4 @@
-export const formatUSD = (num: number, truncateCents: boolean = false): string => {
+export const formatUSD = (num: number, truncateCents = false): string => {
   return (
     '$' +
     num.toLocaleString('en-US', {
@@ -14,7 +14,7 @@ export const formatInt = (num: number): string => {
   })
 }
 
-export const formatFloat = (num: number, maxDigits: number = 8): string => {
+export const formatFloat = (num: number, maxDigits = 8): string => {
   return num.toLocaleString('en-US', {
     maximumFractionDigits: maxDigits,
   })
@@ -30,7 +30,7 @@ export const trimToPrecision = (numberString: string, precision?: number) => {
     : numberString
 }
 
-export const formatPercent = (num: number, displaySign: boolean = true): string => {
+export const formatPercent = (num: number, displaySign = true): string => {
   return (
     num.toLocaleString('en-US', {
       minimumFractionDigits: 2,

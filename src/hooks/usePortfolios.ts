@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Portfolio } from '../db/portfolios'
-import { useAccountContext } from './useAccount'
 import ky from 'ky'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import { ErrResp } from '../utils/errors'
-
-const fetchPortfolioList = () => ky.get('/api/portfolios/list').json<Portfolio[]>()
+import type { Portfolio } from '../db/portfolios'
+import type { ErrResp } from '../utils/errors'
+import { useAccountContext } from './useAccount'
 
 export const usePortfolios = () => {
   const { accountInfo, setAccountInfo } = useAccountContext()
@@ -15,7 +13,8 @@ export const usePortfolios = () => {
   useEffect(() => {
     if (!accountInfo) return
 
-    fetchPortfolioList()
+    ky.get('/api/portfolios/list')
+      .json<Portfolio[]>()
       .then(setPortfolios)
       .catch((err) => {
         console.error(err)
@@ -24,22 +23,21 @@ export const usePortfolios = () => {
   }, [accountInfo])
 
   const createPortfolio = useCallback(
-    async (name: string = 'Untitled Portfolio'): Promise<Portfolio> => {
-      return await ky
+    (name = 'Untitled Portfolio'): Promise<Portfolio> =>
+      ky
         .post('/api/portfolios/create', { searchParams: { portfolioName: name } })
         .json<Portfolio>()
         .then((data) => {
           setPortfolios((prev) => [...prev, data])
           return data
         })
-        .catch((err) => err.response.json().then((error: ErrResp) => Promise.reject(error.error)))
-    },
+        .catch((err) => err.response.json().then((error: ErrResp) => Promise.reject(error.error))),
     []
   )
 
   const updatePortfolio = useCallback(
-    async (id: string, name: string): Promise<Portfolio> => {
-      return await ky
+    (id: string, name: string): Promise<Portfolio> =>
+      ky
         .post('/api/portfolios/update', {
           searchParams: { portfolioID: id, portfolioName: name },
         })
@@ -52,14 +50,13 @@ export const usePortfolios = () => {
           // in the account, update the portfolio in the accountInfo state too.
           setAccountInfo((prev) => {
             if (prev?.portfolio._id === data._id) {
-              return { ...prev!, portfolio: data }
+              return { ...prev, portfolio: data }
             }
             return prev
           })
           return data
         })
-        .catch((err) => err.response.json().then((error: ErrResp) => Promise.reject(error.error)))
-    },
+        .catch((err) => err.response.json().then((error: ErrResp) => Promise.reject(error.error))),
     [setAccountInfo]
   )
 
