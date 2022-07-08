@@ -1,0 +1,16 @@
+version: '3.1'
+
+name: catc-virtual-trading-platform
+
+services:
+  mongodb:
+    # mirrors the cloud deployment
+    image: mongo:5.0.6
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb-data:/data/db
+
+volumes:
+  mongodb-data: {}
