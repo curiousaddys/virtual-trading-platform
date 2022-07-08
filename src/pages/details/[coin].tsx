@@ -2,7 +2,6 @@ import dayjs from 'dayjs'
 import ky from 'ky'
 import type { NextPage } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import { TailSpin } from 'react-loader-spinner'
@@ -24,6 +23,7 @@ const Details: NextPage = () => {
   const [coin, setCoin] = useState<string>('')
   const [coinInvalid, setCoinInvalid] = useState<boolean>(false)
   const { coinDetails, coinDetailsLoading, coinDetailsError } = useCoinDetails(coin)
+  console.log(coinDetails)
   const coinHomepage = useMemo(
     () => coinDetails?.links.homepage?.[0],
     [coinDetails?.links.homepage]
@@ -325,17 +325,16 @@ const Details: NextPage = () => {
           )}
           <h2 className="text-2xl text-gray-800 font-semibold ml-1">About {coinDetails.name}</h2>
           <section className="rounded-2xl border-2 border-gray-200 p-4 bg-white mt-3">
-            <p
-              dangerouslySetInnerHTML={{
-                __html: stripHtmlTags(coinDetails.description.en),
-              }}
-            />
+            <p className="whitespace-pre-wrap">{stripHtmlTags(coinDetails.description.en)}</p>
             {coinHomepage && (
-              <Link href={coinHomepage} passHref>
-                <a className="text-blue-500 mt-5" target="_blank" rel="noreferrer">
-                  Official Website
-                </a>
-              </Link>
+              <a
+                className="block w-fit py-2 px-4 mt-5 text-lg font-bold text-white rounded-lg bg-blue-600 hover:bg-blue-800"
+                href={coinHomepage}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Official Website
+              </a>
             )}
           </section>
         </>

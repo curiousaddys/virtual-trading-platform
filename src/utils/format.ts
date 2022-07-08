@@ -45,5 +45,5 @@ export const dateStringToTimestamp = (d: string): number => {
 }
 
 export const stripHtmlTags = (s: string): string => {
-  return s.replace(/<[^>]+>/g, '').replace(/\n/g, '<br />')
+  return s.replace(/<.+?>/g, '')
 }
