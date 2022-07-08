@@ -1,11 +1,15 @@
 // useBuySellModal stores the state of the BuySellModal so that one instance of it can be used throughout the app.
 
 import React, { useCallback, useContext, useState } from 'react'
-import { BuySellAction } from '../components/BuySellModal'
 
 export interface CurrencyOption {
   value: string
   label: string
+}
+
+export enum BuySellAction {
+  Buy = 'buy',
+  Sell = 'sell',
 }
 
 const DEFAULT_CURRENCY_OPTION = {

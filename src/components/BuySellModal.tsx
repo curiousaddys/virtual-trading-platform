@@ -9,7 +9,7 @@ import { toast } from 'react-toastify'
 import type { Portfolio } from '../db/portfolios'
 import { useAccountContext } from '../hooks/useAccount'
 import type { CurrencyOption } from '../hooks/useBuySellModal'
-import { useBuySellModalContext } from '../hooks/useBuySellModal'
+import { BuySellAction, useBuySellModalContext } from '../hooks/useBuySellModal'
 import { usePricesContext } from '../hooks/usePrices'
 import type { Price } from '../pages/api/prices'
 import type { ErrResp } from '../utils/errors'
@@ -21,11 +21,6 @@ enum TransactionState {
   Pending = 'pending',
   Success = 'success',
   Failed = 'failed',
-}
-
-export enum BuySellAction {
-  Buy = 'buy',
-  Sell = 'sell',
 }
 
 export const BuySellModal: React.VFC = () => {
