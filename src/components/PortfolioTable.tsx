@@ -1,14 +1,14 @@
-import React, { useCallback, useMemo } from 'react'
-import { usePricesContext } from '../hooks/usePrices'
-import type { TableHeader } from './common/Table'
-import { Cell, Row, Table } from './common/Table'
 import Image from 'next/image'
+import React, { useCallback, useMemo } from 'react'
+import type { Holding } from '../db/portfolios'
+import { useAccountContext } from '../hooks/useAccount'
+import { useBuySellModalContext } from '../hooks/useBuySellModal'
+import { usePricesContext } from '../hooks/usePrices'
+import type { Price } from '../pages/api/prices'
 import { formatFloat, formatPercent, formatUSD } from '../utils/format'
 import { PrettyPercent } from './common/PrettyPercent'
-import { useAccountContext } from '../hooks/useAccount'
-import type { Holding } from '../db/portfolios'
-import type { Price } from '../pages/api/prices'
-import { useBuySellModalContext } from '../hooks/useBuySellModal'
+import type { TableHeader } from './common/Table'
+import { Cell, Row, Table } from './common/Table'
 
 interface PortfolioTableRow {
   id: string
@@ -121,7 +121,7 @@ export const PortfolioTable: React.VFC<PortfolioTableProps> = (props) => {
           {data.id !== 'USD' ? (
             // <BuySellModal currency={{ value: data.id, label: data.name }} action={BuySellAction.Sell} />
             <button
-              className={`px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 w-[75px]`}
+              className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 w-[75px]"
               onClick={() => {
                 openSellModal({ value: data.id, label: data.name })
               }}
