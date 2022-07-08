@@ -2,7 +2,6 @@ lockfileVersion: 5.4
 
 specifiers:
   '@babel/core': ^7.16.7
-  '@builder.io/partytown': ^0.5.1
   '@ethersproject/providers': ^5.5.2
   '@fortawesome/fontawesome-svg-core': ^1.2.36
   '@fortawesome/free-brands-svg-icons': ^5.15.4
@@ -48,7 +47,6 @@ specifiers:
   zod: ^3.11.6
 
 dependencies:
-  '@builder.io/partytown': 0.5.1
   '@ethersproject/providers': 5.5.2
   '@fortawesome/fontawesome-svg-core': 1.2.36
   '@fortawesome/free-brands-svg-icons': 5.15.4
@@ -287,11 +285,6 @@ packages:
     dependencies:
       '@babel/helper-validator-identifier': 7.16.7
       to-fast-properties: 2.0.0
-
-  /@builder.io/partytown/0.5.1:
-    resolution: {integrity: sha512-Qs1CrHTT/I1xeNlPn6+KSxhQhvcJKv2mZhesLfEeEftRbCWb3TdXIghNNIxrnAmD7Sivdp8dSOGEAcM8BLybDA==}
-    hasBin: true
-    dev: false
 
   /@emotion/cache/11.7.1:
     resolution: {integrity: sha512-r65Zy4Iljb8oyjtLeCuBH8Qjiy107dOYC6SJq7g7GV5UCQWMObY4SJDPGFjiiVpPrOJ2hmJOoBiYTC7hwx9E2A==}

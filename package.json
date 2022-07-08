@@ -13,7 +13,6 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@builder.io/partytown": "^0.5.1",
     "@ethersproject/providers": "^5.5.2",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
