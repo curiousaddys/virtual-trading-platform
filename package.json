@@ -5,8 +5,10 @@
     "dev": "next dev",
     "build": "partytown copylib public/~partytown && next build",
     "start": "next start",
-    "lint": "next lint",
-    "fmt": "npx prettier --write ."
+    "lint": "eslint --ext .ts,.tsx src",
+    "lint:fix": "eslint --fix --ext .ts,.tsx src",
+    "format": "npx prettier --check .",
+    "format:fix": "npx prettier --write ."
   },
   "dependencies": {
     "@builder.io/partytown": "^0.5.1",
