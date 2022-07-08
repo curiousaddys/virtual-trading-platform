@@ -3,16 +3,18 @@ import { Web3ReactProvider } from '@web3-react/core'
 import { ethers } from 'ethers'
 import type { AppProps } from 'next/app'
 import Script from 'next/script'
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
 import { ToastContainer } from 'react-toastify'
+
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
 import 'react-toastify/dist/ReactToastify.css'
+import '../../styles/globals.css'
+
 import { BuySellModal } from '../components/BuySellModal'
 import { MetaTags } from '../components/MetaTags'
 import { Navbar } from '../components/Navbar'
 import { AccountContext, useAccount } from '../hooks/useAccount'
 import { BuySellModalContext, useBuySellModal } from '../hooks/useBuySellModal'
 import { PricesContext, usePrices } from '../hooks/usePrices'
-import '../styles/globals.css'
 import { TEN_SEC_MS } from '../utils/constants'
 
 function getLibrary(provider: ExternalProvider | JsonRpcFetchFunc) {

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { ErrResp, getErrorDetails } from '../../utils/errors'
 import { fetchMarketData, GeckoPrices } from '../../api/CoinGecko/markets'
+import { ErrResp, getErrorDetails } from '../../utils/errors'
 
 export type Price = Pick<
   GeckoPrices,
@@ -19,35 +19,19 @@ export type Price = Pick<
 
 // Strips away all the fields we don't actually use to reduce load time.
 const filterPrices = (data: GeckoPrices[]): Price[] => {
-  return data.map((price) => {
-    const {
-      id,
-      symbol,
-      name,
-      current_price,
-      price_change_percentage_1h_in_currency,
-      price_change_percentage_24h_in_currency,
-      price_change_percentage_7d_in_currency,
-      price_change_percentage_30d_in_currency,
-      price_change_percentage_1y_in_currency,
-      image,
-      total_volume,
-      ...other
-    } = price
-    return {
-      id,
-      symbol,
-      name,
-      current_price,
-      price_change_percentage_1h_in_currency,
-      price_change_percentage_24h_in_currency,
-      price_change_percentage_7d_in_currency,
-      price_change_percentage_30d_in_currency,
-      price_change_percentage_1y_in_currency,
-      image,
-      total_volume,
-    }
-  })
+  return data.map((price) => ({
+    id: price.id,
+    symbol: price.symbol,
+    name: price.name,
+    current_price: price.current_price,
+    price_change_percentage_1h_in_currency: price.price_change_percentage_1h_in_currency,
+    price_change_percentage_24h_in_currency: price.price_change_percentage_24h_in_currency,
+    price_change_percentage_7d_in_currency: price.price_change_percentage_7d_in_currency,
+    price_change_percentage_30d_in_currency: price.price_change_percentage_30d_in_currency,
+    price_change_percentage_1y_in_currency: price.price_change_percentage_1y_in_currency,
+    image: price.image,
+    total_volume: price.total_volume,
+  }))
 }
 
 const USDollars = {
@@ -65,7 +49,7 @@ const USDollars = {
 }
 
 export default async function handler(
-  req: NextApiRequest,
+  _req: NextApiRequest,
   res: NextApiResponse<Price[] | ErrResp>
 ) {
   try {
