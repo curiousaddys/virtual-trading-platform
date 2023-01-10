@@ -11,6 +11,7 @@ specifiers:
   '@types/node': 17.0.2
   '@types/react': 17.0.37
   '@types/react-window': ^1.8.5
+  '@types/request-ip': ^0.0.37
   '@typescript-eslint/eslint-plugin': ^5.9.1
   '@typescript-eslint/parser': ^5.9.1
   '@web3-react/core': ^6.1.9
@@ -41,6 +42,7 @@ specifiers:
   react-select: ^5.2.1
   react-toastify: ^8.1.0
   recharts: ^2.1.8
+  request-ip: ^3.3.0
   swr: ^1.1.2
   tailwindcss: ^3.0.13
   typescript: 4.7.4
@@ -71,6 +73,7 @@ dependencies:
   react-select: 5.2.1_po6onbh4zpex4hfb3vysefj4ku
   react-toastify: 8.1.0_sfoxds7t5ydpegc3knd667wn6m
   recharts: 2.1.8_oxfzelaz5ynxsop2v2nu2h2m64
+  request-ip: 3.3.0
   swr: 1.1.2_react@17.0.2
   zod: 3.11.6
 
@@ -79,6 +82,7 @@ devDependencies:
   '@types/bad-words': 3.0.1
   '@types/node': 17.0.2
   '@types/react': 17.0.37
+  '@types/request-ip': 0.0.37
   '@typescript-eslint/eslint-plugin': 5.9.1_wxf5qtcxkh5rvmxp3yyrebgfl4
   '@typescript-eslint/parser': 5.9.1_2x3igi4bdusbwqajbt2vifbxx4
   autoprefixer: 10.4.2_postcss@8.4.5
@@ -1097,6 +1101,12 @@ packages:
       '@types/prop-types': 15.7.4
       '@types/scheduler': 0.16.2
       csstype: 3.0.10
+
+  /@types/request-ip/0.0.37:
+    resolution: {integrity: sha512-uw6/i3rQnpznxD7LtLaeuZytLhKZK6bRoTS6XVJlwxIOoOpEBU7bgKoVXDNtOg4Xl6riUKHa9bjMVrL6ESqYlQ==}
+    dependencies:
+      '@types/node': 17.0.2
+    dev: true
 
   /@types/resize-observer-browser/0.1.6:
     resolution: {integrity: sha512-61IfTac0s9jvNtBCpyo86QeaN8qqpMGHdK0uGKCCIy2dt5/Yk84VduHIdWAcmkC5QvdkPL0p5eWYgUZtHKKUVg==}
@@ -3920,6 +3930,10 @@ packages:
     resolution: {integrity: sha512-pq2bWo9mVD43nbts2wGv17XLiNLya+GklZ8kaDLV2Z08gDCsGpnKn9BFMepvWuHCbyVvY7J5o5+BVvoQbmlJLg==}
     engines: {node: '>=8'}
     dev: true
+
+  /request-ip/3.3.0:
+    resolution: {integrity: sha512-cA6Xh6e0fDBBBwH77SLJaJPBmD3nWVAcF9/XAcsrIHdjhFzFiB5aNQFytdjCGPezU3ROwrR11IddKAM08vohxA==}
+    dev: false
 
   /resize-observer-polyfill/1.5.1:
     resolution: {integrity: sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==}
